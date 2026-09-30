@@ -25,7 +25,7 @@ npm run preview    # ビルド結果の確認
 ```bash
 npm run lint       # oxlint
 npm run typecheck  # tsc
-npm test           # vitest
+npm test           # vitest（ユニット + DOM操作の統合テスト）
 ```
 
 ## 公開（GitHub Pages）

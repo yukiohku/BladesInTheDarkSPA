@@ -4,12 +4,22 @@ import type {
   Clock,
   Crew,
   CrewMember,
+  OfficialFriend,
+  OfficialSheet,
+  PlanningSlot,
   Weapon,
 } from '../types/character'
 import type { AttributeKey } from '../types/character'
 import type { ChangeDraft } from '../types/changelog'
 import { createDefaultCharacter } from '../constants/defaults'
 import { ATTRIBUTE_MAX } from '../constants/labels'
+import {
+  COIN_MAX,
+  HARM_MAX,
+  HEALING_CLOCK_SEGMENTS,
+  RATING_MAX,
+  XP_TRACK_MAX,
+} from '../constants/playbooks'
 import { applyChange, clamp, revertChange } from '../lib/changelog'
 import { createId, nowIso } from '../lib/id'
 
@@ -34,6 +44,8 @@ export type NumberField =
   | 'armor'
   | 'armorEffect'
   | 'harm'
+
+export type RatingGroup = 'insight' | 'prowess' | 'resolve'
 
 export type Action =
   | { type: 'replace'; character: Character }
@@ -64,6 +76,32 @@ export type Action =
   | { type: 'crew.patch'; patch: Partial<Crew> }
   | { type: 'change.apply'; draft: ChangeDraft }
   | { type: 'change.revert'; entryId: string }
+  | { type: 'official.patch'; patch: Partial<OfficialSheet> }
+  | { type: 'official.text'; field: 'crewName' | 'alias' | 'look'; value: string }
+  | { type: 'official.harmLevel'; value: number }
+  | { type: 'official.harmNote'; level: number; value: string }
+  | { type: 'official.healing'; value: number }
+  | { type: 'official.armorUse'; kind: 'armor' | 'heavy' | 'special' }
+  | { type: 'official.toggle'; bucket: CheckBucket; id: string }
+  | { type: 'official.stash'; value: number }
+  | { type: 'official.coin'; value: number }
+  | {
+      type: 'official.extraTrack'
+      index: number
+      patch: { label?: string; check?: boolean; filled?: number }
+    }
+  | { type: 'official.xp'; group: 'playbook' | RatingGroup; value: number }
+  | { type: 'official.rating'; group: RatingGroup; id: string; value: number }
+  | { type: 'official.ability'; value: string }
+  | { type: 'official.veteran'; index: number; value: string }
+  | { type: 'official.friend.add' }
+  | { type: 'official.friend.patch'; id: string; patch: Partial<OfficialFriend> }
+  | { type: 'official.friend.remove'; id: string }
+  | { type: 'official.planning'; id: string; patch: Partial<PlanningSlot> }
+  | { type: 'official.gather'; index: number; value: string }
+
+export type CheckBucket = 'heritageIds' | 'backgroundIds' | 'viceIds' | 'traumaIds'
+  | 'generalItems' | 'playbookItems' | 'teamwork'
 
 function touch(character: Character): Character {
   return { ...character, updatedAt: nowIso() }
@@ -267,5 +305,198 @@ export function characterReducer(character: Character, action: Action): Characte
 
     case 'change.revert':
       return revertChange(character, action.entryId)
+
+    case 'official.patch':
+      return touch({ ...character, official: { ...character.official, ...action.patch } })
+
+    case 'official.text':
+      return touch({ ...character, official: { ...character.official, [action.field]: action.value } })
+
+    case 'official.harmLevel':
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          harmLevel: Math.round(clamp(action.value, 0, HARM_MAX)),
+        },
+      })
+
+    case 'official.harmNote':
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          harmNotes: { ...character.official.harmNotes, [String(action.level)]: action.value },
+        },
+      })
+
+    case 'official.healing':
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          healingFilled: Math.round(clamp(action.value, 0, HEALING_CLOCK_SEGMENTS)),
+        },
+      })
+
+    case 'official.armorUse': {
+      const uses = character.official.armorUses
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          armorUses: { ...uses, [action.kind]: !uses[action.kind] },
+        },
+      })
+    }
+
+    case 'official.toggle':
+      return toggleInBucket(character, action.bucket, action.id)
+
+    case 'official.stash':
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          stash: Math.round(clamp(action.value, 0, COIN_MAX)),
+        },
+      })
+
+    case 'official.coin':
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          coin: Math.round(clamp(action.value, 0, COIN_MAX)),
+        },
+      })
+
+    case 'official.extraTrack': {
+      const official = character.official
+      const labels = [...official.extraTrackLabels] as [string, string]
+      const checks = [...official.extraTrackChecks] as [boolean, boolean]
+      const filled = [...official.extraTrackFilled] as [number, number]
+      if (action.index !== 0 && action.index !== 1) return character
+      if (action.patch.label !== undefined) labels[action.index] = action.patch.label
+      if (action.patch.check !== undefined) checks[action.index] = action.patch.check
+      if (action.patch.filled !== undefined) {
+        filled[action.index] = Math.round(clamp(action.patch.filled, 0, COIN_MAX))
+      }
+      return touch({
+        ...character,
+        official: { ...official, extraTrackLabels: labels, extraTrackChecks: checks, extraTrackFilled: filled },
+      })
+    }
+
+    case 'official.xp': {
+      const key = `${action.group}Xp` as 'playbookXp' | 'insightXp' | 'prowessXp' | 'resolveXp'
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          [key]: Math.round(clamp(action.value, 0, XP_TRACK_MAX)),
+        },
+      })
+    }
+
+    case 'official.rating': {
+      const key = `${action.group}.${action.id}`
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          ratings: {
+            ...character.official.ratings,
+            [key]: Math.round(clamp(action.value, 0, RATING_MAX)),
+          },
+        },
+      })
+    }
+
+    case 'official.ability':
+      return touch({ ...character, official: { ...character.official, abilityId: action.value } })
+
+    case 'official.veteran': {
+      const slots = [...character.official.veteranSlots]
+      if (action.index < 0 || action.index >= slots.length) return character
+      slots[action.index] = action.value
+      return touch({ ...character, official: { ...character.official, veteranSlots: slots } })
+    }
+
+    case 'official.friend.add':
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          friends: [
+            ...character.official.friends,
+            { id: createId('friend'), name: '', up: false, down: false },
+          ],
+        },
+      })
+
+    case 'official.friend.patch':
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          friends: patchList(character.official.friends, action.id, action.patch),
+        },
+      })
+
+    case 'official.friend.remove':
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          friends: character.official.friends.filter((friend) => friend.id !== action.id),
+        },
+      })
+
+    case 'official.planning': {
+      const existing: PlanningSlot = character.official.planning[action.id] ?? {
+        detail: '',
+        load: '',
+      }
+      return touch({
+        ...character,
+        official: {
+          ...character.official,
+          planning: { ...character.official.planning, [action.id]: { ...existing, ...action.patch } },
+        },
+      })
+    }
+
+    case 'official.gather': {
+      const answers = [...character.official.gatherInfo]
+      if (action.index < 0 || action.index >= answers.length) return character
+      answers[action.index] = action.value
+      return touch({
+        ...character,
+        official: { ...character.official, gatherInfo: answers },
+      })
+    }
   }
+}
+
+const LIST_BUCKETS: CheckBucket[] = ['heritageIds', 'backgroundIds', 'viceIds', 'traumaIds']
+
+/**
+ * リスト選択は複数可、アイテムや協力は真偽値のトグル。
+ * どちらも「同じ id を押すたびに有無を切り替える」挙動に統一しています。
+ */
+function toggleInBucket(character: Character, bucket: CheckBucket, id: string): Character {
+  const official = character.official
+
+  if (LIST_BUCKETS.includes(bucket)) {
+    const current = official[bucket] as string[]
+    const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id]
+    return touch({ ...character, official: { ...official, [bucket]: next } })
+  }
+
+  const current = official[bucket] as Record<string, boolean>
+  return touch({
+    ...character,
+    official: { ...official, [bucket]: { ...current, [id]: !current[id] } },
+  })
 }

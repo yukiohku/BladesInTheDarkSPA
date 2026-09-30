@@ -5,12 +5,24 @@ import type {
   Clock,
   Crew,
   CrewMember,
+  OfficialSheet,
+  PlanningSlot,
   Weapon,
 } from '../types/character'
 import type { ChangeEntry, ChangeOperation, ResourceKey } from '../types/changelog'
 import { SCHEMA_VERSION } from '../types/character'
-import { createDefaultCharacter } from '../constants/defaults'
+import { createDefaultCharacter, defaultOfficial } from '../constants/defaults'
 import { ATTRIBUTE_MAX, ATTRIBUTE_ORDER, VALIDATION } from '../constants/labels'
+import {
+  COIN_MAX,
+  HARM_MAX,
+  HARM_ROWS,
+  HEALING_CLOCK_SEGMENTS,
+  PLAYBOOKS,
+  RATING_MAX,
+  VETERAN_SLOTS,
+  XP_TRACK_MAX,
+} from '../constants/playbooks'
 import { createId, nowIso } from './id'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -159,6 +171,138 @@ function asCrew(value: unknown): Crew {
   }
 }
 
+function asBooleanMap(value: unknown, keys: string[]): Record<string, boolean> {
+  const source = isRecord(value) ? value : {}
+  const result: Record<string, boolean> = {}
+  for (const key of keys) result[key] = asBoolean(source[key])
+  return result
+}
+
+function asNumberMap(value: unknown, max: number): Record<string, number> {
+  const source = isRecord(value) ? value : {}
+  const result: Record<string, number> = {}
+  for (const [key, raw] of Object.entries(source)) {
+    if (typeof raw === 'number') result[key] = Math.round(clampValue(raw, 0, max))
+  }
+  return result
+}
+
+function clampValue(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
+
+function asBoolPair(value: unknown): [boolean, boolean] {
+  if (!Array.isArray(value)) return [false, false]
+  return [asBoolean(value[0]), asBoolean(value[1])]
+}
+
+function asNumPair(value: unknown): [number, number] {
+  if (!Array.isArray(value)) return [0, 0]
+  return [
+    Math.round(clampValue(asNumber(value[0], 0), 0, COIN_MAX)),
+    Math.round(clampValue(asNumber(value[1], 0), 0, COIN_MAX)),
+  ]
+}
+
+function asStringPair(value: unknown): [string, string] {
+  if (!Array.isArray(value)) return ['', '']
+  return [asString(value[0]), asString(value[1])]
+}
+
+function asPlanning(value: unknown, ids: string[]): Record<string, PlanningSlot> {
+  const source = isRecord(value) ? value : {}
+  const result: Record<string, PlanningSlot> = {}
+  for (const id of ids) {
+    const slot = isRecord(source[id]) ? source[id] : {}
+    result[id] = { detail: asString(slot.detail), load: asString(slot.load) }
+  }
+  return result
+}
+
+function asOfficial(value: unknown): OfficialSheet {
+  const base = defaultOfficial()
+  if (!isRecord(value)) return base
+
+  const playbook = PLAYBOOKS[asString(value.playbookId, 'cutter')] ?? PLAYBOOKS.cutter
+
+  const harmNotes: Record<string, string> = {}
+  for (const row of HARM_ROWS) {
+    const raw = isRecord(value.harmNotes) ? value.harmNotes : {}
+    harmNotes[String(row.level)] = asString(raw[String(row.level)])
+  }
+
+  const armorUses = isRecord(value.armorUses) ? value.armorUses : {}
+
+  return {
+    playbookId: playbook.id,
+
+    crewName: asString(value.crewName),
+    alias: asString(value.alias),
+    look: asString(value.look),
+
+    heritageIds: asStringArray(value.heritageIds),
+    backgroundIds: asStringArray(value.backgroundIds),
+    viceIds: asStringArray(value.viceIds),
+    traumaIds: asStringArray(value.traumaIds),
+
+    harmLevel: Math.round(asNumber(value.harmLevel, 0, 0, HARM_MAX)),
+    harmNotes,
+    healingFilled: Math.round(
+      asNumber(value.healingFilled, 0, 0, HEALING_CLOCK_SEGMENTS),
+    ),
+    armorUses: {
+      armor: asBoolean(armorUses.armor),
+      heavy: asBoolean(armorUses.heavy),
+      special: asBoolean(armorUses.special),
+    },
+
+    stash: Math.round(asNumber(value.stash, 0, 0, COIN_MAX)),
+    coin: Math.round(asNumber(value.coin, 0, 0, COIN_MAX)),
+    extraTrackLabels: asStringPair(value.extraTrackLabels),
+    extraTrackChecks: asBoolPair(value.extraTrackChecks),
+    extraTrackFilled: asNumPair(value.extraTrackFilled),
+
+    playbookXp: Math.round(asNumber(value.playbookXp, 0, 0, XP_TRACK_MAX)),
+    insightXp: Math.round(asNumber(value.insightXp, 0, 0, XP_TRACK_MAX)),
+    prowessXp: Math.round(asNumber(value.prowessXp, 0, 0, XP_TRACK_MAX)),
+    resolveXp: Math.round(asNumber(value.resolveXp, 0, 0, XP_TRACK_MAX)),
+    ratings: asNumberMap(value.ratings, RATING_MAX),
+
+    abilityId: asString(value.abilityId),
+    veteranSlots: asStringArray(value.veteranSlots).slice(0, VETERAN_SLOTS),
+
+    friends: Array.isArray(value.friends)
+      ? value.friends.filter(isRecord).slice(0, 10).map((item) => ({
+          id: asString(item.id) || createId('friend'),
+          name: asString(item.name),
+          up: asBoolean(item.up),
+          down: asBoolean(item.down),
+        }))
+      : [],
+    generalItems: asBooleanMap(
+      value.generalItems,
+      playbook.itemsGeneral.map((item) => item.id),
+    ),
+    playbookItems: asBooleanMap(
+      value.playbookItems,
+      playbook.itemsPlaybook.map((item) => item.id),
+    ),
+
+    teamwork: asBooleanMap(
+      value.teamwork,
+      playbook.teamwork.map((item) => item.id),
+    ),
+    planning: asPlanning(
+      value.planning,
+      playbook.planning.map((item) => item.id),
+    ),
+    gatherInfo: (Array.isArray(value.gatherInfo) ? value.gatherInfo : [])
+      .map((item) => asString(item))
+      .slice(0, playbook.gatherInfo.length)
+      .concat(Array<string>(Math.max(0, playbook.gatherInfo.length)).fill('')),
+  }
+}
+
 export type ParseResult =
   | { ok: true; character: Character }
   | { ok: false; error: string }
@@ -191,6 +335,7 @@ export function normalizeCharacter(input: unknown): Character {
     },
 
     attributes: asAttributes(input.attributes),
+    official: asOfficial(input.official),
     drives: asChoiceList(input.drives, 3),
     heritageAbilities: asChoiceList(input.heritageAbilities, 2),
     backgroundAbilities: asChoiceList(input.backgroundAbilities, 3),

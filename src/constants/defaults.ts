@@ -1,9 +1,52 @@
-import type { ChoiceList, Character } from '../types/character'
+import type { ChoiceList, Character, OfficialSheet } from '../types/character'
 import { SCHEMA_VERSION } from '../types/character'
 import { createId, nowIso } from '../lib/id'
 
 function emptyList(count: number, label: string): ChoiceList[] {
   return Array.from({ length: count }, () => ({ id: createId('pick'), name: '', note: label }))
+}
+
+export function defaultOfficial(): OfficialSheet {
+  return {
+    playbookId: 'cutter',
+
+    crewName: '',
+    alias: '',
+    look: '',
+
+    heritageIds: [],
+    backgroundIds: [],
+    viceIds: [],
+    traumaIds: [],
+
+    harmLevel: 0,
+    harmNotes: { '1': '', '2': '', '3': '' },
+    healingFilled: 0,
+    armorUses: { armor: false, heavy: false, special: false },
+
+    stash: 0,
+    coin: 0,
+    extraTrackLabels: ['', ''],
+    extraTrackChecks: [false, false],
+    extraTrackFilled: [0, 0],
+
+    playbookXp: 0,
+    insightXp: 0,
+    prowessXp: 0,
+    resolveXp: 0,
+    ratings: {},
+
+    abilityId: '',
+    veteranSlots: ['', '', ''],
+
+    friends: [],
+    generalItems: {},
+    playbookItems: {},
+
+    teamwork: {},
+    planning: {},
+    gatherInfo: ['', '', '', '', '', '', ''],
+  }
 }
 
 export function createDefaultCharacter(): Character {
@@ -34,6 +77,7 @@ export function createDefaultCharacter(): Character {
       charm: 0,
       strange: 0,
     },
+    official: defaultOfficial(),
 
     drives: emptyList(3, '動機を記入'),
     heritageAbilities: emptyList(2, '血統の異能を記入'),

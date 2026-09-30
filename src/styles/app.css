@@ -2,13 +2,15 @@
   color-scheme: dark;
 
   /*
-    実測した結果（canvas で同一の画素になる書体をグループ化）:
-      system-ui = "Yu Gothic UI"   … 最も細く、画面では薄く見える
-      "Yu Gothic" / "Meiryo"       … 別書体で実在。Meiryo は画面でもっとも重い
-    読みやすさ優先で Yu Gothic を先頭、Meiryo を次に置く。
+    日本語:
+      游ゴシックは可読性に難がある（高DPI以外ではかすれる）ので使わない。
+      Noto Sans JP（= 源ノ角ゴシック）が本文の定石。2025年3月の Windows 更新で
+      標準搭載されたので Attitudes ローカル参照が効く。
+      BIZ UDPゴシックはユニバーサルデザイン書体で Windows 10/11 に標準搭載。
   */
   --font-ui:
-    'Yu Gothic', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', Meiryo, system-ui, sans-serif;
+    'Noto Sans JP', 'Noto Sans CJK JP', 'BIZ UDPGothic', 'Hiragino Kaku Gothic ProN',
+    'Yu Gothic', Meiryo, sans-serif;
   /*
     英語ラベル: "Arial Narrow" は Windows に無いので Arial に化けてしまう。
     実在する "Bahnschrift Condensed"（DIN 風の縦長）を使う。
@@ -19,22 +21,23 @@
   /* 大見出し（playbook 名）用 */
   --font-display: Impact, 'Arial Black', 'Franklin Gothic Heavy', Haettenschweiler, sans-serif;
 
-  --bg: #1a1613;
-  --bg-panel: #1b1815;
-  --bg-raised: #241f1b;
-  --bg-input: #100e0c;
-  --line: #3a322b;
-  --line-strong: #57493d;
+  /* 公式の装丁はモノクロに炎のオレンジ */
+  --bg: #0c0c0e;
+  --bg-panel: #151518;
+  --bg-raised: #1d1d21;
+  --bg-input: #0a0a0b;
+  --line: #292930;
+  --line-strong: #3b3b44;
 
-  --text: #ece5dc;
-  --text-dim: #a99e91;
-  --text-faint: #7d7367;
+  --text: #eceef1;
+  --text-dim: #9c9ca6;
+  --text-faint: #6b6b75;
 
-  --accent: #d4a04a;
-  --accent-soft: #4a3a1c;
-  --danger: #d1614a;
-  --danger-soft: #4a251e;
-  --ok: #6fa96f;
+  --accent: #e2622c;
+  --accent-soft: #3a1c10;
+  --danger: #d6483b;
+  --danger-soft: #3d1611;
+  --ok: #6f9a4e;
 
   --radius: 6px;
   --gap: 0.75rem;

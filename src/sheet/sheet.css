@@ -235,27 +235,31 @@
   border-color: var(--os-ink);
 }
 
-/* 特殊能力名は本文の明朝のまま太字にする。
-   大見出し用の活字（Impact など）は playbook 名に限って使う。 */
-.os-abilityname {
-  margin: 0.15rem 0 0.1rem;
-  padding-bottom: 0.1rem;
-  font-family: inherit;
-  font-size: 1.15rem;
-  font-weight: 700;
-  line-height: 1.3;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--os-ink);
-  border-bottom: 1px solid var(--os-band);
-}
-
 /* 效果文は能力的によって長さが変わるので、3行ぶん Spaces を確保しておく */
 .os-abilityeffect {
   margin: 0;
   min-height: 4.6rem;
   font-size: var(--os-fs-base);
   line-height: 1.5;
+}
+
+/* アビリティ名は本文の明朝…ではなく太字のゴシック */
+.os-abilityname {
+  margin: 0.15rem 0 0.1rem;
+  padding-bottom: 0.1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--os-ink);
+  border-bottom: 1px solid var(--os-band);
+}
+
+.os-abilityname .os-bi__ja {
+  font-size: 1.2rem;
+}
+
+.os-abilityname .os-bi__en {
+  font-size: 0.95rem;
 }
 
 .os-abilityeffect--none {
@@ -562,34 +566,45 @@
 
 .os-harm {
   width: 100%;
+  /* 幅を colgroup で確実に効かせる（auto だと記入欄が潰れる） */
+  table-layout: fixed;
   border-collapse: collapse;
+}
+
+.os-harm__col-level {
+  width: 2.4rem;
+}
+
+.os-harm__col-effect {
+  width: 5.6rem;
 }
 
 .os-harm th,
 .os-harm td {
-  padding: 0.2rem 0.25rem;
-  border: 1px solid var(--os-line);
-  text-align: left;
+  padding: 0;
+  border: 1px solid var(--os-ink);
   vertical-align: top;
 }
 
-.os-harm th {
-  width: 2.2rem;
+/* レベル列と効果列はどちらも「注記」の列なので淡いグレーで区別する */
+.os-harm__levelcell {
+  background: var(--os-band);
 }
 
 .os-harm__level {
   width: 100%;
-  padding: 0.05rem 0.2rem;
+  min-height: 3.4rem;
+  padding: 0.2rem;
   font: inherit;
   font-weight: 700;
+  text-align: center;
   background: transparent;
   border: 0;
-  text-align: left;
   cursor: pointer;
 }
 
 .os-harm__row--on {
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .os-harm__row--on .os-harm__level {
@@ -597,11 +612,11 @@
   color: #f4f2ee;
 }
 
-/* 傷の欄は実際に文章を書くので、行高 Vegetarian くらいは欲しい */
 .os-harm__input {
+  display: block;
   width: 100%;
   min-height: 3.4rem;
-  padding: 0.1rem 0.15rem;
+  padding: 0.2rem 0.3rem;
   font: inherit;
   line-height: 1.45;
   background: transparent;
@@ -610,11 +625,25 @@
 }
 
 .os-harm__effect {
-  width: 4.8rem;
+  padding: 0.2rem 0.3rem;
   font-size: var(--os-fs-min);
+  font-weight: 700;
   line-height: 1.35;
-  text-align: right;
-  white-space: normal;
+  text-align: center;
+  background: var(--os-band);
+  border-left: 2px solid var(--os-ink);
+}
+
+/* 日英併記: 日本語を主役に、英语は小さく薄く */
+.os-bi__ja {
+  font-weight: 700;
+}
+
+.os-bi__en {
+  margin-left: 0.35rem;
+  font-size: var(--os-fs-min);
+  font-weight: 400;
+  color: var(--os-dim);
 }
 
 /* ---------- 治療クロック ---------- */

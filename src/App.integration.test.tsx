@@ -156,12 +156,17 @@ describe('プレイシートの操作', () => {
     expect(dot.getAttribute('aria-pressed')).toBe('false')
   })
 
-  it('アイテムのチェックボックスを切り替えられる', async () => {
+  it('アイテムは日英併記で切り替えられる', async () => {
     const user = userEvent.setup()
     renderApp()
 
-    await user.click(screen.getByRole('button', { name: 'A Blade or Two' }))
-    expect(screen.getByRole('button', { name: 'A Blade or Two' }).getAttribute('aria-pressed')).toBe('true')
+    // 日正式名のままでは照合できない
+    const box = screen.getByRole('button', { name: '短刀' })
+    await user.click(box)
+    expect(box.getAttribute('aria-pressed')).toBe('true')
+
+    // 英語も併記されている
+    expect(screen.getByText('A Blade or Two')).toBeTruthy()
   })
 
   it('エッジは右のコイン列で変更できる', async () => {

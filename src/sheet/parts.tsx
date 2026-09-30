@@ -29,23 +29,38 @@ export function Box({
   )
 }
 
+/** 日本語訳がありる項目は「日本語（英語）」の順に出す */
+export function Bilingual({ name, ja }: { name: string; ja?: string }) {
+  if (!ja) return <>{name}</>
+  return (
+    <>
+      <span className="os-bi__ja">{ja}</span>
+      <span className="os-bi__en">{name}</span>
+    </>
+  )
+}
+
 export function CheckRow({
   id,
   name,
+  ja,
   checked,
   onToggle,
   trailing,
 }: {
   id: string
   name: string
+  ja?: string
   checked: boolean
   onToggle: (id: string) => void
   trailing?: React.ReactNode
 }) {
   return (
     <div className={`os-checkrow${checked ? ' os-checkrow--on' : ''}`}>
-      <Box checked={checked} onChange={() => onToggle(id)} label={name} />
-      <span className="os-checkrow__name">{name}</span>
+      <Box checked={checked} onChange={() => onToggle(id)} label={ja ?? name} />
+      <span className="os-checkrow__name">
+        <Bilingual name={name} ja={ja} />
+      </span>
       {trailing}
     </div>
   )
@@ -137,10 +152,12 @@ export function CoinTrack({
 /** アクションレート。1Dana目と derret目を分ける縦線つき */
 export function RatingDots({
   name,
+  en,
   value,
   onChange,
 }: {
   name: string
+  en?: string
   value: number
   onChange: (next: number) => void
 }) {
@@ -155,14 +172,15 @@ export function RatingDots({
               type="button"
               className={`os-rating__dot${filled ? ' os-rating__dot--on' : ''}`}
               aria-pressed={filled}
-              aria-label={`${name} ${index + 1}`}
+              aria-label={`${en ?? name} ${index + 1}`}
               onClick={() => onChange(filled && index === value - 1 ? index : index + 1)}
             />
           )
         })}
       </span>
-      <span className="os-rating__name">{name}</span>
-      <Count value={value} max={RATING_MAX} />
+      <span className="os-rating__name">
+        <Bilingual name={en ?? name} ja={en ? name : undefined} />
+      </span>
     </div>
   )
 }

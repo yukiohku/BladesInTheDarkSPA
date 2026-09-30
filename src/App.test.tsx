@@ -13,7 +13,8 @@ function render() {
 
 describe('App', () => {
   it('例外なく描画できる', () => {
-    expect(render()).toContain('刃物 in the Dark')
+    // シート側のロゴがタイトル代わりになるので、文字としては出ない
+    expect(render()).toContain('SPECIAL ABILITY')
   })
 
   it('既定ではプレイ中に触る項目だけのシートを出す', () => {

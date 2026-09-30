@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { APP_NAME, HARM_LEVELS, LABELS } from './constants/labels'
+import { HARM_LEVELS, LABELS } from './constants/labels'
 import { useCharacter } from './state/characterContext'
 import { OfficialSheetView } from './sheet/OfficialSheetView'
 import { AbilitiesTab } from './tabs/AbilitiesTab'
@@ -34,10 +34,9 @@ export default function App() {
 
   return (
     <div className={`app${mode === 'sheet' ? ' app--sheet' : ''}`}>
-      {/* シート自体にロゴがあるため、ここは細い操作バーに留める */}
+      {/* シート自体にロゴがあるため、ここは操作バーに留める */}
       <header className="topbar">
         <div className="topbar__left">
-          <span className="topbar__brand">{APP_NAME}</span>
           <span className="topbar__name">{character.basics.name || '未設定'}</span>
         </div>
 
@@ -72,12 +71,6 @@ export default function App() {
               編集
             </button>
           </div>
-
-          {mode === 'sheet' && (
-            <button type="button" className="button button--small" onClick={() => window.print()}>
-              印刷
-            </button>
-          )}
         </div>
       </header>
 

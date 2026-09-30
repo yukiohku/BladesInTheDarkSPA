@@ -8,12 +8,16 @@
 
 export interface NamedItem {
   id: string
+  /** 英語名（公式の表記） */
   name: string
+  /** 日本語訳。あれば「日本語 + 英語」の順で表示する */
+  ja?: string
 }
 
 export interface AbilityOption {
   id: string
   name: string
+  ja?: string
   effect: string
 }
 
@@ -109,65 +113,73 @@ export const CUTTER: Playbook = {
   ],
 
   insight: [
-    { id: 'hunt', name: 'Hunt' },
-    { id: 'study', name: 'Study' },
-    { id: 'survey', name: 'Survey' },
-    { id: 'tinker', name: 'Tinker' },
+    { id: 'hunt', name: 'Hunt', ja: '狩り' },
+    { id: 'study', name: 'Study', ja: '研究' },
+    { id: 'survey', name: 'Survey', ja: '踏査' },
+    { id: 'tinker', name: 'Tinker', ja: '工作' },
   ],
 
   prowess: [
-    { id: 'finesse', name: 'Finesse' },
-    { id: 'prowl', name: 'Prowl' },
-    { id: 'skirmish', name: 'Skirmish' },
-    { id: 'wreck', name: 'Wreck' },
+    { id: 'finesse', name: 'Finesse', ja: '技巧' },
+    { id: 'prowl', name: 'Prowl', ja: '忍び' },
+    { id: 'skirmish', name: 'Skirmish', ja: '遭遇戦' },
+    { id: 'wreck', name: 'Wreck', ja: '破壊' },
   ],
 
   resolve: [
-    { id: 'attune', name: 'Attune' },
-    { id: 'command', name: 'Command' },
-    { id: 'consort', name: 'Consort' },
-    { id: 'sway', name: 'Sway' },
+    { id: 'attune', name: 'Attune', ja: '調律' },
+    { id: 'command', name: 'Command', ja: '指揮' },
+    { id: 'consort', name: 'Consort', ja: '慰安' },
+    { id: 'sway', name: 'Sway', ja: '扇動' },
   ],
 
   abilities: [
     {
       id: 'battleborn',
       name: 'Battleborn',
+      ja: '天生の戦士',
       effect: '特殊鎧を使い切って、攻撃の傷を軽減できる。戦いの途中で自分を追い込むこともできる。',
     },
     {
       id: 'bodyguard',
       name: 'Bodyguard',
+      ja: '護衛',
       effect: '仲間を守る判定で +1d。状況の脅威を探って情報を集めるなら +1効果。',
     },
     {
       id: 'ghost-fighter',
       name: 'Ghost Fighter',
+      ja: '幽霊の戦士',
       effect: '素手・近接武器・道具に霊の力を込める。超常のものとの戦いで威力が上がる。霊を掴んで捕らえられます。',
     },
     {
       id: 'leader',
       name: 'Leader',
+      ja: '指揮官',
       effect: '戦いで群衆を指揮すると、崩れかけた組織が戦いを続けます（傷3を受けても倒れない）。その組織は +1効果と鎧1を得る。',
     },
     {
       id: 'mule',
       name: 'Mule',
+      ja: '驢馬',
       effect: '負荷の上限が上がる。軽5 / 標準7 / 重8。',
     },
     {
       id: 'not-to-be-trifled-with',
       name: 'Not to Be Trifled With',
+      ja: '舐められる柄ではない',
       effect: '自分を追い込んで、普通人には及ばない력을1つだけ使える：小さなグループと互角に戦える。',
     },
     {
       id: 'savage',
       name: 'Savage',
+      ja: '野獣',
       effect: '暴力を行うときは、強く怯えさせることができる。怯えている対象を指揮するなら +1d。',
     },
     {
       id: 'vigorous',
       name: 'Vigorous',
+      ja: '逞しい',
       effect: '傷の回復が速い。治療クロックを1つ恒久的に埋める。治療判定で +1d。',
     },
   ],
@@ -175,25 +187,25 @@ export const CUTTER: Playbook = {
   friends: ['Marlane', 'Chael', 'Mercy', 'Grace', 'Sawtooth'],
 
   itemsGeneral: [
-    { id: 'blade', name: 'A Blade or Two' },
-    { id: 'knives', name: 'Throwing Knives' },
-    { id: 'pistol', name: 'A Pistol' },
-    { id: 'pistol2', name: 'A 2nd Pistol' },
-    { id: 'unusual-weapon', name: 'An Unusual Weapon' },
-    { id: 'documents', name: 'Documents' },
+    { id: 'blade', name: 'A Blade or Two', ja: '短刀' },
+    { id: 'knives', name: 'Throwing Knives', ja: '投げナイフ' },
+    { id: 'pistol', name: 'A Pistol', ja: '拳銃' },
+    { id: 'pistol2', name: 'A 2nd Pistol', ja: '拳銃2丁' },
+    { id: 'unusual-weapon', name: 'An Unusual Weapon', ja: '変わった武器' },
+    { id: 'documents', name: 'Documents', ja: '文書' },
   ],
 
   itemsPlaybook: [
-    { id: 'large-weapon', name: 'A Large Weapon' },
-    { id: 'armor', name: 'Armor' },
-    { id: 'armor-heavy', name: '+Heavy' },
-    { id: 'burglary-gear', name: 'Burglary Gear' },
-    { id: 'climbing-gear', name: 'Climbing Gear' },
-    { id: 'arcane-implements', name: 'Arcane Implements' },
-    { id: 'subterfuge-supplies', name: 'Subterfuge Supplies' },
-    { id: 'demolition-tools', name: 'Demolition Tools' },
-    { id: 'tinkering-tools', name: 'Tinkering Tools' },
-    { id: 'lantern', name: 'Lantern' },
+    { id: 'large-weapon', name: 'A Large Weapon', ja: '大型武器' },
+    { id: 'armor', name: 'Armor', ja: '鎧' },
+    { id: 'armor-heavy', name: '+Heavy', ja: '＋重装' },
+    { id: 'burglary-gear', name: 'Burglary Gear', ja: '窃盗具' },
+    { id: 'climbing-gear', name: 'Climbing Gear', ja: '登攀具' },
+    { id: 'arcane-implements', name: 'Arcane Implements', ja: '魔術具' },
+    { id: 'subterfuge-supplies', name: 'Subterfuge Supplies', ja: '偽装用品' },
+    { id: 'demolition-tools', name: 'Demolition Tools', ja: '爆破工具' },
+    { id: 'tinkering-tools', name: 'Tinkering Tools', ja: '工作道具' },
+    { id: 'lantern', name: 'Lantern', ja: 'ランタン' },
   ],
 
   loadLimits: { light: 3, normal: 5, heavy: 6 },

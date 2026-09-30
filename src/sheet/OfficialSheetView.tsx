@@ -44,6 +44,7 @@ function ItemList({
           key={item.id}
           id={item.id}
           name={item.name}
+          ja={item.ja}
           checked={Boolean(selected[item.id])}
           onToggle={(id) => onToggle(bucket, id)}
         />
@@ -137,12 +138,19 @@ export function OfficialSheetView() {
         <div className="os-harmblock">
           <h3 className="os-minititle">{LABELS.harm}</h3>
           <table className="os-harm">
+            {/* 幅を確実に効かせるため table-layout: fixed と併用する */}
+            <colgroup>
+              <col className="os-harm__col-level" />
+              <col />
+              <col />
+              <col className="os-harm__col-effect" />
+            </colgroup>
             <tbody>
               {HARM_ROWS.map((row) => {
                 const active = character.harm === row.level
                 return (
                   <tr key={row.level} className={active ? 'os-harm__row--on' : undefined}>
-                    <th>
+                    <th className="os-harm__levelcell">
                       <button
                         type="button"
                         className="os-harm__level"
@@ -161,7 +169,7 @@ export function OfficialSheetView() {
                     {Array.from({ length: row.cells }, (_, index) => {
                       const key = `${row.level}-${index}`
                       return (
-                        <td key={key}>
+                        <td key={key} colSpan={row.cells === 1 ? 2 : undefined}>
                           <textarea
                             className="os-harm__input"
                             rows={2}
@@ -220,9 +228,12 @@ export function OfficialSheetView() {
         {/* 選んだ特殊能力は效果文まで載せる（プレイ中に読むものだから） */}
         <div className="os-panel os-panel--ability">
           <h3 className="os-panel__title">SPECIAL ABILITY</h3>
-          {chosen ? (
+{chosen ? (
             <>
-              <p className="os-abilityname">{chosen.name}</p>
+              <p className="os-abilityname">
+                <span className="os-bi__ja">{chosen.ja ?? chosen.name}</span>
+                <span className="os-bi__en">{chosen.name}</span>
+              </p>
               <p className="os-abilityeffect">{chosen.effect}</p>
             </>
           ) : chosenVet ? (
@@ -412,7 +423,8 @@ export function OfficialSheetView() {
               {items.map((item) => (
                 <RatingDots
                   key={item.id}
-                  name={item.name}
+                  name={item.ja ?? item.name}
+                  en={item.name}
                   value={official.ratings[`${group}.${item.id}`] ?? 0}
                   onChange={(value) =>
                     dispatch({ type: 'official.rating', group, id: item.id, value })

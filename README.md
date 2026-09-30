@@ -53,13 +53,29 @@ npm test           # vitest（ユニット + DOM操作の統合テスト）
 
 ## 公開（GitHub Pages）
 
-`main` ブランチへ push すると `.github/workflows/deploy.yml` がビルドして自動公開します。
+`main` ブランチへ push すると `.github/workflows/deploy.yml` が
+lint → typecheck → test → build を実行し、自動で公開します。
 
-初回のみ、リポジトリの **Settings → Pages → Build and deployment → Source** を
-**GitHub Actions** に設定してください。
+### 必要な準備
+
+1. **公開リポジトリとして**作成する
+   GitHub Pages の無料プランは公開リポジトリ限定です。
+2. リポジトリを作るときは **README / .gitignore / ライセンスにチェックを入れない**
+   （ローカルにコミット済みのため、初期化白色的扱いで衝突します）。
+3. push したあと、**一度だけ**手動で設定する：
+   **Settings → Pages → Build and deployment → Source** を **GitHub Actions** に変更。
 
 公開先は `https://<ユーザー名>.github.io/<リポジトリ名>/` になります。
 相対パスでビルドしているため、ローカルで直接開いても壊れません。
+
+### push する
+
+```powershell
+git remote add origin https://github.com/<ユーザー名>/<リポジトリ名>.git
+git push -u origin main
+```
+
+認証が求められたらブラウザでのログイン Flows 进去了。
 
 ## データの扱い
 

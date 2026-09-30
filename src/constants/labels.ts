@@ -161,15 +161,14 @@ export const RESOURCES: Record<ResourceKey, ResourceMeta> = {
 export const RESOURCE_ORDER: ResourceKey[] = ['edges', 'stress', 'harm', 'trauma']
 
 export const MESSAGE = {
-  saved: '保存しました',
-  loadFailed: '保存済みのデータを読み込めませんでした。既定値で開始します。',
-  importOk: '取り込みました',
-  importFailed: 'JSONを読み込めませんでした',
   exportOk: '書き出しました',
+  importOk: '取り込みました',
+  noBackup: '戻せるバックアップがありません。',
+  restored: '取り込み前のシートに戻しました。',
   resetConfirm: '現在のキャラクターを初期化します。よろしいですか？',
   resetDone: '初期化しました',
-  undoDone: '取り消しました',
   copied: 'クリップボードにコピーしました',
+  copyFailed: 'コピーできませんでした。',
 } as const
 
 export const VALIDATION = {

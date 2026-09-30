@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { MESSAGE } from '../constants/labels'
 import { parseCharacterFile, serializeCharacter, suggestedFileName } from '../lib/serialize'
+import { hasBackup, loadBackup, saveBackup } from '../lib/storage'
 import { useCharacter } from '../state/characterContext'
 import { Section } from '../components/ui'
 
@@ -18,6 +19,7 @@ export function DataTab() {
   const [preview, setPreview] = useState(false)
 
   const json = serializeCharacter(character)
+  const canRestore = hasBackup()
 
   const download = () => {
     const blob = new Blob([json], { type: 'application/json' })
@@ -39,7 +41,7 @@ export function DataTab() {
       setError('')
       setMessage(MESSAGE.copied)
     } catch {
-      setError('コピーできませんでした。')
+      setError(MESSAGE.copyFailed)
     }
   }
 
@@ -58,9 +60,24 @@ export function DataTab() {
       return
     }
 
+    saveBackup(character)
     dispatch({ type: 'replace', character: result.character })
     setError('')
     setMessage(MESSAGE.importOk)
+  }
+
+  const restoreBackup = () => {
+    const backup = loadBackup()
+    if (!backup) {
+      setMessage('')
+      setError(MESSAGE.noBackup)
+      return
+    }
+    if (!window.confirm('取り込み前のシートに戻します。よろしいですか？')) return
+
+    dispatch({ type: 'replace', character: backup })
+    setError('')
+    setMessage(MESSAGE.restored)
   }
 
   const reset = () => {
@@ -98,6 +115,13 @@ export function DataTab() {
             event.target.value = ''
           }}
         />
+        {canRestore && (
+          <div className="inline-add">
+            <button type="button" className="button" onClick={restoreBackup}>
+              取り込み前のシートに戻す
+            </button>
+          </div>
+        )}
       </Section>
 
       <Section title="内容の確認">

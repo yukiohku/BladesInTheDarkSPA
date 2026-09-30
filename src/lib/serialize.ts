@@ -194,7 +194,7 @@ export function normalizeCharacter(input: unknown): Character {
     drives: asChoiceList(input.drives, 3),
     heritageAbilities: asChoiceList(input.heritageAbilities, 2),
     backgroundAbilities: asChoiceList(input.backgroundAbilities, 3),
-    crewRoleId: asString(input.crewRoleId),
+    crewRole: asString(input.crewRole),
     roleAbilities: asChoiceList(input.roleAbilities, 1),
     specialAbilities: asChoiceList(input.specialAbilities, 1),
     vices: asChoiceList(input.vices, 3),

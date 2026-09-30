@@ -1,122 +1,77 @@
 import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { APP_NAME, APP_SUBTITLE, HARM_LEVELS, LABELS } from './constants/labels'
+import { formatValue } from './lib/changelog'
+import { useCharacter } from './state/characterContext'
+import { AbilitiesTab } from './tabs/AbilitiesTab'
+import { AttributesTab } from './tabs/AttributesTab'
+import { BasicsTab } from './tabs/BasicsTab'
+import { CrewTab } from './tabs/CrewTab'
+import { DataTab } from './tabs/DataTab'
+import { LogTab } from './tabs/LogTab'
+import { StatusTab } from './tabs/StatusTab'
+import { WeaponsTab } from './tabs/WeaponsTab'
 
-function App() {
-  const [count, setCount] = useState(0)
+const TABS = [
+  { id: 'basics', label: '基本情報', Component: BasicsTab },
+  { id: 'attributes', label: '属性', Component: AttributesTab },
+  { id: 'abilities', label: '異能', Component: AbilitiesTab },
+  { id: 'crew', label: 'クルー', Component: CrewTab },
+  { id: 'status', label: '状態', Component: StatusTab },
+  { id: 'weapons', label: '装備', Component: WeaponsTab },
+  { id: 'log', label: '履歴', Component: LogTab },
+  { id: 'data', label: 'データ', Component: DataTab },
+] as const
+
+export default function App() {
+  const { character } = useCharacter()
+  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('basics')
+
+  const active = TABS.find((candidate) => candidate.id === tab) ?? TABS[0]
+  const Panel = active.Component
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <div className="app">
+      <header className="header">
+        <div className="header__brand">
+          <h1 className="header__title">{APP_NAME}</h1>
+          <p className="header__subtitle">{APP_SUBTITLE}</p>
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+        <p className="header__character">{character.basics.name || '未設定'}</p>
+      </header>
 
-      <div className="ticks"></div>
+      <div className="summary" role="group" aria-label="主要数値">
+        <SummaryItem label={LABELS.edges} value={formatValue('edges', character.edges)} />
+        <SummaryItem label={LABELS.stress} value={formatValue('stress', character.stress)} />
+        <SummaryItem label={LABELS.harm} value={HARM_LEVELS[character.harm]} />
+        <SummaryItem label={LABELS.traumas} value={`${character.traumas.length}`} />
+      </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <nav className="tabs" aria-label="シートのセクション">
+        {TABS.map((candidate) => (
+          <button
+            key={candidate.id}
+            type="button"
+            className={`tab${candidate.id === tab ? ' tab--on' : ''}`}
+            aria-current={candidate.id === tab ? 'page' : undefined}
+            onClick={() => setTab(candidate.id)}
+          >
+            {candidate.label}
+          </button>
+        ))}
+      </nav>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      <main className="main">
+        <Panel />
+      </main>
+    </div>
   )
 }
 
-export default App
+function SummaryItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="summary__item">
+      <span className="summary__label">{label}</span>
+      <span className="summary__value">{value}</span>
+    </div>
+  )
+}

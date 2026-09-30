@@ -39,7 +39,8 @@ export type Action =
   | { type: 'replace'; character: Character }
   | { type: 'reset' }
   | { type: 'basics'; patch: Partial<Character['basics']> }
-  | { type: 'crewRole'; id: string }
+  | { type: 'note'; value: string }
+  | { type: 'crewRole'; value: string }
   | { type: 'attribute'; key: AttributeKey; value: number }
   | { type: 'number'; field: NumberField; value: number }
   | { type: 'choice.patch'; field: ChoiceListField; id: string; patch: Partial<ChoiceList> }
@@ -130,7 +131,10 @@ export function characterReducer(character: Character, action: Action): Characte
       return touch({ ...character, basics: { ...character.basics, ...action.patch } })
 
     case 'crewRole':
-      return touch({ ...character, crewRoleId: action.id })
+      return touch({ ...character, crewRole: action.value })
+
+    case 'note':
+      return touch({ ...character, notes: action.value })
 
     case 'attribute':
       return touch({

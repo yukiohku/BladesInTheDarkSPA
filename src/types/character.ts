@@ -89,7 +89,7 @@ export interface Character {
   drives: ChoiceList[]
   heritageAbilities: ChoiceList[]
   backgroundAbilities: ChoiceList[]
-  crewRoleId: string
+  crewRole: string
   roleAbilities: ChoiceList[]
   specialAbilities: ChoiceList[]
   vices: ChoiceList[]

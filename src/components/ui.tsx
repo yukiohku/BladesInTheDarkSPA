@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import type { ChangeEvent, ReactNode } from 'react'
+import type { ChangeEvent, CSSProperties, ReactNode } from 'react'
 import type { Option } from '../constants/bitd'
 import type { ChoiceList, Clock } from '../types/character'
 
@@ -23,7 +23,7 @@ export function Section({
 
 export function Grid({ children, columns = 2 }: { children: ReactNode; columns?: number }) {
   return (
-    <div className="grid" style={{ '--columns': columns } as React.CSSProperties}>
+    <div className="grid" style={{ '--columns': columns } as CSSProperties}>
       {children}
     </div>
   )

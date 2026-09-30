@@ -38,7 +38,7 @@ export function createDefaultCharacter(): Character {
     drives: emptyList(3, '動機を記入'),
     heritageAbilities: emptyList(2, '血統の異能を記入'),
     backgroundAbilities: emptyList(3, '経歴の異能を記入'),
-    crewRoleId: '',
+    crewRole: '',
     roleAbilities: emptyList(1, '役割の異能を記入'),
     specialAbilities: emptyList(1, '異能を記入'),
     vices: emptyList(3, '悪癖を記入'),

@@ -3,22 +3,20 @@ import { APP_NAME, HARM_LEVELS, LABELS } from './constants/labels'
 import { useCharacter } from './state/characterContext'
 import { OfficialSheetView } from './sheet/OfficialSheetView'
 import { AbilitiesTab } from './tabs/AbilitiesTab'
-import { AttributesTab } from './tabs/AttributesTab'
-import { BasicsTab } from './tabs/BasicsTab'
 import { CrewTab } from './tabs/CrewTab'
 import { DataTab } from './tabs/DataTab'
 import { LogTab } from './tabs/LogTab'
+import { SetupTab } from './tabs/SetupTab'
 import { StatusTab } from './tabs/StatusTab'
 import { WeaponsTab } from './tabs/WeaponsTab'
 
 const TABS = [
-  { id: 'basics', label: '基本情報', Component: BasicsTab },
-  { id: 'attributes', label: '属性・動機・欠点', Component: AttributesTab },
-  { id: 'abilities', label: '異能・悪癖', Component: AbilitiesTab },
-  { id: 'crew', label: 'クルー', Component: CrewTab },
-  { id: 'status', label: '状態と変動記録', Component: StatusTab },
-  { id: 'weapons', label: '装備', Component: WeaponsTab },
+  { id: 'setup', label: '初期設定', Component: SetupTab },
+  { id: 'abilities', label: '特殊能力', Component: AbilitiesTab },
+  { id: 'status', label: '変動記録', Component: StatusTab },
   { id: 'log', label: '履歴', Component: LogTab },
+  { id: 'crew', label: 'クルー', Component: CrewTab },
+  { id: 'weapons', label: '装備', Component: WeaponsTab },
   { id: 'data', label: 'データ', Component: DataTab },
 ] as const
 
@@ -27,7 +25,7 @@ type ViewMode = 'sheet' | 'edit'
 export default function App() {
   const { character } = useCharacter()
   const [mode, setMode] = useState<ViewMode>('sheet')
-  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('basics')
+  const [tab, setTab] = useState<(typeof TABS)[number]['id']>('setup')
 
   const active = TABS.find((candidate) => candidate.id === tab) ?? TABS[0]
   const Panel = active.Component

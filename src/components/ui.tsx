@@ -281,6 +281,44 @@ export function ChoiceListEditor({
   )
 }
 
+export function CheckList({
+  legend,
+  hint,
+  options,
+  selected,
+  onToggle,
+  columns = 3,
+}: {
+  legend?: string
+  hint?: string
+  options: Option[]
+  selected: readonly string[]
+  onToggle: (id: string) => void
+  columns?: number
+}) {
+  return (
+    <div className="field-group">
+      {legend && <span className="field__label">{legend}</span>}
+      {hint && <p className="field__hint">{hint}</p>}
+      <div className="checklist" style={{ '--check-columns': columns } as CSSProperties}>
+        {options.map((option) => {
+          const on = selected.includes(option.id)
+          return (
+            <label className={`checkitem${on ? ' checkitem--on' : ''}`} key={option.id}>
+              <input
+                type="checkbox"
+                checked={on}
+                onChange={() => onToggle(option.id)}
+              />
+              <span>{option.name}</span>
+            </label>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function TextListEditor({
   label,
   hint,

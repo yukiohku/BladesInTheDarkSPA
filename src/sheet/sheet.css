@@ -43,16 +43,17 @@
   min-width: 0;
 }
 
-/* 官方の配置:
-   左列 = 基本情報〜NOTES（縦長）
-   中央 = タイトル / 特殊能力 / 仲間 / XP
-   右上 = STASH〜BONUS DIE
-   右下 = ITEMS のチェックリスト
-   最下段 = TEAMWORK / PLANNING & LOAD / GATHER INFORMATION（中央+右にまたがる）
+/*
+  プレイ中に触る項目だけを置く:
+  左列 = 名前〜メモ（いちばん触る、縦に伸ばす）
+  中央 = 特殊能力 / 危険な仲間 / ITEMS
+  右列 = STASH〜RESOLVE / GATHER INFORMATION
+  下段 = TEAMWORK / PLANNING & LOAD（中央+右にまたがる）
 */
 .os__col--left {
   grid-column: 1;
   grid-row: 1 / 4;
+  align-self: stretch;
   border-right: 1px solid var(--os-line);
 }
 
@@ -64,19 +65,13 @@
 
 .os__col--right {
   grid-column: 3;
-  grid-row: 1;
+  grid-row: 1 / 3;
   border-right: 1px solid var(--os-line);
-}
-
-.os__col--items {
-  grid-column: 3;
-  grid-row: 2;
-  align-self: start;
 }
 
 .os__row--bottom {
   display: grid;
-  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.25fr) minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
   gap: 0.3rem;
   grid-column: 2 / 4;
   grid-row: 3;
@@ -84,49 +79,16 @@
   padding: 0 0.4rem;
 }
 
-/* ---------- 見出し ---------- */
-
-.os-brandrow {
+/* 左列のメモを残り空間まで伸ばす */
+.os-grow {
   display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.4rem;
-  padding-bottom: 0.2rem;
-  border-bottom: 1px solid var(--os-line);
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 8rem;
 }
 
-.os-brand {
-  font-family: Impact, 'Arial Black', sans-serif;
-  font-size: 1.15rem;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
-.os-titlebar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding-bottom: 0.25rem;
-  border-bottom: 2px solid var(--os-ink);
-}
-
-.os-title {
-  margin: 0;
-  font-family: Impact, 'Arial Black', sans-serif;
-  font-size: 2.4rem;
-  letter-spacing: 0.04em;
-  line-height: 1;
-}
-
-.os-descriptor {
-  margin: 0;
-  max-width: 9rem;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--os-dim);
-  text-align: right;
+.os-notes--grow {
+  flex: 1 1 auto;
 }
 
 .os-panel__title,
@@ -186,15 +148,43 @@
   border: 1px solid var(--os-band);
 }
 
-.os-split {
-  display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.3fr);
-  gap: 0.3rem;
-  align-items: start;
+.os-chosen {
+  margin: 0.1rem 0;
+  font-size: 0.72rem;
 }
 
-.os-panel--itemshead {
-  justify-content: space-between;
+.os-vets {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.os-vet {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.os-vet__dot {
+  flex: 0 0 auto;
+  width: 0.55rem;
+  height: 0.55rem;
+  border: 1.1px solid var(--os-ink);
+  border-radius: 50%;
+}
+
+.os-vet__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0 0.1rem;
+  font-size: 0.55rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--os-line);
+}
+
+.os-panel--tight {
+  gap: 0.1rem;
 }
 
 /* ---------- 入力 ---------- */
@@ -205,17 +195,9 @@
   gap: 0.3rem;
 }
 
-.os-duo--tight {
-  gap: 0.5rem;
-}
-
 .os-duo--wide {
   grid-template-columns: 1.6fr 0.9fr;
   gap: 0.4rem;
-}
-
-.os-duo--list {
-  align-items: start;
 }
 
 .os-rule {
@@ -232,7 +214,7 @@
 }
 
 .os-rule__input,
-.os-inline,
+
 .os-friend__name,
 .os-extra__label,
 .os-plan__detail,
@@ -246,17 +228,12 @@
   border-bottom: 1px solid var(--os-line);
 }
 
-.os-look,
 .os-notes {
   width: 100%;
   padding: 0.15rem 0.25rem;
   background: transparent;
   border: 1px solid var(--os-line);
   resize: vertical;
-}
-
-.os-look {
-  min-height: 1.9rem;
 }
 
 .os-hint {
@@ -399,14 +376,6 @@
 .os-extra__label {
   flex: 0 0 4.6rem;
   font-size: 0.55rem;
-}
-
-.os-extra__label--fixed {
-  overflow: hidden;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .os-extra__boxes {
@@ -576,33 +545,6 @@
   background: var(--os-on);
 }
 
-/* ---------- 特殊能力 ---------- */
-
-.os-abilities {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-}
-
-.os-ability {
-  display: flex;
-  align-items: baseline;
-  gap: 0.25rem;
-  cursor: pointer;
-}
-
-.os-ability input[type='radio'] {
-  flex: 0 0 auto;
-  width: 0.7rem;
-  height: 0.7rem;
-  margin: 0;
-  accent-color: #1b1917;
-}
-
-.os-ability--vet {
-  margin-top: 0.1rem;
-}
-
 /* ---------- 仲間 ---------- */
 
 .os-friend {
@@ -641,14 +583,6 @@
   cursor: pointer;
 }
 
-/* ---------- ルール文・計画・情報収集 ---------- */
-
-.os-rules {
-  margin: 0;
-  padding-left: 0.9rem;
-  font-size: 0.56rem;
-}
-
 .os-plan {
   display: flex;
   align-items: baseline;
@@ -674,17 +608,6 @@
 .os-gather__q {
   font-size: 0.55rem;
   font-style: italic;
-}
-
-.os-bonus {
-  margin: 0;
-  padding: 0.15rem 0.25rem;
-  font-size: 0.58rem;
-  background: var(--os-band);
-}
-
-.os-track--bonus {
-  margin-top: 0.4rem;
 }
 
 /* ---------- 印刷 ---------- */

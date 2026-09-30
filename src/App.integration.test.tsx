@@ -13,7 +13,7 @@ function renderApp() {
 }
 
 async function openTab(user: ReturnType<typeof userEvent.setup>, name: string) {
-  // 既定表示はシート。編集タブを出すにはモードを切り替える
+  // 既定表示はプレイシート。編集タブを出すにはモードを切り替える
   await user.click(screen.getByRole('button', { name: '編集' }))
   await user.click(screen.getByRole('button', { name }))
 }
@@ -24,7 +24,7 @@ async function readStatus(user: ReturnType<typeof userEvent.setup>): Promise<str
   return screen.getByRole('group', { name: '主要数値' }).textContent ?? ''
 }
 
-describe('シートの編集タブ', () => {
+describe('変動記録', () => {
   beforeEach(() => {
     window.localStorage.clear()
   })
@@ -37,17 +37,15 @@ describe('シートの編集タブ', () => {
     const user = userEvent.setup()
     renderApp()
 
-    const nameInput = screen.getByLabelText('名前')
-    await user.type(nameInput, 'カッター')
-
+    await user.type(screen.getByLabelText('名前'), 'カッター')
     expect(screen.getByText('カッター')).toBeTruthy()
   })
 
-  it('属性はピップで増減する', async () => {
+  it('属性は初期設定タブで増減する', async () => {
     const user = userEvent.setup()
     renderApp()
 
-    await openTab(user, '属性・動機・欠点')
+    await openTab(user, '初期設定')
     const group = screen.getByRole('group', { name: '喧嘩' })
 
     const pips = within(group).getAllByRole('button')
@@ -59,12 +57,11 @@ describe('シートの編集タブ', () => {
     expect(pips[2].getAttribute('aria-pressed')).toBe('false')
   })
 
-  it('変動を記録すると値と履歴の両方が更新される', async () => {
+  it('記録すると上のバーと履歴の両方が更新される', async () => {
     const user = userEvent.setup()
     renderApp()
 
-    await openTab(user, '状態と変動記録')
-
+    await openTab(user, '変動記録')
     await user.selectOptions(screen.getByLabelText('理由'), '押して賭ける（耐える）')
 
     // 数量は入力欄が常に範囲内に丸められるため、+ ボタンで増やす
@@ -73,11 +70,8 @@ describe('シートの編集タブ', () => {
     await user.click(plus)
 
     await user.click(screen.getByRole('button', { name: '承受を記録' }))
-
-    // 上のバーの数値に反映される
     expect(await readStatus(user)).toContain('3/9')
 
-    // 履歴に出る
     await user.click(screen.getByRole('button', { name: '履歴' }))
     expect(screen.getByText('ストレス承受（+3）')).toBeTruthy()
   })
@@ -86,7 +80,7 @@ describe('シートの編集タブ', () => {
     const user = userEvent.setup()
     renderApp()
 
-    await openTab(user, '状態と変動記録')
+    await openTab(user, '変動記録')
     await user.click(screen.getByRole('button', { name: '承受を記録' }))
 
     await user.click(screen.getByRole('button', { name: '履歴' }))
@@ -99,7 +93,7 @@ describe('シートの編集タブ', () => {
     const user = userEvent.setup()
     renderApp()
 
-    await openTab(user, '状態と変動記録')
+    await openTab(user, '変動記録')
     await user.click(screen.getByRole('button', { name: /トラウマ/ }))
 
     // 内容が空ならボタンが無効
@@ -114,7 +108,7 @@ describe('シートの編集タブ', () => {
   })
 })
 
-describe('公式シートの操作', () => {
+describe('プレイシートの操作', () => {
   beforeEach(() => {
     window.localStorage.clear()
   })
@@ -123,10 +117,10 @@ describe('公式シートの操作', () => {
     cleanup()
   })
 
-  it('シート表示が既定で出る', () => {
+  it('プレイシートが既定で出る', () => {
     renderApp()
-    expect(screen.getByText('BLADES IN THE DARK')).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'CUTTER' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: 'ストレス' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Akoros' })).toBeNull()
   })
 
   it('モードを切り替えると編集タブが出る', async () => {
@@ -134,7 +128,7 @@ describe('公式シートの操作', () => {
     renderApp()
 
     await user.click(screen.getByRole('button', { name: '編集' }))
-    expect(screen.getByRole('button', { name: '基本情報' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '初期設定' })).toBeTruthy()
   })
 
   it('ストレスのマスを押すと上のバーに反映される', async () => {
@@ -149,16 +143,6 @@ describe('公式シートの操作', () => {
     expect(await readStatus(user)).toContain('ストレス3/9')
   })
 
-  it('血統のチェックボックスを切り替えられる', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    const box = screen.getByRole('button', { name: 'Akoros' })
-    expect(box.getAttribute('aria-pressed')).toBe('false')
-    await user.click(box)
-    expect(box.getAttribute('aria-pressed')).toBe('true')
-  })
-
   it('アクションレートを上下できる', async () => {
     const user = userEvent.setup()
     renderApp()
@@ -170,16 +154,6 @@ describe('公式シートの操作', () => {
     expect(dot.getAttribute('aria-pressed')).toBe('false')
   })
 
-  it('血統は複数選択できる', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    await user.click(screen.getByRole('button', { name: 'Akoros' }))
-    await user.click(screen.getByRole('button', { name: 'Iruvia' }))
-    expect(screen.getByRole('button', { name: 'Akoros' }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByRole('button', { name: 'Iruvia' }).getAttribute('aria-pressed')).toBe('true')
-  })
-
   it('アイテムのチェックボックスを切り替えられる', async () => {
     const user = userEvent.setup()
     renderApp()
@@ -188,7 +162,7 @@ describe('公式シートの操作', () => {
     expect(screen.getByRole('button', { name: 'A Blade or Two' }).getAttribute('aria-pressed')).toBe('true')
   })
 
-  it('エッジは公式で無題の行に表示される', async () => {
+  it('エッジは右のコイン列で変更できる', async () => {
     const user = userEvent.setup()
     renderApp()
 
@@ -200,7 +174,6 @@ describe('公式シートの操作', () => {
     const user = userEvent.setup()
     renderApp()
 
-    // まずシートでトラウマが未選択であることを確認する
     const traumaBox = screen.getByRole('button', { name: '冷酷' })
     expect(traumaBox.getAttribute('aria-pressed')).toBe('false')
 
@@ -217,5 +190,63 @@ describe('公式シートの操作', () => {
     await user.click(level)
     expect(level.getAttribute('aria-pressed')).toBe('true')
     expect(await readStatus(user)).toContain('傷重傷')
+  })
+
+  it('進行の栞を進められる', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    const mark = screen.getByRole('button', { name: 'RESOLVE 2' })
+    await user.click(mark)
+    expect(mark.getAttribute('aria-pressed')).toBe('true')
+  })
+})
+
+describe('初期設定タブ', () => {
+  beforeEach(() => {
+    window.localStorage.clear()
+  })
+
+  afterEach(() => {
+    cleanup()
+  })
+
+  it('血統と経歴と悪癖を選べる', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await openTab(user, '初期設定')
+
+    const akoros = screen.getByRole('checkbox', { name: 'Akoros' })
+    await user.click(akoros)
+    expect((akoros as HTMLInputElement).checked).toBe(true)
+
+    const law = screen.getByRole('checkbox', { name: '法律' })
+    await user.click(law)
+    expect((law as HTMLInputElement).checked).toBe(true)
+
+    const gamble = screen.getByRole('checkbox', { name: '賭' })
+    await user.click(gamble)
+    expect((gamble as HTMLInputElement).checked).toBe(true)
+  })
+
+  it('初期設定の値はシートには出ない', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await openTab(user, '初期設定')
+    await user.click(screen.getByRole('checkbox', { name: 'Akoros' }))
+
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect(screen.queryByRole('button', { name: 'Akoros' })).toBeNull()
+  })
+
+  it('特殊能力を選んで名前がシートに出る', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    await openTab(user, '特殊能力')
+    await user.click(screen.getByRole('radio', { name: /Mule/ }))
+
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect(screen.getByText('Mule')).toBeTruthy()
   })
 })

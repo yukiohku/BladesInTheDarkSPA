@@ -15,7 +15,6 @@ import { createDefaultCharacter, defaultOfficial } from '../constants/defaults'
 import { ATTRIBUTE_MAX, ATTRIBUTE_ORDER, VALIDATION } from '../constants/labels'
 import {
   COIN_MAX,
-  HARM_MAX,
   HARM_ROWS,
   HEALING_CLOCK_SEGMENTS,
   PLAYBOOKS,
@@ -191,22 +190,10 @@ function clampValue(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
-function asBoolPair(value: unknown): [boolean, boolean] {
-  if (!Array.isArray(value)) return [false, false]
-  return [asBoolean(value[0]), asBoolean(value[1])]
-}
-
-function asNumPair(value: unknown): [number, number] {
-  if (!Array.isArray(value)) return [0, 0]
-  return [
-    Math.round(clampValue(asNumber(value[0], 0), 0, COIN_MAX)),
-    Math.round(clampValue(asNumber(value[1], 0), 0, COIN_MAX)),
-  ]
-}
-
-function asStringPair(value: unknown): [string, string] {
-  if (!Array.isArray(value)) return ['', '']
-  return [asString(value[0]), asString(value[1])]
+function padTo(list: string[], length: number): string[] {
+  const result = list.slice(0, length)
+  while (result.length < length) result.push('')
+  return result
 }
 
 function asPlanning(value: unknown, ids: string[]): Record<string, PlanningSlot> {
@@ -243,9 +230,7 @@ function asOfficial(value: unknown): OfficialSheet {
     heritageIds: asStringArray(value.heritageIds),
     backgroundIds: asStringArray(value.backgroundIds),
     viceIds: asStringArray(value.viceIds),
-    traumaIds: asStringArray(value.traumaIds),
 
-    harmLevel: Math.round(asNumber(value.harmLevel, 0, 0, HARM_MAX)),
     harmNotes,
     healingFilled: Math.round(
       asNumber(value.healingFilled, 0, 0, HEALING_CLOCK_SEGMENTS),
@@ -258,9 +243,9 @@ function asOfficial(value: unknown): OfficialSheet {
 
     stash: Math.round(asNumber(value.stash, 0, 0, COIN_MAX)),
     coin: Math.round(asNumber(value.coin, 0, 0, COIN_MAX)),
-    extraTrackLabels: asStringPair(value.extraTrackLabels),
-    extraTrackChecks: asBoolPair(value.extraTrackChecks),
-    extraTrackFilled: asNumPair(value.extraTrackFilled),
+    extraLabel: asString(value.extraLabel),
+    extraCheck: asBoolean(value.extraCheck),
+    extraFilled: Math.round(asNumber(value.extraFilled, 0, 0, COIN_MAX)),
 
     playbookXp: Math.round(asNumber(value.playbookXp, 0, 0, XP_TRACK_MAX)),
     insightXp: Math.round(asNumber(value.insightXp, 0, 0, XP_TRACK_MAX)),
@@ -296,10 +281,10 @@ function asOfficial(value: unknown): OfficialSheet {
       value.planning,
       playbook.planning.map((item) => item.id),
     ),
-    gatherInfo: (Array.isArray(value.gatherInfo) ? value.gatherInfo : [])
-      .map((item) => asString(item))
-      .slice(0, playbook.gatherInfo.length)
-      .concat(Array<string>(Math.max(0, playbook.gatherInfo.length)).fill('')),
+    gatherInfo: padTo(
+      (Array.isArray(value.gatherInfo) ? value.gatherInfo : []).map((item) => asString(item)),
+      playbook.gatherInfo.length,
+    ),
   }
 }
 

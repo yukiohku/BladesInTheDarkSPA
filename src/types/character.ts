@@ -44,7 +44,12 @@ export interface PlanningSlot {
   load: string
 }
 
-/** 公式キャラクターシート（横1ページ）に対応するデータ */
+/**
+ * 公式キャラクターシート（横1ページ）に対応するデータ。
+ *
+ * 傷・ストレス・トラウマ・エッジは character 側と共有する。
+ * 「変動を記録」で変えた値がそのままシートへ反映される。
+ */
 export interface OfficialSheet {
   playbookId: string
 
@@ -55,21 +60,20 @@ export interface OfficialSheet {
   heritageIds: string[]
   backgroundIds: string[]
   viceIds: string[]
-  traumaIds: string[]
 
-  /** 現在の傷の段階（0 は無事） */
-  harmLevel: number
   /** 傷の行ごとの書き込み。キーは '1' '2' '3' */
   harmNotes: Record<string, string>
   healingFilled: number
   armorUses: { armor: boolean; heavy: boolean; special: boolean }
 
+  /** クルーのコイン（STASH / COIN） */
   stash: number
   coin: number
-  /** 公式シートでラベルが空欄の2行。自分で名前をつけられる */
-  extraTrackLabels: [string, string]
-  extraTrackChecks: [boolean, boolean]
-  extraTrackFilled: [number, number]
+
+  /** 公式では無題の行。1行目はエッジ表示に使うので、書き換え用は2行目だけ */
+  extraLabel: string
+  extraCheck: boolean
+  extraFilled: number
 
   playbookXp: number
   insightXp: number

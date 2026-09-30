@@ -37,6 +37,8 @@ export const ATTRIBUTE_MAX = 4
 
 export const LABELS = {
   name: '名前',
+  alias: '偽名',
+  look: '外見',
   pronouns: '呼び名・代名詞',
   heritage: '血統',
   background: '経歴',

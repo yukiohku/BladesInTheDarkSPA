@@ -1,0 +1,719 @@
+/**
+ * 公式キャラクターシート（横1ページ）の再現。
+ * 画面ではスクロール表示、@media print では横1ページとして印刷する。
+ */
+
+.os {
+  --os-line: #2c2a28;
+  --os-ink: #14120f;
+  --os-dim: #6f6a63;
+  --os-band: #c9c6c0;
+  --os-fill: #8f8b85;
+  --os-on: #1b1917;
+
+  display: grid;
+  grid-template-columns: 1.05fr 1.5fr 0.82fr;
+  grid-template-rows: auto auto 1fr;
+  column-gap: 0;
+  align-items: start;
+  padding: 0.5rem;
+  font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', Georgia, serif;
+  font-size: 0.62rem;
+  line-height: 1.35;
+  color: var(--os-ink);
+  background: #f4f2ee;
+  border: 1px solid var(--os-line);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.os button,
+.os input,
+.os textarea {
+  font: inherit;
+  color: inherit;
+}
+
+.os__col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0 0.4rem;
+  min-width: 0;
+}
+
+/* 官方の配置:
+   左列 = 基本情報〜NOTES（縦長）
+   中央 = タイトル / 特殊能力 / 仲間 / XP
+   右上 = STASH〜BONUS DIE
+   右下 = ITEMS のチェックリスト
+   最下段 = TEAMWORK / PLANNING & LOAD / GATHER INFORMATION（中央+右にまたがる）
+*/
+.os__col--left {
+  grid-column: 1;
+  grid-row: 1 / 4;
+  border-right: 1px solid var(--os-line);
+}
+
+.os__col--center {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  border-right: 1px solid var(--os-line);
+}
+
+.os__col--right {
+  grid-column: 3;
+  grid-row: 1;
+  border-right: 1px solid var(--os-line);
+}
+
+.os__col--items {
+  grid-column: 3;
+  grid-row: 2;
+  align-self: start;
+}
+
+.os__row--bottom {
+  display: grid;
+  grid-template-columns: 0.72fr 1.25fr 1.05fr;
+  gap: 0.3rem;
+  grid-column: 2 / 4;
+  grid-row: 3;
+  align-items: start;
+  padding: 0 0.4rem;
+}
+
+/* ---------- 見出し ---------- */
+
+.os-brandrow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--os-line);
+}
+
+.os-brand {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.os-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid var(--os-ink);
+}
+
+.os-title {
+  margin: 0;
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.os-descriptor {
+  margin: 0;
+  max-width: 9rem;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--os-dim);
+  text-align: right;
+}
+
+.os-panel__title,
+.os-track__title,
+.os-minititle {
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.os-panel__title {
+  padding: 0.1rem 0.25rem;
+  color: #f4f2ee;
+  background: var(--os-on);
+}
+
+.os-track__title {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.1rem 0.3rem;
+  color: #f4f2ee;
+  background: var(--os-on);
+}
+
+/* 公式では栞が黒帯の右端から突き出している */
+.os-track__head {
+  display: flex;
+  align-items: center;
+}
+
+.os-track__head .os-bookmarks {
+  flex: 0 0 auto;
+  margin-left: -0.4rem;
+  padding-left: 0;
+}
+
+.os-minititle {
+  font-size: 0.6rem;
+}
+
+.os-loadlegend {
+  float: right;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ---------- パネル配置 ---------- */
+
+.os-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.2rem 0.25rem;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid var(--os-band);
+}
+
+.os-split {
+  display: grid;
+  grid-template-columns: 0.95fr 1.3fr;
+  gap: 0.3rem;
+  align-items: start;
+}
+
+.os-panel--itemshead {
+  justify-content: space-between;
+}
+
+/* ---------- 入力 ---------- */
+
+.os-duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3rem;
+}
+
+.os-duo--tight {
+  gap: 0.5rem;
+}
+
+.os-duo--wide {
+  grid-template-columns: 1.6fr 0.9fr;
+  gap: 0.4rem;
+}
+
+.os-duo--list {
+  align-items: start;
+}
+
+.os-rule {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.os-rule__label {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.os-rule__input,
+.os-inline,
+.os-friend__name,
+.os-extra__label,
+.os-plan__detail,
+.os-gather__a,
+.os-harm__input {
+  width: 100%;
+  min-width: 0;
+  padding: 0 0.1rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--os-line);
+}
+
+.os-look,
+.os-notes {
+  width: 100%;
+  padding: 0.15rem 0.25rem;
+  background: transparent;
+  border: 1px solid var(--os-line);
+  resize: vertical;
+}
+
+.os-look {
+  min-height: 1.9rem;
+}
+
+.os-hint {
+  margin: 0;
+  font-size: 0.55rem;
+  color: var(--os-dim);
+}
+
+/* ---------- チェックボックス ---------- */
+
+.os-box {
+  flex: 0 0 auto;
+  width: 0.7rem;
+  height: 0.7rem;
+  padding: 0;
+  background: #fff;
+  border: 1.4px solid var(--os-ink);
+  cursor: pointer;
+}
+
+.os-box--small {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-width: 1.1px;
+}
+
+.os-box--on {
+  background: var(--os-on);
+}
+
+.os-checkrow {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.os-checkrow__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.os-checkrow--on .os-checkrow__name {
+  font-weight: 700;
+}
+
+.os-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.os-items--inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.05rem 0.5rem;
+}
+
+/* ---------- ストレス ---------- */
+
+.os-stress {
+  display: flex;
+  gap: 1px;
+  padding: 0.1rem 0.15rem;
+  color: #f4f2ee;
+  background: var(--os-on);
+}
+
+.os-stress__box {
+  width: 0.85rem;
+  height: 1.15rem;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  transform: skewY(-14deg);
+  cursor: pointer;
+}
+
+.os-stress__box--on {
+  background: #f4f2ee;
+}
+
+/* ---------- コイン ---------- */
+
+.os-coin {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.os-coin__label {
+  width: 3.2rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.os-coin__checks {
+  display: flex;
+  gap: 2px;
+}
+
+.os-coin__boxes {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.os-coin__box {
+  width: 0.6rem;
+  height: 0.6rem;
+  padding: 0;
+  background: var(--os-fill);
+  border: 0;
+  cursor: pointer;
+}
+
+.os-coin__box--on {
+  background: var(--os-on);
+}
+
+.os-coin__tall {
+  width: 0.6rem;
+  height: 0.8rem;
+  border: 1.2px solid var(--os-fill);
+}
+
+.os-extra {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.os-extra__checks {
+  display: flex;
+  gap: 2px;
+}
+
+.os-extra__label {
+  flex: 0 0 4.6rem;
+  font-size: 0.55rem;
+}
+
+.os-extra__label--fixed {
+  overflow: hidden;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.os-extra__boxes {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+/* ---------- 進行トラック ---------- */
+
+.os-track {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.2rem;
+}
+
+.os-bookmarks {
+  display: flex;
+  gap: 0;
+  padding-left: 0.4rem;
+}
+
+.os-bookmark {
+  width: 0.95rem;
+  height: 1.35rem;
+  padding: 0;
+  background: #fff;
+  border: 1.4px solid var(--os-ink);
+  border-right-width: 0;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  cursor: pointer;
+}
+
+.os-bookmark:last-child {
+  border-right-width: 1.4px;
+}
+
+.os-bookmark--on {
+  background: var(--os-on);
+}
+
+/* ---------- アクションレート ---------- */
+
+.os-ratings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  padding-left: 0.4rem;
+}
+
+.os-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.os-rating__dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.os-rating__dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  padding: 0;
+  background: #fff;
+  border: 1.2px solid var(--os-band);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.os-rating__dot--on {
+  background: var(--os-on);
+  border-color: var(--os-on);
+}
+
+.os-rating__dot--first {
+  margin-right: 0.15rem;
+  border-color: var(--os-ink);
+}
+
+.os-rating__name {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ---------- 傷 ---------- */
+
+.os-harm {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.os-harm th,
+.os-harm td {
+  padding: 0.1rem 0.15rem;
+  border: 1px solid var(--os-line);
+  text-align: left;
+}
+
+.os-harm__level {
+  width: 100%;
+  padding: 0.05rem 0.2rem;
+  font-weight: 700;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.os-harm__row--on {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.os-harm__row--on .os-harm__level {
+  background: var(--os-on);
+  color: #f4f2ee;
+}
+
+.os-harm__effect {
+  width: 4.2rem;
+  font-size: 0.55rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.os-harmright {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+/* ---------- 治療クロック ---------- */
+
+.os-healing {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.os-healing__seg {
+  fill: #fff;
+}
+
+.os-healing__seg--on {
+  fill: var(--os-on);
+}
+
+.os-healing__steps {
+  display: flex;
+  gap: 1px;
+}
+
+.os-healing__step {
+  width: 0.4rem;
+  height: 0.6rem;
+  padding: 0;
+  background: #fff;
+  border: 1px solid var(--os-line);
+  cursor: pointer;
+}
+
+.os-healing__step--on {
+  background: var(--os-on);
+}
+
+/* ---------- 特殊能力 ---------- */
+
+.os-abilities {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.os-ability {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  cursor: pointer;
+}
+
+.os-ability input[type='radio'] {
+  flex: 0 0 auto;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin: 0;
+  accent-color: #1b1917;
+}
+
+.os-ability--vet {
+  margin-top: 0.1rem;
+}
+
+/* ---------- 仲間 ---------- */
+
+.os-friend {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.os-friend__name {
+  flex: 1 1 auto;
+}
+
+.os-x {
+  flex: 0 0 auto;
+  width: 0.9rem;
+  height: 0.9rem;
+  padding: 0;
+  color: var(--os-dim);
+  background: transparent;
+  border: 0;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.os-x:hover {
+  color: #a33;
+}
+
+.os-add {
+  align-self: flex-start;
+  padding: 0 0.3rem;
+  font-size: 0.55rem;
+  background: transparent;
+  border: 1px solid var(--os-line);
+  cursor: pointer;
+}
+
+/* ---------- ルール文・計画・情報収集 ---------- */
+
+.os-rules {
+  margin: 0;
+  padding-left: 0.9rem;
+  font-size: 0.56rem;
+}
+
+.os-plan {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.os-plan__name {
+  flex: 0 0 5.2rem;
+  font-weight: 700;
+}
+
+.os-plan__detail {
+  flex: 1 1 auto;
+}
+
+.os-gather {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-bottom: 0.1rem;
+}
+
+.os-gather__q {
+  font-size: 0.55rem;
+  font-style: italic;
+}
+
+.os-bonus {
+  margin: 0;
+  padding: 0.15rem 0.25rem;
+  font-size: 0.58rem;
+  background: var(--os-band);
+}
+
+.os-track--bonus {
+  margin-top: 0.4rem;
+}
+
+/* ---------- 印刷 ---------- */
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 6mm;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* 画面上部のUIは印刷しない */
+  .header,
+  .summary,
+  .modes,
+  .tabs {
+    display: none !important;
+  }
+
+  .app {
+    max-width: none;
+    padding: 0;
+  }
+
+  .os {
+    border: 0;
+    background: #fff;
+    font-size: 6pt;
+  }
+}

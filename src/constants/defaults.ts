@@ -1,9 +1,18 @@
 import type { ChoiceList, Character, OfficialSheet } from '../types/character'
 import { SCHEMA_VERSION } from '../types/character'
+import { CUTTER } from './playbooks'
 import { createId, nowIso } from '../lib/id'
 
 function emptyList(count: number, label: string): ChoiceList[] {
   return Array.from({ length: count }, () => ({ id: createId('pick'), name: '', note: label }))
+}
+
+function flagMap(ids: string[]): Record<string, boolean> {
+  return Object.fromEntries(ids.map((id) => [id, false]))
+}
+
+function planningMap(): Record<string, { detail: string; load: string }> {
+  return Object.fromEntries(CUTTER.planning.map((item) => [item.id, { detail: '', load: '' }]))
 }
 
 export function defaultOfficial(): OfficialSheet {
@@ -17,18 +26,16 @@ export function defaultOfficial(): OfficialSheet {
     heritageIds: [],
     backgroundIds: [],
     viceIds: [],
-    traumaIds: [],
 
-    harmLevel: 0,
     harmNotes: { '1': '', '2': '', '3': '' },
     healingFilled: 0,
     armorUses: { armor: false, heavy: false, special: false },
 
     stash: 0,
     coin: 0,
-    extraTrackLabels: ['', ''],
-    extraTrackChecks: [false, false],
-    extraTrackFilled: [0, 0],
+    extraLabel: '',
+    extraCheck: false,
+    extraFilled: 0,
 
     playbookXp: 0,
     insightXp: 0,
@@ -37,14 +44,19 @@ export function defaultOfficial(): OfficialSheet {
     ratings: {},
 
     abilityId: '',
-    veteranSlots: ['', '', ''],
+    veteranSlots: [],
 
-    friends: [],
-    generalItems: {},
-    playbookItems: {},
+    friends: CUTTER.friends.map((name) => ({
+      id: createId('friend'),
+      name,
+      up: false,
+      down: false,
+    })),
+    generalItems: flagMap(CUTTER.itemsGeneral.map((item) => item.id)),
+    playbookItems: flagMap(CUTTER.itemsPlaybook.map((item) => item.id)),
 
-    teamwork: {},
-    planning: {},
+    teamwork: flagMap(CUTTER.teamwork.map((item) => item.id)),
+    planning: planningMap(),
     gatherInfo: ['', '', '', '', '', '', ''],
   }
 }

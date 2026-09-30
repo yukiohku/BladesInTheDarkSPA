@@ -149,6 +149,40 @@ body {
   border-color: var(--accent);
 }
 
+/* ---------- 表示モード ---------- */
+
+.modes {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 0.6rem;
+}
+
+.mode {
+  padding: 0.35rem 1rem;
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.mode:hover {
+  color: var(--text);
+}
+
+.mode--on {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.main--sheet {
+  padding: 0;
+}
+
 /* ---------- セクション ---------- */
 
 .main {

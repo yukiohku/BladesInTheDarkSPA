@@ -15,7 +15,6 @@ import { createDefaultCharacter } from '../constants/defaults'
 import { ATTRIBUTE_MAX } from '../constants/labels'
 import {
   COIN_MAX,
-  HARM_MAX,
   HEALING_CLOCK_SEGMENTS,
   RATING_MAX,
   XP_TRACK_MAX,
@@ -78,18 +77,13 @@ export type Action =
   | { type: 'change.revert'; entryId: string }
   | { type: 'official.patch'; patch: Partial<OfficialSheet> }
   | { type: 'official.text'; field: 'crewName' | 'alias' | 'look'; value: string }
-  | { type: 'official.harmLevel'; value: number }
   | { type: 'official.harmNote'; level: number; value: string }
   | { type: 'official.healing'; value: number }
   | { type: 'official.armorUse'; kind: 'armor' | 'heavy' | 'special' }
   | { type: 'official.toggle'; bucket: CheckBucket; id: string }
   | { type: 'official.stash'; value: number }
   | { type: 'official.coin'; value: number }
-  | {
-      type: 'official.extraTrack'
-      index: number
-      patch: { label?: string; check?: boolean; filled?: number }
-    }
+  | { type: 'official.extra'; patch: { label?: string; check?: boolean; filled?: number } }
   | { type: 'official.xp'; group: 'playbook' | RatingGroup; value: number }
   | { type: 'official.rating'; group: RatingGroup; id: string; value: number }
   | { type: 'official.ability'; value: string }
@@ -99,9 +93,15 @@ export type Action =
   | { type: 'official.friend.remove'; id: string }
   | { type: 'official.planning'; id: string; patch: Partial<PlanningSlot> }
   | { type: 'official.gather'; index: number; value: string }
+  | { type: 'trauma.toggle'; name: string }
 
-export type CheckBucket = 'heritageIds' | 'backgroundIds' | 'viceIds' | 'traumaIds'
-  | 'generalItems' | 'playbookItems' | 'teamwork'
+export type CheckBucket =
+  | 'heritageIds'
+  | 'backgroundIds'
+  | 'viceIds'
+  | 'generalItems'
+  | 'playbookItems'
+  | 'teamwork'
 
 function touch(character: Character): Character {
   return { ...character, updatedAt: nowIso() }
@@ -312,15 +312,6 @@ export function characterReducer(character: Character, action: Action): Characte
     case 'official.text':
       return touch({ ...character, official: { ...character.official, [action.field]: action.value } })
 
-    case 'official.harmLevel':
-      return touch({
-        ...character,
-        official: {
-          ...character.official,
-          harmLevel: Math.round(clamp(action.value, 0, HARM_MAX)),
-        },
-      })
-
     case 'official.harmNote':
       return touch({
         ...character,
@@ -371,21 +362,15 @@ export function characterReducer(character: Character, action: Action): Characte
         },
       })
 
-    case 'official.extraTrack': {
+    case 'official.extra': {
       const official = character.official
-      const labels = [...official.extraTrackLabels] as [string, string]
-      const checks = [...official.extraTrackChecks] as [boolean, boolean]
-      const filled = [...official.extraTrackFilled] as [number, number]
-      if (action.index !== 0 && action.index !== 1) return character
-      if (action.patch.label !== undefined) labels[action.index] = action.patch.label
-      if (action.patch.check !== undefined) checks[action.index] = action.patch.check
+      const next = { ...official }
+      if (action.patch.label !== undefined) next.extraLabel = action.patch.label
+      if (action.patch.check !== undefined) next.extraCheck = action.patch.check
       if (action.patch.filled !== undefined) {
-        filled[action.index] = Math.round(clamp(action.patch.filled, 0, COIN_MAX))
+        next.extraFilled = Math.round(clamp(action.patch.filled, 0, COIN_MAX))
       }
-      return touch({
-        ...character,
-        official: { ...official, extraTrackLabels: labels, extraTrackChecks: checks, extraTrackFilled: filled },
-      })
+      return touch({ ...character, official: next })
     }
 
     case 'official.xp': {
@@ -476,10 +461,18 @@ export function characterReducer(character: Character, action: Action): Characte
         official: { ...character.official, gatherInfo: answers },
       })
     }
+
+    case 'trauma.toggle': {
+      const exists = character.traumas.some((trauma) => trauma.name === action.name)
+      const traumas = exists
+        ? character.traumas.filter((trauma) => trauma.name !== action.name)
+        : [...character.traumas, { id: createId('pick'), name: action.name, note: '' }]
+      return touch({ ...character, traumas })
+    }
   }
 }
 
-const LIST_BUCKETS: CheckBucket[] = ['heritageIds', 'backgroundIds', 'viceIds', 'traumaIds']
+const LIST_BUCKETS: CheckBucket[] = ['heritageIds', 'backgroundIds', 'viceIds']
 
 /**
  * リスト選択は複数可、アイテムや協力は真偽値のトグル。

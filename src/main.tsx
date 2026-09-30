@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './styles/app.css'
+import './sheet/sheet.css'
 import App from './App.tsx'
 import { CharacterProvider } from './state/CharacterProvider.tsx'
 

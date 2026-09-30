@@ -1,7 +1,7 @@
 :root {
   color-scheme: dark;
 
-  --bg: #12100e;
+  --bg: #1a1613;
   --bg-panel: #1b1815;
   --bg-raised: #241f1b;
   --bg-input: #100e0c;
@@ -52,66 +52,111 @@ body {
   padding: 1rem 1rem 4rem;
 }
 
-/* ---------- ヘッダー ---------- */
+/* シート表示は横長なので、容器を広げて縮尺を上げる */
+.app--sheet {
+  max-width: 80rem;
+  padding-top: 0.5rem;
+}
 
-.header {
+/* ---------- 上の細い操作バー ---------- */
+
+.topbar {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
-  padding-bottom: 0.75rem;
+  gap: 0.4rem 0.8rem;
+  padding: 0.3rem 0 0.5rem;
+  margin-bottom: 0.5rem;
   border-bottom: 1px solid var(--line);
 }
 
-.header__title {
-  margin: 0;
-  font-size: 1.4rem;
-  letter-spacing: 0.04em;
-  color: var(--accent);
+.topbar__left {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-.header__subtitle {
+.topbar__brand {
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.topbar__name {
+  overflow: hidden;
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topbar__right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.6rem;
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
+}
+
+.status__item {
+  display: flex;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.status__label {
   color: var(--text-faint);
 }
 
-.header__character {
-  margin: 0;
-  font-size: 1rem;
-  color: var(--text-dim);
+.status__value {
+  color: var(--text);
 }
 
-/* ---------- 主要数値 ---------- */
+/* ---------- 表示モード ---------- */
 
-.summary {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin: 0.75rem 0;
-}
-
-.summary__item {
+.modes {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  padding: 0.5rem 0.25rem;
-  background: var(--bg-panel);
-  border: 1px solid var(--line);
+  gap: 1px;
+  padding: 1px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
 }
 
-.summary__label {
-  font-size: 0.72rem;
-  color: var(--text-faint);
+.mode {
+  padding: 0.2rem 0.7rem;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
 }
 
-.summary__value {
-  font-size: 1rem;
-  font-weight: 700;
+.mode:hover {
   color: var(--text);
+}
+
+.mode--on {
+  color: #1a140c;
+  background: var(--accent);
+  font-weight: 700;
+}
+
+.main--sheet {
+  padding: 0;
 }
 
 /* ---------- タブ ---------- */
@@ -149,41 +194,7 @@ body {
   border-color: var(--accent);
 }
 
-/* ---------- 表示モード ---------- */
-
-.modes {
-  display: flex;
-  gap: 0.25rem;
-  margin-bottom: 0.6rem;
-}
-
-.mode {
-  padding: 0.35rem 1rem;
-  font: inherit;
-  font-size: 0.88rem;
-  color: var(--text-dim);
-  background: transparent;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-
-.mode:hover {
-  color: var(--text);
-}
-
-.mode--on {
-  color: var(--accent);
-  background: var(--accent-soft);
-  border-color: var(--accent);
-  font-weight: 700;
-}
-
-.main--sheet {
-  padding: 0;
-}
-
-/* ---------- セクション ---------- */
+/* ---------- タブ ---------- */
 
 .main {
   display: flex;
@@ -391,6 +402,11 @@ body {
 .button--danger {
   color: var(--danger);
   border-color: var(--danger);
+}
+
+.button--small {
+  padding: 0.2rem 0.6rem;
+  font-size: 0.78rem;
 }
 
 .button--ghost,
@@ -705,7 +721,12 @@ body {
 }
 
 @media (max-width: 32rem) {
-  .summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .topbar__left {
+    flex: 1 1 100%;
+  }
+
+  .topbar__right {
+    flex: 1 1 100%;
+    justify-content: space-between;
   }
 }

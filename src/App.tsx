@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { APP_NAME, APP_SUBTITLE, HARM_LEVELS, LABELS } from './constants/labels'
-import { formatValue } from './lib/changelog'
+import { APP_NAME, HARM_LEVELS, LABELS } from './constants/labels'
 import { useCharacter } from './state/characterContext'
 import { OfficialSheetView } from './sheet/OfficialSheetView'
 import { AbilitiesTab } from './tabs/AbilitiesTab'
@@ -34,40 +33,53 @@ export default function App() {
   const Panel = active.Component
 
   return (
-    <div className="app">
-      <header className="header">
-        <div className="header__brand">
-          <h1 className="header__title">{APP_NAME}</h1>
-          <p className="header__subtitle">{APP_SUBTITLE}</p>
+    <div className={`app${mode === 'sheet' ? ' app--sheet' : ''}`}>
+      {/* シート自体にロゴがあるため、ここは細い操作バーに留める */}
+      <header className="topbar">
+        <div className="topbar__left">
+          <span className="topbar__brand">{APP_NAME}</span>
+          <span className="topbar__name">{character.basics.name || '未設定'}</span>
         </div>
-        <p className="header__character">{character.basics.name || '未設定'}</p>
+
+        <div className="topbar__right">
+          {mode === 'edit' && (
+            <p className="status" role="group" aria-label="主要数値">
+              <StatusItem label={LABELS.edges} value={`${character.edges}`} />
+              <StatusItem
+                label={LABELS.stress}
+                value={`${character.stress}/${character.stressMax}`}
+              />
+              <StatusItem label={LABELS.harm} value={HARM_LEVELS[character.harm]} />
+              <StatusItem label={LABELS.traumas} value={`${character.traumas.length}`} />
+            </p>
+          )}
+
+          <div className="modes" role="group" aria-label="表示モード">
+            <button
+              type="button"
+              className={`mode${mode === 'sheet' ? ' mode--on' : ''}`}
+              aria-pressed={mode === 'sheet'}
+              onClick={() => setMode('sheet')}
+            >
+              シート
+            </button>
+            <button
+              type="button"
+              className={`mode${mode === 'edit' ? ' mode--on' : ''}`}
+              aria-pressed={mode === 'edit'}
+              onClick={() => setMode('edit')}
+            >
+              編集
+            </button>
+          </div>
+
+          {mode === 'sheet' && (
+            <button type="button" className="button button--small" onClick={() => window.print()}>
+              印刷
+            </button>
+          )}
+        </div>
       </header>
-
-      <div className="summary" role="group" aria-label="主要数値">
-        <SummaryItem label={LABELS.edges} value={formatValue('edges', character.edges)} />
-        <SummaryItem label={LABELS.stress} value={formatValue('stress', character.stress)} />
-        <SummaryItem label={LABELS.harm} value={HARM_LEVELS[character.harm]} />
-        <SummaryItem label={LABELS.traumas} value={`${character.traumas.length}`} />
-      </div>
-
-      <div className="modes" role="group" aria-label="表示モード">
-        <button
-          type="button"
-          className={`mode${mode === 'sheet' ? ' mode--on' : ''}`}
-          aria-pressed={mode === 'sheet'}
-          onClick={() => setMode('sheet')}
-        >
-          シート
-        </button>
-        <button
-          type="button"
-          className={`mode${mode === 'edit' ? ' mode--on' : ''}`}
-          aria-pressed={mode === 'edit'}
-          onClick={() => setMode('edit')}
-        >
-          編集
-        </button>
-      </div>
 
       {mode === 'sheet' ? (
         <main className="main main--sheet">
@@ -97,11 +109,11 @@ export default function App() {
   )
 }
 
-function SummaryItem({ label, value }: { label: string; value: string }) {
+function StatusItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="summary__item">
-      <span className="summary__label">{label}</span>
-      <span className="summary__value">{value}</span>
-    </div>
+    <span className="status__item">
+      <span className="status__label">{label}</span>
+      <span className="status__value">{value}</span>
+    </span>
   )
 }

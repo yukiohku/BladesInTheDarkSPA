@@ -18,7 +18,13 @@ async function openTab(user: ReturnType<typeof userEvent.setup>, name: string) {
   await user.click(screen.getByRole('button', { name }))
 }
 
-describe('シートの操作', () => {
+/** 上の細いバーの数値を読み取るため、編集モードに切り替える */
+async function readStatus(user: ReturnType<typeof userEvent.setup>): Promise<string> {
+  await user.click(screen.getByRole('button', { name: '編集' }))
+  return screen.getByRole('group', { name: '主要数値' }).textContent ?? ''
+}
+
+describe('シートの編集タブ', () => {
   beforeEach(() => {
     window.localStorage.clear()
   })
@@ -68,13 +74,11 @@ describe('シートの操作', () => {
 
     await user.click(screen.getByRole('button', { name: '承受を記録' }))
 
-    // ヘッダーの要約に反映される
-    const summary = screen.getByRole('group', { name: '主要数値' })
-    const stress = within(summary).getByText('ストレス').closest('.summary__item')
-    expect(stress?.textContent).toContain('3')
+    // 上のバーの数値に反映される
+    expect(await readStatus(user)).toContain('3/9')
 
     // 履歴に出る
-    await openTab(user, '履歴')
+    await user.click(screen.getByRole('button', { name: '履歴' }))
     expect(screen.getByText('ストレス承受（+3）')).toBeTruthy()
   })
 
@@ -85,7 +89,7 @@ describe('シートの操作', () => {
     await openTab(user, '状態と変動記録')
     await user.click(screen.getByRole('button', { name: '承受を記録' }))
 
-    await openTab(user, '履歴')
+    await user.click(screen.getByRole('button', { name: '履歴' }))
     await user.click(screen.getByRole('button', { name: '取り消す' }))
 
     expect(screen.getByText('まだ記録がありません。')).toBeTruthy()
@@ -106,9 +110,7 @@ describe('シートの操作', () => {
     expect(submit.hasAttribute('disabled')).toBe(false)
 
     await user.click(submit)
-    const summary = screen.getByRole('group', { name: '主要数値' })
-    const trauma = within(summary).getByText('トラウマ').closest('.summary__item')
-    expect(trauma?.textContent).toContain('1')
+    expect(await readStatus(user)).toContain('トラウマ1')
   })
 })
 
@@ -127,16 +129,24 @@ describe('公式シートの操作', () => {
     expect(screen.getByRole('heading', { name: 'CUTTER' })).toBeTruthy()
   })
 
-  it('ストレスのマスを押すと要約に反映される', async () => {
+  it('モードを切り替えると編集タブが出る', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    await user.click(screen.getByRole('button', { name: '編集' }))
+    expect(screen.getByRole('button', { name: '基本情報' })).toBeTruthy()
+  })
+
+  it('ストレスのマスを押すと上のバーに反映される', async () => {
     const user = userEvent.setup()
     renderApp()
 
     const group = screen.getByRole('group', { name: 'ストレス' })
-    await user.click(within(group).getByRole('button', { name: 'ストレス 3' }))
+    const box = within(group).getByRole('button', { name: 'ストレス 3' })
+    await user.click(box)
 
-    const summary = screen.getByRole('group', { name: '主要数値' })
-    const stress = within(summary).getByText('ストレス').closest('.summary__item')
-    expect(stress?.textContent).toContain('3')
+    expect(box.getAttribute('aria-pressed')).toBe('true')
+    expect(await readStatus(user)).toContain('ストレス3/9')
   })
 
   it('血統のチェックボックスを切り替えられる', async () => {
@@ -178,7 +188,15 @@ describe('公式シートの操作', () => {
     expect(screen.getByRole('button', { name: 'A Blade or Two' }).getAttribute('aria-pressed')).toBe('true')
   })
 
-  it('変動記録で入れたトラウマがシートのチェックボックスにも出る', async () => {
+  it('エッジは公式で無題の行に表示される', async () => {
+    const user = userEvent.setup()
+    renderApp()
+
+    await user.click(screen.getByRole('button', { name: 'エッジ 2' }))
+    expect(await readStatus(user)).toContain('エッジ2')
+  })
+
+  it('シートで選んだトラウマが上のバーの件数に出る', async () => {
     const user = userEvent.setup()
     renderApp()
 
@@ -188,20 +206,16 @@ describe('公式シートの操作', () => {
 
     await user.click(traumaBox)
     expect(traumaBox.getAttribute('aria-pressed')).toBe('true')
-
-    // 編集モードの要約にも件数が出る
-    const summary = screen.getByRole('group', { name: '主要数値' })
-    const trauma = within(summary).getByText('トラウマ').closest('.summary__item')
-    expect(trauma?.textContent).toContain('1')
+    expect(await readStatus(user)).toContain('トラウマ1')
   })
 
-  it('傷の行を押すと要約の傷が変わる', async () => {
+  it('傷の行を押すと上のバーの表示が変わる', async () => {
     const user = userEvent.setup()
     renderApp()
 
-    await user.click(screen.getByRole('button', { name: '2' }))
-    const summary = screen.getByRole('group', { name: '主要数値' })
-    const harm = within(summary).getByText('傷').closest('.summary__item')
-    expect(harm?.textContent).toContain('重傷')
+    const level = screen.getByRole('button', { name: '2' })
+    await user.click(level)
+    expect(level.getAttribute('aria-pressed')).toBe('true')
+    expect(await readStatus(user)).toContain('傷重傷')
   })
 })

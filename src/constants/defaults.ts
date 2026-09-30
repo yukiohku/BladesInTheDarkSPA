@@ -20,7 +20,6 @@ export function defaultOfficial(): OfficialSheet {
     playbookId: 'cutter',
 
     crewName: '',
-    alias: '',
     look: '',
 
     heritageIds: [],

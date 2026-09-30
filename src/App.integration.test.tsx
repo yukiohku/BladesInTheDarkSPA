@@ -37,8 +37,10 @@ describe('変動記録', () => {
     const user = userEvent.setup()
     renderApp()
 
-    await user.type(screen.getByLabelText('名前'), 'カッター')
-    expect(screen.getByText('カッター')).toBeTruthy()
+    // 名前は初期設定タブで入力する（シートは表示のみ）
+    await openTab(user, '初期設定')
+    await user.type(screen.getByLabelText('名前'), 'ヴィクセン')
+    expect(screen.getByText('ヴィクセン')).toBeTruthy()
   })
 
   it('属性は初期設定タブで増減する', async () => {

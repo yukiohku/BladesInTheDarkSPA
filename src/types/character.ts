@@ -54,7 +54,6 @@ export interface OfficialSheet {
   playbookId: string
 
   crewName: string
-  alias: string
   look: string
 
   heritageIds: string[]

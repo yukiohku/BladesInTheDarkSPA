@@ -26,11 +26,6 @@ export function SetupTab() {
             value={character.basics.name}
             onChange={(name) => dispatch({ type: 'basics', patch: { name } })}
           />
-          <TextInput
-            label={LABELS.alias}
-            value={official.alias}
-            onChange={(value) => dispatch({ type: 'official.text', field: 'alias', value })}
-          />
         </Grid>
         <TextArea
           label={LABELS.look}

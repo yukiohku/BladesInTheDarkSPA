@@ -76,8 +76,8 @@ export type Action =
   | { type: 'change.apply'; draft: ChangeDraft }
   | { type: 'change.revert'; entryId: string }
   | { type: 'official.patch'; patch: Partial<OfficialSheet> }
-  | { type: 'official.text'; field: 'crewName' | 'alias' | 'look'; value: string }
-  | { type: 'official.harmNote'; level: number; value: string }
+  | { type: 'official.text'; field: 'crewName' | 'look'; value: string }
+  | { type: 'official.harmNote'; key: string; value: string }
   | { type: 'official.healing'; value: number }
   | { type: 'official.armorUse'; kind: 'armor' | 'heavy' | 'special' }
   | { type: 'official.toggle'; bucket: CheckBucket; id: string }
@@ -317,7 +317,7 @@ export function characterReducer(character: Character, action: Action): Characte
         ...character,
         official: {
           ...character.official,
-          harmNotes: { ...character.official.harmNotes, [String(action.level)]: action.value },
+          harmNotes: { ...character.official.harmNotes, [action.key]: action.value },
         },
       })
 

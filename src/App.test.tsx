@@ -28,9 +28,6 @@ describe('App', () => {
     expect(html).toContain('SPECIAL ABILITY')
     expect(html).toContain('DANGEROUS FRIENDS')
     expect(html).toContain('ITEMS')
-    expect(html).toContain('TEAMWORK')
-    expect(html).toContain('PLANNING')
-    expect(html).toContain('GATHER INFORMATION')
     expect(html).toContain('INSIGHT')
     expect(html).toContain('PROWESS')
     expect(html).toContain('RESOLVE')
@@ -38,12 +35,23 @@ describe('App', () => {
     expect(html).toContain('COIN')
   })
 
-  it('キャラメイクで決める項目はシートに出さない', () => {
+  it('サマリー性质的パネルはシートに載せない', () => {
+    const html = render()
+    expect(html).not.toContain('TEAMWORK')
+    expect(html).not.toContain('PLANNING')
+    expect(html).not.toContain('GATHER INFORMATION')
+  })
+
+  it('ロゴと playbook 名は同一性として残す', () => {
+    const html = render()
+    expect(html).toContain('Blades in the Dark')
+    expect(html).toContain('CUTTER')
+  })
+
+  it('初期設定の選択肢リストはシートに出さない', () => {
     const html = render()
 
-    // 初期設定の項目はプレイシートには出さない
-    expect(html).not.toContain('BLADES IN THE DARK')
-    expect(html).not.toContain('CUTTER')
+    // 選ぶためのチェックリストは編集タブ側
     expect(html).not.toContain('Akoros')
     expect(html).not.toContain('VICE / PURVEYOR')
     // 静的なルール文も落とす

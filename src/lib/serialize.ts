@@ -224,7 +224,6 @@ function asOfficial(value: unknown): OfficialSheet {
     playbookId: playbook.id,
 
     crewName: asString(value.crewName),
-    alias: asString(value.alias),
     look: asString(value.look),
 
     heritageIds: asStringArray(value.heritageIds),

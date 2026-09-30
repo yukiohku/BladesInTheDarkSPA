@@ -1,8 +1,10 @@
 import { useCharacter } from '../state/characterContext'
+import type { CSSProperties } from 'react'
 import type { CheckBucket, RatingGroup } from '../state/characterReducer'
 import { HARM_ROWS, PLAYBOOKS } from '../constants/playbooks'
 import type { NamedItem } from '../constants/playbooks'
 import { LABELS } from '../constants/labels'
+import logoUrl from '../assets/blades-logo.png'
 import {
   BookmarkTrack,
   Box,
@@ -10,7 +12,6 @@ import {
   CoinTrack,
   HealingClock,
   RatingDots,
-  RuleLine,
   StressBoxes,
 } from './parts'
 
@@ -25,14 +26,19 @@ function ItemList({
   bucket,
   selected,
   onToggle,
+  columns = 2,
 }: {
   items: NamedItem[]
   bucket: CheckBucket
   selected: Record<string, boolean>
   onToggle: (bucket: CheckBucket, id: string) => void
+  columns?: number
 }) {
   return (
-    <div className="os-items">
+    <div
+      className="os-items os-items--cols2"
+      style={{ '--os-item-columns': columns } as CSSProperties}
+    >
       {items.map((item) => (
         <CheckRow
           key={item.id}
@@ -42,6 +48,21 @@ function ItemList({
           onToggle={(id) => onToggle(bucket, id)}
         />
       ))}
+    </div>
+  )
+}
+
+/** id の配列を.playbook 上の表示名に変換する。見つからないものは id をそのまま出す。 */
+function namesOf(items: NamedItem[], ids: readonly string[]): string[] {
+  return ids.map((id) => items.find((item) => item.id === id)?.name ?? id)
+}
+
+function IdentityRow({ label, value }: { label: string; value: string }) {
+  if (!value) return null
+  return (
+    <div className="os-idrow">
+      <span className="os-idrow__label">{label}</span>
+      <span className="os-idrow__value">{value}</span>
     </div>
   )
 }
@@ -59,28 +80,47 @@ export function OfficialSheetView() {
     ? official.veteranSlots[Number(official.abilityId.slice(4))] || ''
     : ''
 
+  const heritage = namesOf(playbook.heritages, official.heritageIds).join(' / ')
+  const background = namesOf(playbook.backgrounds, official.backgroundIds).join(' / ')
+  const vices = namesOf(playbook.vices, official.viceIds).join(' / ')
+
   return (
     <div className="os">
+      {/* ロゴと playbook 名は「誰のシートか」を示す同一性なので残す */}
+      <div className="os__banner">
+        <img className="os__logo" src={logoUrl} alt="Blades in the Dark" />
+        <h2 className="os__title">{playbook.title}</h2>
+      </div>
+
       {/* ========== 左列：いちばん触るもの ========== */}
       <div className="os__col os__col--left">
-        <RuleLine
-          label={LABELS.name}
-          value={character.basics.name}
-          onChange={(name) => dispatch({ type: 'basics', patch: { name } })}
-          className="os-rule--wide"
-        />
+        {/* 初期設定の結果だけ表示する（入力は編集タブ側。プレイ中に触らない） */}
+        <div className="os-identity">
+          <div className="os-charname">
+            <span className="os-charname__label">{LABELS.name}</span>
+            <span className="os-charname__value">
+              {character.basics.name || '（未設定）'}
+            </span>
+          </div>
+          <IdentityRow label="クルー" value={official.crewName} />
+          <IdentityRow label={LABELS.heritage} value={heritage} />
+          <IdentityRow label={LABELS.background} value={background} />
+          <IdentityRow label="悪癖" value={vices} />
+          <IdentityRow label={LABELS.look} value={official.look} />
+        </div>
 
         <div>
           <h3 className="os-minititle">{LABELS.stress}</h3>
           <StressBoxes
             value={character.stress}
+            max={character.stressMax}
             onChange={(value) => dispatch({ type: 'number', field: 'stress', value })}
           />
         </div>
 
         <div>
           <h3 className="os-minititle">{LABELS.traumas}</h3>
-          <div className="os-items os-items--inline">
+          <div className="os-items os-items--cols2">
             {playbook.traumas.map((item) => (
               <CheckRow
                 key={item.id}
@@ -93,117 +133,121 @@ export function OfficialSheetView() {
           </div>
         </div>
 
-        <div className="os-duo os-duo--wide">
-          <div>
-            <h3 className="os-minititle">{LABELS.harm}</h3>
-            <table className="os-harm">
-              <tbody>
-                {HARM_ROWS.map((row) => {
-                  const active = character.harm === row.level
-                  return (
-                    <tr key={row.level} className={active ? 'os-harm__row--on' : undefined}>
-                      <th>
-                        <button
-                          type="button"
-                          className="os-harm__level"
-                          aria-pressed={active}
-                          onClick={() =>
-                            dispatch({
-                              type: 'number',
-                              field: 'harm',
-                              value: active ? 0 : row.level,
-                            })
-                          }
-                        >
-                          {row.level}
-                        </button>
-                      </th>
-                      <td>
-                        <input
-                          className="os-harm__input"
-                          aria-label={`傷 ${row.level} の内容`}
-                          value={official.harmNotes[String(row.level)] ?? ''}
-                          onChange={(event) =>
-                            dispatch({
-                              type: 'official.harmNote',
-                              level: row.level,
-                              value: event.target.value,
-                            })
-                          }
-                        />
-                      </td>
-                      <td className="os-harm__effect">{row.effect}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="os-harmright">
-            <div>
-              <h3 className="os-minititle">HEALING</h3>
-              <HealingClock
-                filled={official.healingFilled}
-                onChange={(value) => dispatch({ type: 'official.healing', value })}
-              />
-            </div>
-            <div>
-              <h3 className="os-minititle">ARMOR USES</h3>
-              <div className="os-items">
-                {(['armor', 'heavy', 'special'] as const).map((kind) => {
-                  const name = kind === 'armor' ? '鎧' : kind === 'heavy' ? '重装' : '特殊'
-                  return (
-                    <div className="os-checkrow" key={kind}>
-                      <Box
-                        checked={official.armorUses[kind]}
-                        onChange={() => dispatch({ type: 'official.armorUse', kind })}
-                        label={name}
-                      />
-                      <span className="os-checkrow__name">{name}</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
+        {/* 傷は紙上でかなり書くので、幅と行高を払う */}
+        <div className="os-harmblock">
+          <h3 className="os-minititle">{LABELS.harm}</h3>
+          <table className="os-harm">
+            <tbody>
+              {HARM_ROWS.map((row) => {
+                const active = character.harm === row.level
+                return (
+                  <tr key={row.level} className={active ? 'os-harm__row--on' : undefined}>
+                    <th>
+                      <button
+                        type="button"
+                        className="os-harm__level"
+                        aria-pressed={active}
+                        onClick={() =>
+                          dispatch({
+                            type: 'number',
+                            field: 'harm',
+                            value: active ? 0 : row.level,
+                          })
+                        }
+                      >
+                        {row.level}
+                      </button>
+                    </th>
+                    {Array.from({ length: row.cells }, (_, index) => {
+                      const key = `${row.level}-${index}`
+                      return (
+                        <td key={key}>
+                          <textarea
+                            className="os-harm__input"
+                            rows={2}
+                            aria-label={`傷 ${row.level} ${row.cells > 1 ? `の欄${index + 1}` : 'の内容'}`}
+                            value={official.harmNotes[key] ?? ''}
+                            onChange={(event) =>
+                              dispatch({
+                                type: 'official.harmNote',
+                                key,
+                                value: event.target.value,
+                              })
+                            }
+                          />
+                        </td>
+                      )
+                    })}
+                    <td className="os-harm__effect">{row.effect}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
 
-        <div className="os-grow">
-          <h3 className="os-minititle">{LABELS.notes}</h3>
-          <textarea
-            className="os-notes os-notes--grow"
-            rows={10}
-            aria-label={LABELS.notes}
-            value={character.notes}
-            onChange={(event) => dispatch({ type: 'note', value: event.target.value })}
-          />
+        <div className="os-duo">
+          <div>
+            <h3 className="os-minititle">HEALING</h3>
+            <HealingClock
+              filled={official.healingFilled}
+              onChange={(value) => dispatch({ type: 'official.healing', value })}
+            />
+          </div>
+          <div>
+            <h3 className="os-minititle">ARMOR USES</h3>
+            <div className="os-items">
+              {(['armor', 'heavy', 'special'] as const).map((kind) => {
+                const name = kind === 'armor' ? '鎧' : kind === 'heavy' ? '重装' : '特殊'
+                return (
+                  <div className="os-checkrow" key={kind}>
+                    <Box
+                      checked={official.armorUses[kind]}
+                      onChange={() => dispatch({ type: 'official.armorUse', kind })}
+                      label={name}
+                    />
+                    <span className="os-checkrow__name">{name}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* ========== 中央：物資と仲間 ========== */}
       <div className="os__col os__col--center">
-        <div className="os-panel os-panel--tight">
+        {/* 選んだ特殊能力は效果文まで載せる（プレイ中に読むものだから） */}
+        <div className="os-panel os-panel--ability">
           <h3 className="os-panel__title">SPECIAL ABILITY</h3>
-          <p className="os-chosen">
-            {chosen ? <b>{chosen.name}</b> : chosenVet || '—'}
-          </p>
-          <div className="os-vets">
-            {official.veteranSlots.map((slot, index) => (
-              <span className="os-vet" key={`vet-${index}`}>
-                <span className="os-vet__dot" aria-hidden="true" />
-                <input
-                  className="os-vet__input"
-                  placeholder="VETERAN"
-                  aria-label={`Veteran ${index + 1}`}
-                  value={slot}
-                  onChange={(event) =>
-                    dispatch({ type: 'official.veteran', index, value: event.target.value })
-                  }
-                />
-              </span>
-            ))}
-          </div>
+          {chosen ? (
+            <>
+              <p className="os-abilityname">{chosen.name}</p>
+              <p className="os-abilityeffect">{chosen.effect}</p>
+            </>
+          ) : chosenVet ? (
+            <>
+              <p className="os-abilityname">VETERAN</p>
+              <p className="os-abilityeffect">{chosenVet}</p>
+            </>
+          ) : (
+            <p className="os-abilityeffect os-abilityeffect--none">
+              未選択（特殊能力タブで選びます）
+            </p>
+          )}
+
+          {official.veteranSlots.some((slot) => slot.trim()) && (
+            <div className="os-vets">
+              {official.veteranSlots.map((slot, index) =>
+                slot.trim() ? (
+                  <div className="os-vet" key={`vet-${index}`}>
+                    <span className="os-vet__dot" aria-hidden="true" />
+                    <span className="os-vet__text">{slot}</span>
+                  </div>
+                ) : null,
+              )}
+            </div>
+          )}
         </div>
 
         <div className="os-panel">
@@ -378,66 +422,6 @@ export function OfficialSheetView() {
             </div>
           </div>
         ))}
-
-        <div className="os-panel">
-          <h3 className="os-panel__title">GATHER INFORMATION</h3>
-          {playbook.gatherInfo.map((question, index) => (
-            <div className="os-gather" key={question}>
-              <span className="os-gather__q">{question}</span>
-              <input
-                className="os-gather__a"
-                aria-label={question}
-                value={official.gatherInfo[index] ?? ''}
-                onChange={(event) =>
-                  dispatch({ type: 'official.gather', index, value: event.target.value })
-                }
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ========== 下段：作戦ごと ========== */}
-      <div className="os__row os__row--bottom">
-        <div className="os-panel">
-          <h3 className="os-panel__title">TEAMWORK</h3>
-          <div className="os-items">
-            {playbook.teamwork.map((item) => (
-              <CheckRow
-                key={item.id}
-                id={item.id}
-                name={item.name}
-                checked={Boolean(official.teamwork[item.id])}
-                onToggle={(id) => toggle('teamwork', id)}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="os-panel">
-          <h3 className="os-panel__title">PLANNING &amp; LOAD</h3>
-          <p className="os-hint">計画を選び、detail を決める。</p>
-          {playbook.planning.map((item) => (
-            <div className="os-plan" key={item.id}>
-              <span className="os-plan__name">
-                {item.name}: <i>{item.prompt}</i>
-              </span>
-              <input
-                className="os-plan__detail"
-                aria-label={`${item.name} の詳細`}
-                placeholder="detail"
-                value={official.planning[item.id]?.detail ?? ''}
-                onChange={(event) =>
-                  dispatch({
-                    type: 'official.planning',
-                    id: item.id,
-                    patch: { detail: event.target.value },
-                  })
-                }
-              />
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   )

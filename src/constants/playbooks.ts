@@ -50,11 +50,14 @@ export interface Playbook {
   gatherInfo: string[]
 }
 
-/** 傷の行ごとの効果 */
-export const HARM_ROWS: { level: number; effect: string }[] = [
-  { level: 3, effect: '手助けが必要' },
-  { level: 2, effect: '−1d' },
-  { level: 1, effect: '効果 −1' },
+/**
+ * 傷の行ごとの効果と欄数。
+ * 官方のシートではレベル3は1欄、レベル2と1は2欄（縦線で分かれている）。
+ */
+export const HARM_ROWS: { level: number; effect: string; cells: number }[] = [
+  { level: 3, effect: '手助けが必要', cells: 1 },
+  { level: 2, effect: '−1d', cells: 2 },
+  { level: 1, effect: '効果 −1', cells: 2 },
 ]
 
 /**

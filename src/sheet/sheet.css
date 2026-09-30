@@ -4,6 +4,9 @@
  */
 
 .os {
+  /* 16px = ブラウザ推奨の本文サイズ、12px = これより小さくしない下限 */
+  --os-fs-base: 1rem;
+  --os-fs-min: 0.75rem;
   --os-line: #2c2a28;
   --os-ink: #14120f;
   --os-dim: #6f6a63;
@@ -12,15 +15,19 @@
   --os-on: #1b1917;
 
   display: grid;
-  /* minmax(0, …) にしないと列が contents の min-content まで広がって紙面からはみ出す */
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.5fr) minmax(0, 0.82fr);
-  grid-template-rows: auto auto 1fr;
+  /* minmax(0, …) にしないと列が contents の min-content まで広がって紙面からはみ出す。
+     右列は「ラベル + マス」やリボンが並ぶのでCHANT kadar広く取る。 */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.28fr) minmax(0, 1.06fr);
+  grid-template-rows: auto 1fr;
   column-gap: 0;
   align-items: start;
   padding: 0.5rem;
-  font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', Georgia, serif;
-  font-size: 0.62rem;
-  line-height: 1.35;
+  /* 狭い画面では文字を縮めず横スクロールさせる（12px の下限を守るため） */
+  min-width: 74rem;
+  /* 紙面でもゴシックを使う。明朝は細くて読みにくい */
+  font-family: var(--font-ui);
+  font-size: var(--os-fs-base);
+  line-height: 1.4;
   color: var(--os-ink);
   background: #f4f2ee;
   border: 1px solid var(--os-line);
@@ -45,50 +52,132 @@
 
 /*
   プレイ中に触る項目だけを置く:
-  左列 = 名前〜メモ（いちばん触る、縦に伸ばす）
-  中央 = 特殊能力 / 危険な仲間 / ITEMS
-  右列 = STASH〜RESOLVE / GATHER INFORMATION
-  下段 = TEAMWORK / PLANNING & LOAD（中央+右にまたがる）
+  上の帯 = ロゴ / playbook 名（同一性）
+  左列 = 初期設定の結果 / ストレス〜メモ
+  中央 = 特殊能力（效果文つき）/ 危険な仲間 / ITEMS
+  右列 = STASH〜RESOLVE
 */
+.os__banner {
+  display: flex;
+  grid-column: 1 / 4;
+  grid-row: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 0.6rem 0.4rem;
+  margin-bottom: 0.3rem;
+  border-bottom: 2px solid var(--os-on);
+}
+
+.os__logo {
+  /* width を明示して height はアスペクト比から让它にさせる。
+     flex 内で height だけ指定すると幅が潰れて文字が詰まる。 */
+  flex: 0 0 auto;
+  width: 16rem;
+  height: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.os__title {
+  margin: 0;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', 'Arial Black', sans-serif;
+  font-size: 3.4rem;
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--os-on);
+  /* 官方の活字の凹凸を薄い影で模す */
+  text-shadow:
+    0.06em 0.04em 0 rgba(0, 0, 0, 0.12),
+    0.12em 0.08em 0 rgba(0, 0, 0, 0.05);
+}
+
 .os__col--left {
   grid-column: 1;
-  grid-row: 1 / 4;
+  grid-row: 2;
   align-self: stretch;
   border-right: 1px solid var(--os-line);
 }
 
 .os__col--center {
   grid-column: 2;
-  grid-row: 1 / 3;
+  grid-row: 2;
   border-right: 1px solid var(--os-line);
 }
 
 .os__col--right {
   grid-column: 3;
-  grid-row: 1 / 3;
+  grid-row: 2;
   border-right: 1px solid var(--os-line);
 }
 
-.os__row--bottom {
-  display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.4fr);
-  gap: 0.3rem;
-  grid-column: 2 / 4;
-  grid-row: 3;
-  align-items: start;
-  padding: 0 0.4rem;
-}
-
 /* 左列のメモを残り空間まで伸ばす */
-.os-grow {
+/* ---------- 初期設定の結果（選択肢ではなく選んだものだけ） ---------- */
+
+.os-charname {
   display: flex;
-  flex: 1 1 auto;
   flex-direction: column;
-  min-height: 8rem;
+  gap: 0.05rem;
+  margin-bottom: 0.1rem;
 }
 
-.os-notes--grow {
+.os-charname__label {
+  font-size: var(--os-fs-min);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--os-dim);
+}
+
+.os-charname__value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.25;
+  border-bottom: 1px solid var(--os-line);
+  padding-bottom: 0.1rem;
+}
+
+.os-identity {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.3rem 0.4rem 0.5rem;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--os-band);
+  border-radius: 3px;
+}
+
+.os-idrow {
+  display: flex;
+  gap: 0.4rem;
+  font-size: var(--os-fs-min);
+  line-height: 1.4;
+}
+
+.os-idrow__label {
+  flex: 0 0 3.4rem;
+  color: var(--os-dim);
+  letter-spacing: 0.04em;
+}
+
+.os-idrow__value {
   flex: 1 1 auto;
+  min-width: 0;
+  white-space: pre-wrap;
+}
+
+
+/* 英字の見出しは縦長ゴシック + tracking で少しだけ格好をつける */
+.os-panel__title,
+.os-track__title,
+.os-minititle,
+.os-rating__name,
+.os-coin__label,
+.os-loadlegend {
+  font-family: var(--font-en);
 }
 
 .os-panel__title,
@@ -96,7 +185,7 @@
 .os-minititle {
   margin: 0;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -120,15 +209,6 @@
   align-items: center;
 }
 
-.os-track__head .os-bookmarks {
-  flex: 0 0 auto;
-  margin-left: -0.4rem;
-  padding-left: 0;
-}
-
-.os-minititle {
-  font-size: 0.6rem;
-}
 
 .os-loadlegend {
   float: right;
@@ -148,21 +228,53 @@
   border: 1px solid var(--os-band);
 }
 
-.os-chosen {
-  margin: 0.1rem 0;
-  font-size: 0.72rem;
+/* 特殊能力は效果文ごと sheet に出す（プレイ中に読むため） */
+.os-panel--ability {
+  gap: 0.15rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--os-ink);
+}
+
+/* 特殊能力名は本文の明朝のまま太字にする。
+   大見出し用の活字（Impact など）は playbook 名に限って使う。 */
+.os-abilityname {
+  margin: 0.15rem 0 0.1rem;
+  padding-bottom: 0.1rem;
+  font-family: inherit;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--os-ink);
+  border-bottom: 1px solid var(--os-band);
+}
+
+/* 效果文は能力的によって長さが変わるので、3行ぶん Spaces を確保しておく */
+.os-abilityeffect {
+  margin: 0;
+  min-height: 4.6rem;
+  font-size: var(--os-fs-base);
+  line-height: 1.5;
+}
+
+.os-abilityeffect--none {
+  color: var(--os-dim);
 }
 
 .os-vets {
   display: flex;
   flex-direction: column;
-  gap: 0.05rem;
+  gap: 0.1rem;
+  margin-top: 0.2rem;
+  padding-top: 0.2rem;
+  border-top: 1px dotted var(--os-band);
 }
 
 .os-vet {
   display: flex;
-  align-items: center;
-  gap: 0.2rem;
+  align-items: baseline;
+  gap: 0.3rem;
 }
 
 .os-vet__dot {
@@ -171,20 +283,11 @@
   height: 0.55rem;
   border: 1.1px solid var(--os-ink);
   border-radius: 50%;
+  transform: translateY(-0.1rem);
 }
 
-.os-vet__input {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 0 0.1rem;
-  font-size: 0.55rem;
-  background: transparent;
-  border: 0;
-  border-bottom: 1px solid var(--os-line);
-}
-
-.os-panel--tight {
-  gap: 0.1rem;
+.os-vet__text {
+  font-size: var(--os-fs-base);
 }
 
 /* ---------- 入力 ---------- */
@@ -195,30 +298,9 @@
   gap: 0.3rem;
 }
 
-.os-duo--wide {
-  grid-template-columns: 1.6fr 0.9fr;
-  gap: 0.4rem;
-}
-
-.os-rule {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.os-rule__label {
-  font-size: 0.55rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.os-rule__input,
 
 .os-friend__name,
 .os-extra__label,
-.os-plan__detail,
-.os-gather__a,
 .os-harm__input {
   width: 100%;
   min-width: 0;
@@ -228,26 +310,12 @@
   border-bottom: 1px solid var(--os-line);
 }
 
-.os-notes {
-  width: 100%;
-  padding: 0.15rem 0.25rem;
-  background: transparent;
-  border: 1px solid var(--os-line);
-  resize: vertical;
-}
-
-.os-hint {
-  margin: 0;
-  font-size: 0.55rem;
-  color: var(--os-dim);
-}
-
 /* ---------- チェックボックス ---------- */
 
 .os-box {
   flex: 0 0 auto;
-  width: 0.7rem;
-  height: 0.7rem;
+  width: 0.95rem;
+  height: 0.95rem;
   padding: 0;
   background: #fff;
   border: 1.4px solid var(--os-ink);
@@ -255,8 +323,8 @@
 }
 
 .os-box--small {
-  width: 0.55rem;
-  height: 0.55rem;
+  width: 0.75rem;
+  height: 0.75rem;
   border-width: 1.1px;
 }
 
@@ -287,49 +355,67 @@
   gap: 0.05rem;
 }
 
-.os-items--inline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.05rem 0.5rem;
+/* トラウマもアイテムも2列に詰めて縦の余白を減らす */
+.os-items--cols2 {
+  display: grid;
+  grid-template-columns: repeat(var(--os-item-columns, 2), minmax(0, 1fr));
+  gap: 0.05rem 0.7rem;
 }
 
-/* ---------- ストレス ---------- */
+/* ---------- 進捗ボックス（ストレス / 進行 / レーティング） ----------
+   装飾は追求せず、素の四角で塗り分けの視認性だけ ensured する。 */
+
+/* 箱が並んだ行は分数を右に添える（数えなくて済むように） */
+.os-stressrow,
+.os-bookmarkrow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.os-count {
+  font-family: var(--font-en);
+  font-size: var(--os-fs-min);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--os-dim);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
 
 .os-stress {
   display: flex;
-  gap: 1px;
-  padding: 0.1rem 0.15rem;
-  color: #f4f2ee;
-  background: var(--os-on);
+  gap: 3px;
 }
 
 .os-stress__box {
-  width: 0.85rem;
-  height: 1.15rem;
+  width: 1.2rem;
+  height: 1.2rem;
   padding: 0;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  transform: skewY(-14deg);
+  background: #fff;
+  border: 1.5px solid var(--os-ink);
   cursor: pointer;
 }
 
 .os-stress__box--on {
-  background: #f4f2ee;
+  background: var(--os-on);
 }
 
 /* ---------- コイン ---------- */
 
+/* 右列は「ラベル + マス」の行が並ぶので Reactions くらいは欲しい */
 .os-coin {
-  display: flex;
+  display: grid;
+  grid-template-columns: 4.6rem minmax(0, 1fr);
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.4rem;
 }
 
 .os-coin__label {
-  width: 3.2rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .os-coin__checks {
@@ -344,8 +430,8 @@
 }
 
 .os-coin__box {
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.8rem;
+  height: 0.8rem;
   padding: 0;
   background: var(--os-fill);
   border: 0;
@@ -357,15 +443,16 @@
 }
 
 .os-coin__tall {
-  width: 0.6rem;
-  height: 0.8rem;
+  width: 0.8rem;
+  height: 1.05rem;
   border: 1.2px solid var(--os-fill);
 }
 
 .os-extra {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1.7rem 4.4rem minmax(0, 1fr);
   align-items: center;
-  gap: 0.2rem;
+  gap: 0.3rem;
 }
 
 .os-extra__checks {
@@ -374,8 +461,12 @@
 }
 
 .os-extra__label {
-  flex: 0 0 4.6rem;
-  font-size: 0.55rem;
+  min-width: 0;
+  font-size: var(--os-fs-min);
+  padding: 0 0.1rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--os-line);
 }
 
 .os-extra__boxes {
@@ -393,25 +484,26 @@
   margin-top: 0.2rem;
 }
 
+/* リボンは黒帯に重ねず、素の四角で表す */
+.os-track__head {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
 .os-bookmarks {
   display: flex;
-  gap: 0;
-  padding-left: 0.4rem;
+  flex: 0 0 auto;
+  gap: 3px;
 }
 
 .os-bookmark {
-  width: 0.95rem;
-  height: 1.35rem;
+  width: 1.15rem;
+  height: 1.15rem;
   padding: 0;
   background: #fff;
-  border: 1.4px solid var(--os-ink);
-  border-right-width: 0;
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 78%, 0 100%);
+  border: 1.5px solid var(--os-ink);
   cursor: pointer;
-}
-
-.os-bookmark:last-child {
-  border-right-width: 1.4px;
 }
 
 .os-bookmark--on {
@@ -430,42 +522,43 @@
 .os-rating {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
 }
 
 .os-rating__dots {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
 }
 
+/* アクションレートも素の四角で統一する */
 .os-rating__dot {
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.85rem;
+  height: 0.85rem;
   padding: 0;
   background: #fff;
-  border: 1.2px solid var(--os-band);
-  border-radius: 50%;
+  border: 1.5px solid var(--os-ink);
   cursor: pointer;
 }
 
 .os-rating__dot--on {
   background: var(--os-on);
-  border-color: var(--os-on);
-}
-
-.os-rating__dot--first {
-  margin-right: 0.15rem;
-  border-color: var(--os-ink);
 }
 
 .os-rating__name {
+  flex: 1 1 auto;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 /* ---------- 傷 ---------- */
+
+.os-harmblock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
 
 .os-harm {
   width: 100%;
@@ -474,14 +567,20 @@
 
 .os-harm th,
 .os-harm td {
-  padding: 0.1rem 0.15rem;
+  padding: 0.2rem 0.25rem;
   border: 1px solid var(--os-line);
   text-align: left;
+  vertical-align: top;
+}
+
+.os-harm th {
+  width: 2.2rem;
 }
 
 .os-harm__level {
   width: 100%;
   padding: 0.05rem 0.2rem;
+  font: inherit;
   font-weight: 700;
   background: transparent;
   border: 0;
@@ -498,17 +597,24 @@
   color: #f4f2ee;
 }
 
-.os-harm__effect {
-  width: 4.2rem;
-  font-size: 0.55rem;
-  text-align: right;
-  white-space: nowrap;
+/* 傷の欄は実際に文章を書くので、行高 Vegetarian くらいは欲しい */
+.os-harm__input {
+  width: 100%;
+  min-height: 3.4rem;
+  padding: 0.1rem 0.15rem;
+  font: inherit;
+  line-height: 1.45;
+  background: transparent;
+  border: 0;
+  resize: vertical;
 }
 
-.os-harmright {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
+.os-harm__effect {
+  width: 4.8rem;
+  font-size: var(--os-fs-min);
+  line-height: 1.35;
+  text-align: right;
+  white-space: normal;
 }
 
 /* ---------- 治療クロック ---------- */
@@ -533,8 +639,8 @@
 }
 
 .os-healing__step {
-  width: 0.4rem;
-  height: 0.6rem;
+  width: 0.55rem;
+  height: 0.8rem;
   padding: 0;
   background: #fff;
   border: 1px solid var(--os-line);
@@ -565,7 +671,7 @@
   color: var(--os-dim);
   background: transparent;
   border: 0;
-  font-size: 0.7rem;
+  font-size: var(--os-fs-min);
   line-height: 1;
   cursor: pointer;
 }
@@ -577,45 +683,20 @@
 .os-add {
   align-self: flex-start;
   padding: 0 0.3rem;
-  font-size: 0.55rem;
+  font-size: var(--os-fs-min);
   background: transparent;
   border: 1px solid var(--os-line);
   cursor: pointer;
 }
 
-.os-plan {
-  display: flex;
-  align-items: baseline;
-  gap: 0.25rem;
-}
-
-.os-plan__name {
-  flex: 0 0 5.2rem;
-  font-weight: 700;
-}
-
-.os-plan__detail {
-  flex: 1 1 auto;
-}
-
-.os-gather {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  margin-bottom: 0.1rem;
-}
-
-.os-gather__q {
-  font-size: 0.55rem;
-  font-style: italic;
-}
-
 /* ---------- 印刷 ---------- */
 
 @media print {
+  /* 1枚に収める必要はない。複数のページに分けてもよいので、
+     文字を小さく潰すことはしない。 */
   @page {
     size: A4 landscape;
-    margin: 6mm;
+    margin: 8mm;
   }
 
   body {
@@ -634,8 +715,19 @@
   }
 
   .os {
+    min-width: 0;
     border: 0;
     background: #fff;
-    font-size: 6pt;
+    /* 10pt ≈ 13.3px。画面の下限（12px）を下回らない */
+    font-size: 10pt;
+    --os-fs-base: 10pt;
+    --os-fs-min: 7.5pt;
+  }
+
+  /* 印刷時にパネルがページ跨ぎで切れないようにする */
+  .os-panel,
+  .os-track,
+  .os-identity {
+    break-inside: avoid;
   }
 }

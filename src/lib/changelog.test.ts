@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import type { ChangeDraft } from '../types/changelog'
 import { createDefaultCharacter } from '../constants/defaults'
 import { applyChange, canRevert, currentValue, revertChange } from './changelog'
 
-function draft(overrides: Partial<Parameters<typeof applyChange>[1]> = {}) {
+function draft(overrides: Partial<ChangeDraft> = {}): ChangeDraft {
   return { resource: 'stress', operation: 'increase', amount: 1, reason: 'テスト', ...overrides }
 }
 

@@ -1,32 +1,90 @@
-# React + TypeScript + Vite
+# 刃物 in the Dark - キャラクターシート
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Blades in the Dark のキャラクターシートを、ブラウザだけで管理するための SPA です。
+データベースを使わず、データはブラウザの中に保存し、JSON ファイルで持ち運べます。
 
-Currently, two official plugins are available:
+## 特徴
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **1キャラクター1ファイル** — 参加者ごとに JSON を書き出し、受け取った側はそのまま読み込めます。
+- **変動記録** — プレイ中にエッジ・ストレス・傷・トラウマが動いたとき、理由をつけて記録できます。
+  履歴はシートに残り、直近の1件は取り消せます。
+- **日本語UI** — すべての画面文言が日本語です。
+- **サーバー不要** — 静的ファイルだけで動くので、GitHub Pages に置いて配れます。
 
-## React Compiler
+## 使い方
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev        # 開発サーバー
+npm run build      # dist/ に本番ビルド
+npm run preview    # ビルド結果の確認
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+### 品質チェック
+
+```bash
+npm run lint       # oxlint
+npm run typecheck  # tsc
+npm test           # vitest
+```
+
+## 公開（GitHub Pages）
+
+`main` ブランチへ push すると `.github/workflows/deploy.yml` がビルドして自動公開します。
+
+初回のみ、リポジトリの **Settings → Pages → Build and deployment → Source** を
+**GitHub Actions** に設定してください。
+
+公開先は `https://<ユーザー名>.github.io/<リポジトリ名>/` になります。
+相対パスでビルドしているため、ローカルで直接開いても壊れません。
+
+## データの扱い
+
+| 項目 | 内容 |
+| --- | --- |
+| 保存先 | ブラウザの `localStorage`（キー: `bitd.character.v1`） |
+| 保存タイミング | 変更の0.3秒後に自動保存 |
+| 持ち出し方 | 「データ」タブから JSON の書き出し / 読み込み |
+
+ビルドの成果物にデータが含まれることはありません。ただし保存先は
+そのブラウザの中だけなので、端末を替えるときは JSON を取り出してください。
+
+## 記録できる変動
+
+「状態」タブの「変動を記録」から、次の操作を理由つきで記録できます。
+
+| 対象 | 増加側 | 減少側 |
+| --- | --- | --- |
+| エッジ（リリー） | 獲得 | 消費 |
+| ストレス | 承受 | 軽減 |
+| 傷 | 発生 | 回復 |
+| トラウマ | 受入 | 克服 |
+
+## 用語について
+
+公式の日本語ルールブックは存在しないため、用語は日本のコミュニティで
+よく使われる訳語を基準にしています。変えたい場合は以下のファイルを
+編集すれば、シート全体の表示に反映されます。
+
+| ファイル | 中身 |
+| --- | --- |
+| `src/constants/labels.ts` | 画面に出す日本語表記 |
+| `src/constants/bitd.ts` | 血統・経歴・役割・異能などの選択肢 |
+
+## 構成
+
+```
+src/
+  types/        型定義
+  constants/    日本語ラベル / 選択肢 / 既定値
+  lib/          変更履歴エンジン / JSON検証 / localStorage
+  state/        useReducer ベースのストア
+  components/   再利用可能なUI部品
+  tabs/         シートの各セクション
+```
+
+## 二次配布について
+
+Blades in the Dark は One Seven Design の著作物です。本リポジトリは
+非公式のファンによるキャラクターシート管理ツールで、ルール本文の転載や
+冊子の頒布は含みません。

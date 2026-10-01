@@ -532,7 +532,7 @@
   gap: 3px;
 }
 
-/* アクションレートも素の四角で統一する */
+/* 編集用のアクション値は四角い操作欄にする */
 .os-rating__dot {
   width: 0.85rem;
   height: 0.85rem;
@@ -1172,11 +1172,13 @@ button.os-rating__dot {
 .os .ratings-panel .os-rating__dots {
   gap: 3px;
 }
-.os .ratings-panel .os-rating__dot {
-  width: 1rem;
-  height: 1rem;
+.os .ratings-panel span.os-rating__dot {
+  width: 0.75rem;
+  height: 0.75rem;
   min-width: 0;
   min-height: 0;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 .os .os-rating__name {
   font-size: 0.95rem;

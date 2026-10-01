@@ -539,6 +539,9 @@
   padding: 0;
   background: #fff;
   border: 1.5px solid var(--os-ink);
+}
+
+button.os-rating__dot {
   cursor: pointer;
 }
 

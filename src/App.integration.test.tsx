@@ -32,6 +32,38 @@ afterEach(() => {
   vi.restoreAllMocks()
 })
 describe('基本7種の操作', () => {
+  it.each([false, true])(
+    '作成完了=%sでもシートのアクションは表示のみで、編集の変更とXP操作を反映する',
+    async (creationComplete) => {
+      const user = userEvent.setup()
+      const character = createDefaultCharacter()
+      character.creationComplete = creationComplete
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
+      renderApp()
+
+      const rating = screen.getByRole('img', { name: '狩り（Hunt）：0' })
+      expect(screen.queryByRole('button', { name: /^Hunt / })).toBeNull()
+      expect(screen.queryByRole('button', { name: /^Skirmish / })).toBeNull()
+      await user.click(rating)
+      await user.keyboard('{Enter} ')
+      expect(screen.getByRole('img', { name: '狩り（Hunt）：0' })).toBeTruthy()
+
+      await user.click(screen.getByRole('button', { name: 'INSIGHT 2' }))
+      await tab(user, '初期設定')
+      await user.click(screen.getByRole('button', { name: 'Hunt 1' }))
+      await user.tab()
+      expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Hunt 2' }))
+      await user.keyboard('{Enter}')
+      await user.click(screen.getByRole('button', { name: 'シート' }))
+      expect(screen.getByRole('img', { name: '狩り（Hunt）：2' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'INSIGHT 2' }).getAttribute('aria-pressed')).toBe('true')
+
+      await tab(user, '初期設定')
+      await user.click(screen.getByRole('button', { name: 'Hunt 2' }))
+      await user.click(screen.getByRole('button', { name: 'シート' }))
+      expect(screen.getByRole('img', { name: '狩り（Hunt）：1' })).toBeTruthy()
+    },
+  )
   it.each(PLAYBOOK_LIST)('$titleを選んで固有能力を取得しシートに表示する', async (book) => {
     const user = userEvent.setup()
     renderApp()

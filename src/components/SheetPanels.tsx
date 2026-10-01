@@ -50,7 +50,9 @@ export function RatingsPanel({ sheet = false }: { sheet?: boolean }) {
               value={character.ratings[item.id]}
               max={sheet || character.creationComplete ? RATING_MAX : CREATION_RATING_MAX}
               editableMax={character.creationComplete ? RATING_MAX : CREATION_RATING_MAX}
-              onChange={(value) => dispatch({ type: 'rating', id: item.id, value })}
+              onChange={
+                sheet ? undefined : (value) => dispatch({ type: 'rating', id: item.id, value })
+              }
             />
           ))}
         </section>

@@ -25,6 +25,7 @@ export const LABELS = {
   crewNotes: 'クルーのメモ',
 } as const
 export const MESSAGE = {
+  ratingEditHint: 'アクション値の変更は「編集」→「初期設定」で行います。',
   exportOk: 'JSONを書き出しました。',
   copied: 'コピーしました。',
   copyFailed: 'コピーできませんでした。JSONをダウンロードしてください。',

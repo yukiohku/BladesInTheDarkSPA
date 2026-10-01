@@ -1,4 +1,5 @@
 import { HEALING_CLOCK_SEGMENTS, RATING_MAX } from '../constants/playbooks'
+import { MESSAGE } from '../constants/labels'
 export function Box({
   checked,
   onChange,
@@ -108,22 +109,35 @@ export function RatingDots({
   value: number
   max?: number
   editableMax?: number
-  onChange: (value: number) => void
+  onChange?: (value: number) => void
 }) {
   return (
     <div className="os-rating">
-      <span className="os-rating__dots">
-        {Array.from({ length: max }, (_, index) => (
-          <button
-            key={index}
-            type="button"
-            className={`os-rating__dot${index < value ? ' os-rating__dot--on' : ''}`}
-            disabled={index >= editableMax}
-            aria-pressed={index < value}
-            aria-label={`${en ?? name} ${index + 1}`}
-            onClick={() => onChange(index === value - 1 ? index : index + 1)}
-          />
-        ))}
+      <span
+        className="os-rating__dots"
+        role={onChange ? undefined : 'img'}
+        aria-label={onChange ? undefined : `${name}${en ? `（${en}）` : ''}：${value}`}
+        title={onChange ? undefined : MESSAGE.ratingEditHint}
+      >
+        {Array.from({ length: max }, (_, index) =>
+          onChange ? (
+            <button
+              key={index}
+              type="button"
+              className={`os-rating__dot${index < value ? ' os-rating__dot--on' : ''}`}
+              disabled={index >= editableMax}
+              aria-pressed={index < value}
+              aria-label={`${en ?? name} ${index + 1}`}
+              onClick={() => onChange(index === value - 1 ? index : index + 1)}
+            />
+          ) : (
+            <span
+              key={index}
+              className={`os-rating__dot${index < value ? ' os-rating__dot--on' : ''}`}
+              aria-hidden="true"
+            />
+          ),
+        )}
       </span>
       <span className="os-rating__name">
         <Bilingual name={en ?? name} ja={en ? name : undefined} />

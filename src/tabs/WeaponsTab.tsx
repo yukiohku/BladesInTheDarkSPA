@@ -72,7 +72,7 @@ export function WeaponsTab() {
           </button>
         ) : (
           <div className="inline-add">
-            <p>現在の仕事の使用状況をリセットします。履歴から直近の操作を取り消せます。</p>
+            <p>現在の仕事の使用状況をリセットします。よろしいですか？</p>
             <button
               type="button"
               className="button button--primary"

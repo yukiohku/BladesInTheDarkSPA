@@ -842,7 +842,8 @@ button.os-rating__dot {
   padding: 0.2rem;
   background: rgba(0, 0, 0, 0.035);
 }
-.os-panel__title small {
+.os-panel__title small,
+.os-track__title small {
   font-family: var(--font-ui);
   font-size: 0.75rem;
   font-weight: 400;
@@ -853,6 +854,15 @@ button.os-rating__dot {
   font-size: 0.7rem;
   color: var(--os-dim);
   letter-spacing: 0.03em;
+}
+.os__col--left > .os-condition {
+  margin-top: 0.2rem;
+}
+.os-condition > .os-minititle {
+  margin-bottom: 0.25rem;
+}
+.os-condition .os-stress {
+  gap: 4px;
 }
 .os .field__input {
   color: var(--os-ink);
@@ -905,11 +915,15 @@ button.os-rating__dot {
   font-size: 0.75rem;
 }
 .os .trauma-options {
-  gap: 0.1rem 0.4rem;
+  gap: 0.25rem 0.5rem;
 }
 .os .trauma-options label {
   display: flex;
   align-items: center;
+  line-height: 1.5;
+}
+.os .trauma-extra {
+  margin-top: 0.2rem;
 }
 .os .trauma-options input,
 .os .armor-control input {
@@ -925,6 +939,10 @@ button.os-rating__dot {
 .os .trauma-options input:checked,
 .os .armor-control input:checked {
   background: var(--os-on);
+}
+.os .trauma-options input {
+  flex-shrink: 0;
+  margin-right: 0.4rem;
 }
 .os input:disabled,
 .os button:disabled {
@@ -948,18 +966,10 @@ button.os-rating__dot {
 .os .harm-input--compact textarea {
   border: 0;
   background: transparent;
-  height: 3.4rem;
-  padding: 0.2rem 0.3rem;
+  height: 3.6rem;
+  padding: 0.35rem 0.4rem;
   font-size: 0.9rem;
-}
-.os .harm-input--compact .button {
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  background: #f4f2ee;
-}
-.os .harm-input--compact .button:disabled {
-  display: none;
+  line-height: 1.55;
 }
 .os-harm__levelcell {
   font-size: 1.15rem;
@@ -1204,6 +1214,13 @@ button.os-rating__dot {
   margin: 0;
   font-size: 1rem;
 }
+.os .ratings-panel .os-track__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-right: 0.6rem;
+}
 .os .os-track__title .field__hint {
   color: #c9c6c0;
   font-size: 0.7rem;
@@ -1230,6 +1247,26 @@ button.os-rating__dot {
 }
 .os .os-rating__name {
   font-size: 0.95rem;
+}
+.os-experience {
+  margin-top: 0.65rem;
+}
+.os-experience__tracks {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.4rem 0.3rem 0;
+}
+.os-experience__row {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+}
+.os-experience__row > .os-minititle {
+  font-size: 0.85rem;
+}
+.os-experience__row .os-bookmarkrow {
+  justify-content: space-between;
 }
 .os-xp-rules {
   margin-top: 0.5rem;
@@ -1265,4 +1302,18 @@ button.os-rating__dot {
 }
 .app:not(.app--sheet) .os-healing {
   --os-on: var(--accent);
+}
+
+.os-gather {
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.os-gather summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+.os-gather ul {
+  margin: 0.4rem 0;
+  padding-left: 1.25rem;
 }

@@ -128,6 +128,11 @@ export function SetupTab() {
             onChange={(value) => patch('alias', value)}
           />
         </Grid>
+        <TextInput
+          label="所属クルー名"
+          value={character.crew.name}
+          onChange={(name) => dispatch({ type: 'crew.name', name })}
+        />
         <TextArea label="外見" value={identity.look} onChange={(value) => patch('look', value)} />
       </Section>
       <Section title="出自・経歴・悪癖">

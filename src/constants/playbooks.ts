@@ -54,11 +54,13 @@ export const HARM_ROWS = [
 export const ACTION_GROUPS: {
   id: RatingGroup
   name: string
+  ja: string
   items: { id: ActionId; name: string; ja: string }[]
 }[] = [
   {
     id: 'insight',
     name: 'INSIGHT',
+    ja: '洞察',
     items: [
       { id: 'hunt', name: 'Hunt', ja: '狩り' },
       { id: 'study', name: 'Study', ja: '研究' },
@@ -69,6 +71,7 @@ export const ACTION_GROUPS: {
   {
     id: 'prowess',
     name: 'PROWESS',
+    ja: '身体',
     items: [
       { id: 'finesse', name: 'Finesse', ja: '技巧' },
       { id: 'prowl', name: 'Prowl', ja: '隠密' },
@@ -79,6 +82,7 @@ export const ACTION_GROUPS: {
   {
     id: 'resolve',
     name: 'RESOLVE',
+    ja: '意志',
     items: [
       { id: 'attune', name: 'Attune', ja: '同調' },
       { id: 'command', name: 'Command', ja: '指揮' },

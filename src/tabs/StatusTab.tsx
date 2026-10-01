@@ -3,7 +3,7 @@ import { TRAUMAS } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
 import { ClockEditor, Section, TextInput } from '../components/ui'
 import { HarmPanel } from '../components/SheetPanels'
-import { ChangeRecorder } from '../components/ChangeRecorder'
+import { ResourceAdjustmentForm } from '../components/ResourceAdjustmentForm'
 export function TraumaPanel({ compact = false }: { compact?: boolean }) {
   const { character, dispatch } = useCharacter()
   const [custom, setCustom] = useState('')
@@ -72,8 +72,8 @@ export function StatusTab() {
   const { character, dispatch } = useCharacter()
   return (
     <>
-      <Section title="変動を記録">
-        <ChangeRecorder />
+      <Section title="数値の増減">
+        <ResourceAdjustmentForm />
       </Section>
       <Section title="傷・治療・鎧">
         <HarmPanel />

@@ -5,7 +5,6 @@ import { characterReducer } from './characterReducer'
 import type { Action } from './characterReducer'
 import type { Character } from '../types/character'
 import { attributeRating, creationRemaining, loadLimits, stressMax, usedLoad } from '../lib/rules'
-import { canRevert } from '../lib/changelog'
 const run = (actions: Action[], base = createDefaultCharacter()) =>
   actions.reduce(characterReducer, base)
 describe('基本7種の定義と新規作成', () => {
@@ -70,7 +69,7 @@ describe('characterReducer', () => {
     expect(next.ratings.hunt).toBe(4)
     expect(attributeRating(next, 'insight')).toBe(2)
   })
-  it('共通値と能力を保ち、固有データを置換・保管して変更を取り消せる', () => {
+  it('共通値と能力を保ち、固有データを置換・保管する', () => {
     const original = run([
       { type: 'identity', patch: { name: 'テスト' } },
       { type: 'ability.add', definitionId: 'cutter:mule' },
@@ -93,9 +92,6 @@ describe('characterReducer', () => {
     expect(next.friends[0].name).toContain('Steiner')
     expect(next.gatherNotes).toEqual({})
     expect(next.legacy[0].data).toMatchObject({ gatherNotes: { 'cutter:0': '旧メモ' } })
-    expect(
-      characterReducer(next, { type: 'change.revert', entryId: next.log[0].id }).playbookId,
-    ).toBe('cutter')
   })
   it('明示した初期値の再設定だけがレートを置き換える', () => {
     const next = run([{ type: 'playbook.change', playbookId: 'whisper', resetRatings: true }])
@@ -130,7 +126,7 @@ describe('characterReducer', () => {
     })
     expect(next.abilities.map((item) => item.choice)).toEqual(['ghost-form', 'mind-link'])
   })
-  it('能力削除時の上限変更と直近の取消でストレスが整合する', () => {
+  it('能力削除時の上限変更でストレスが整合する', () => {
     let next = run([
       { type: 'ability.add', definitionId: 'hound:survivor' },
       { type: 'resource', resource: 'stress', value: 10 },
@@ -138,9 +134,7 @@ describe('characterReducer', () => {
     const acquiredId = next.abilities[0].id
     next = characterReducer(next, { type: 'ability.remove', id: acquiredId })
     expect(next.stress).toBe(9)
-    next = characterReducer(next, { type: 'change.revert', entryId: next.log[0].id })
-    expect(next.stress).toBe(10)
-    expect(stressMax(next)).toBe(10)
+    expect(stressMax(next)).toBe(9)
   })
   it('Vigorousの恒久区画はリセットできない', () => {
     const next = run([
@@ -212,15 +206,16 @@ describe('characterReducer', () => {
     next = characterReducer(next, { type: 'specialArmor.reset' })
     expect(next.armorUses.special).toBe(false)
   })
-  it('同レベルの傷を別々に記録し、取消で片方だけ戻せる', () => {
+  it('同レベルの傷を別々に入力・訂正できる', () => {
     let next = run([
       { type: 'harm', field: 'level1', index: 0, value: '打撲' },
       { type: 'harm', field: 'level1', index: 1, value: '疲労' },
     ])
-    next = characterReducer(next, { type: 'change.revert', entryId: next.log[0].id })
+    expect(next.harm.level1).toEqual(['打撲', '疲労'])
+    next = characterReducer(next, { type: 'harm', field: 'level1', index: 1, value: '' })
     expect(next.harm.level1).toEqual(['打撲', ''])
   })
-  it('4つを超えるトラウマを防ぎ、入力訂正を履歴に残す', () => {
+  it('4つを超えるトラウマを防ぎ、入力訂正で解除できる', () => {
     const next = run(
       ['cold', 'haunted', 'obsessed', 'soft', 'vicious'].map((name): Action => ({
         type: 'trauma',
@@ -229,15 +224,17 @@ describe('characterReducer', () => {
     )
     expect(next.traumas).toHaveLength(4)
     const corrected = characterReducer(next, { type: 'trauma', name: 'cold' })
-    expect(corrected.log[0].title).toContain('入力訂正')
+    expect(corrected.traumas).toEqual(['haunted', 'obsessed', 'soft'])
   })
-  it('記録後に別の編集があれば古い状態へ巻き戻さない', () => {
-    const before = run([{ type: 'resource', resource: 'stress', value: 3 }])
-    const edited = characterReducer(before, { type: 'identity', patch: { name: '新しい名前' } })
-    expect(canRevert(edited, before.log[0].id)).toBe(false)
-    expect(characterReducer(edited, { type: 'change.revert', entryId: before.log[0].id })).toEqual(
-      edited,
-    )
+  it('繰り返し操作しても履歴を蓄積しない', () => {
+    const base = createDefaultCharacter()
+    let next = base
+    for (let index = 0; index < 1000; index++) {
+      next = characterReducer(next, { type: 'resource', resource: 'stress', value: index % 2 })
+    }
+    expect(next.stress).toBe(1)
+    expect(next).not.toHaveProperty('log')
+    expect(JSON.stringify(next).length).toBe(JSON.stringify(base).length)
   })
   it('親しい人物・ライバルをそれぞれ1人にする', () => {
     const base = createDefaultCharacter()

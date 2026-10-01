@@ -613,75 +613,6 @@ body {
   border-radius: var(--radius);
 }
 
-/* ---------- 履歴 ---------- */
-
-.log {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.log__item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.5rem 0.6rem;
-  background: var(--bg-raised);
-  border: 1px solid var(--line);
-  border-left: 3px solid var(--line-strong);
-  border-radius: var(--radius);
-}
-
-.log__item--increase {
-  border-left-color: var(--danger);
-}
-
-.log__item--decrease {
-  border-left-color: var(--ok);
-}
-
-.log__main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.log__verb {
-  font-weight: 700;
-  font-size: 0.9375rem;
-}
-
-.log__reason,
-.log__detail {
-  font-size: 0.875rem;
-  color: var(--text-dim);
-}
-
-.log__detail {
-  padding: 0 0.35rem;
-  background: var(--bg-input);
-  border-radius: 3px;
-}
-
-.log__side {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.8125rem;
-  color: var(--text-faint);
-}
-
-.log__value {
-  white-space: nowrap;
-}
-
 /* ---------- 注意書き ---------- */
 
 .notes {
@@ -903,4 +834,34 @@ summary:focus-visible {
   .grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* 技能作成：固定点は斜線、追加点はオレンジの操作欄で区別する */
+.ratings-panel--editing .os-rating__dot {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 1.9rem;
+  height: 1.9rem;
+  border: 2px solid var(--text-dim);
+  background: var(--bg-input);
+}
+.ratings-panel--editing .os-rating__dot--fixed {
+  border-color: color-mix(in srgb, var(--accent) 15%, var(--text-dim));
+  background: repeating-linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--accent) 15%, var(--text-dim)) 0 3px,
+    color-mix(in srgb, var(--accent) 15%, #55555f) 3px 6px
+  );
+}
+.ratings-panel--editing .os-rating__dot--selected {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: inset 0 0 0 3px var(--bg-input);
+}
+.ratings-panel--editing .os-rating__dot--editable:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.ratings-panel--editing .os-rating__name {
+  min-width: 0;
 }

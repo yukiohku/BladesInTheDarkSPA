@@ -1,4 +1,4 @@
-import type { ResourceKey } from '../types/changelog'
+import type { ResourceKey } from '../types/resources'
 export const RESOURCE_LABELS: Record<ResourceKey, string> = {
   stress: 'ストレス',
   coin: 'コイン',
@@ -8,22 +8,6 @@ export const RESOURCE_LABELS: Record<ResourceKey, string> = {
   prowess: 'Prowess XP',
   resolve: 'Resolve XP',
 }
-export const LABELS = {
-  crewName: 'クルー名',
-  crewType: 'クルーの種類',
-  crewTier: 'ティア',
-  crewCharter: '綱領',
-  crewSummary: '概要',
-  crewHold: '掌握',
-  crewInfluence: '影響力',
-  crewTerritory: '縄張り',
-  crewLair: '隠れ家',
-  crewLiabilities: '負債',
-  crewServices: '業態',
-  crewItemRoster: '品ぞろえ',
-  crewRoster: 'クルーメンバー',
-  crewNotes: 'クルーのメモ',
-} as const
 export const MESSAGE = {
   ratingEditHint: 'アクション値の変更は「編集」→「初期設定」で行います。',
   exportOk: 'JSONを書き出しました。',

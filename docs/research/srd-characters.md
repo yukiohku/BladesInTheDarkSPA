@@ -37,6 +37,8 @@
 
 属性のまとまりは [Actions & Attributes](https://bladesinthedark.com/actions-attributes)、抵抗の分類は [Resistance & Armor](https://bladesinthedark.com/resistance-armor) に基づきます。プレイヤーが行動内容からアクションを選び、状況への適合は危険度や効果に影響します。
 
+アプリのシートの属性見出しでは、Insightに「洞察」、Prowessに「身体」、Resolveに「意志」を併記します。これらは本アプリの参考訳です。
+
 ## ストレスとトラウマ
 
 - 自分を追い込む場合、選ぶ利益ごとにストレス2を受けます。同じ行動で各利益は1回ずつ。利益は判定のダイス追加、効果の向上、重傷でも行動することです。

@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { createDefaultCharacter } from '../constants/defaults'
 import { PLAYBOOK_LIST } from '../constants/playbooks'
 import { characterReducer } from '../state/characterReducer'
-import { canRevert } from './changelog'
 import { normalizeCharacter, parseCharacterFile, serializeCharacter } from './serialize'
 import { resourceValue, usedLoad } from './rules'
 const oldSheet = {
@@ -47,7 +46,6 @@ describe('保存と移行', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.character).toEqual(original)
-    expect(canRevert(result.character, result.character.log[0].id)).toBe(true)
   })
   it('弾帯の未使用枠の位置、能力の選択・メモ・使用回数を保持する', () => {
     let original = createDefaultCharacter('leech')
@@ -73,7 +71,7 @@ describe('保存と移行', () => {
     expect(result.character).toEqual(original)
     expect(result.character.itemUses['leech:bandolier-1']).toEqual(['', '', 'Grenade'])
   })
-  it('仕事のリセット後も往復保存で状態と取消を保持する', () => {
+  it('仕事のリセット後も往復保存で状態を保持する', () => {
     let original = createDefaultCharacter('leech')
     original = characterReducer(original, {
       type: 'equipment',
@@ -84,7 +82,6 @@ describe('保存と移行', () => {
     const result = parseCharacterFile(serializeCharacter(original))
     if (!result.ok) throw new Error(result.error)
     expect(result.character).toEqual(original)
-    expect(canRevert(result.character, result.character.log[0].id)).toBe(true)
   })
   it('v1を移行し、独自項目・旧履歴・範囲外の元値を丸ごと保管する', () => {
     const originalJson = JSON.stringify(oldSheet)
@@ -103,7 +100,7 @@ describe('保存と移行', () => {
     expect(next.healing).toBe(4)
     expect(next.equipment['large-weapon']).toBe(1)
     expect(next.legacy[0].data).toEqual(oldSheet)
-    expect(next.log).toEqual([])
+    expect(next).not.toHaveProperty('log')
     expect(JSON.stringify(oldSheet)).toBe(originalJson)
     const again = parseCharacterFile(serializeCharacter(next))
     if (!again.ok) throw new Error(again.error)
@@ -163,15 +160,22 @@ describe('保存と移行', () => {
     expect(resourceValue(next, 'playbook')).toBe(8)
     expect(usedLoad(next)).toBe(2)
   })
-  it('不正な履歴を取り除き、入力オブジェクトを変更しない', () => {
+  it('以前のv2の履歴を読み飛ばし、現在の状態と入力オブジェクトを保つ', () => {
     const source = {
       schemaVersion: 2,
       playbookId: 'cutter',
-      identity: {},
-      log: [{ title: '壊れた履歴' }, 'wrong'],
+      identity: { name: '保存人物' },
+      stress: 3,
+      harm: { level1: ['打撲', ''] },
+      log: [{ title: '以前の履歴', before: { stress: 2 }, after: { stress: 3 } }, 'wrong'],
     }
     const snapshot = JSON.stringify(source)
-    expect(normalizeCharacter(source).log).toEqual([])
+    const next = normalizeCharacter(source)
+    expect(next).not.toHaveProperty('log')
+    expect(next.identity.name).toBe('保存人物')
+    expect(next.stress).toBe(3)
+    expect(next.harm.level1).toEqual(['打撲', ''])
+    expect(JSON.parse(serializeCharacter(next))).not.toHaveProperty('log')
     expect(JSON.stringify(source)).toBe(snapshot)
   })
 })

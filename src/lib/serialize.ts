@@ -7,7 +7,6 @@ import type {
   PlaybookId,
   SheetState,
 } from '../types/character'
-import type { ChangeEntry } from '../types/changelog'
 import { SCHEMA_VERSION } from '../types/character'
 import { createDefaultCharacter, defaultCrew, defaultSheet } from '../constants/defaults'
 import {
@@ -229,21 +228,6 @@ export function normalizeSheet(value: unknown): SheetState {
     if (item.requires && !next.equipment[item.requires]) next.equipment[item.id] = 0
   return next
 }
-function normalizeLog(value: unknown): ChangeEntry[] {
-  return array(value)
-    .filter(isRecord)
-    .filter(
-      (item) => isRecord(item.before) && isRecord(item.after) && typeof item.title === 'string',
-    )
-    .map((item) => ({
-      id: str(item.id) || createId('chg'),
-      title: str(item.title),
-      reason: str(item.reason),
-      at: str(item.at, nowIso()),
-      before: normalizeSheet(item.before),
-      after: normalizeSheet(item.after),
-    }))
-}
 function migratedSheet(source: Record<string, unknown>): SheetState {
   const official = record(source.official)
   const basics = record(source.basics)
@@ -367,7 +351,6 @@ export function normalizeCharacter(value: unknown): Character {
     id: str(value.id, base.id),
     createdAt: str(value.createdAt, base.createdAt),
     updatedAt: str(value.updatedAt, base.updatedAt),
-    log: old ? [] : normalizeLog(value.log),
     legacy: old
       ? [
           ...legacy,

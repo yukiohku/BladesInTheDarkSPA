@@ -16,16 +16,29 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
   const [saveError, setSaveError] = useState('')
   useEffect(() => {
     if (blocked) return
-    const timer = window.setTimeout(
-      () =>
-        setSaveError(
-          saveCharacter(character)
-            ? ''
-            : '自動保存できませんでした。JSONを書き出して保存してください。',
-        ),
-      300,
-    )
-    return () => window.clearTimeout(timer)
+    let pending = true
+    const save = () => {
+      if (!pending) return
+      window.clearTimeout(timer)
+      const saved = saveCharacter(character)
+      pending = !saved
+      setSaveError(
+        saved
+          ? ''
+          : '自動保存できませんでした。JSONを書き出して保存してください。',
+      )
+    }
+    const timer = window.setTimeout(save, 300)
+    const saveWhenHidden = () => {
+      if (document.visibilityState === 'hidden') save()
+    }
+    window.addEventListener('pagehide', save)
+    document.addEventListener('visibilitychange', saveWhenHidden)
+    return () => {
+      window.clearTimeout(timer)
+      window.removeEventListener('pagehide', save)
+      document.removeEventListener('visibilitychange', saveWhenHidden)
+    }
   }, [character, blocked])
   const value = useMemo(
     () => ({

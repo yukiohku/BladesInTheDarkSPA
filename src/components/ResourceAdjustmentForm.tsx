@@ -2,15 +2,14 @@ import { useState } from 'react'
 import { RESOURCE_LABELS } from '../constants/labels'
 import { useCharacter } from '../state/characterContext'
 import { resourceMax, resourceValue } from '../lib/rules'
-import { SelectInput, Stepper, TextInput } from './ui'
-import type { ResourceKey } from '../types/changelog'
+import { SelectInput, Stepper } from './ui'
+import type { ResourceKey } from '../types/resources'
 const keys: ResourceKey[] = ['stress', 'coin', 'stash', 'playbook', 'insight', 'prowess', 'resolve']
-export function ChangeRecorder() {
+export function ResourceAdjustmentForm() {
   const { character, dispatch } = useCharacter()
   const [resource, setResource] = useState<ResourceKey>('stress')
   const [operation, setOperation] = useState<'increase' | 'decrease'>('increase')
   const [amount, setAmount] = useState(1)
-  const [reason, setReason] = useState('')
   const max = resourceMax(character, resource)
   const current = resourceValue(character, resource)
   const after = Math.max(0, Math.min(max, current + (operation === 'increase' ? amount : -amount)))
@@ -19,11 +18,11 @@ export function ChangeRecorder() {
       className="recorder"
       onSubmit={(event) => {
         event.preventDefault()
-        dispatch({ type: 'change.apply', draft: { resource, operation, amount, reason } })
+        dispatch({ type: 'resource.adjust', adjustment: { resource, operation, amount } })
       }}
     >
       <SelectInput
-        label="記録する対象"
+        label="変更する対象"
         value={resource}
         options={keys.map((id) => ({ id, name: RESOURCE_LABELS[id] }))}
         onChange={(value) => {
@@ -46,12 +45,11 @@ export function ChangeRecorder() {
         }}
       />
       <Stepper label="数量" value={amount} min={1} max={max} onChange={setAmount} />
-      <TextInput label="理由" value={reason} onChange={setReason} />
       <p aria-live="polite">
         {RESOURCE_LABELS[resource]} {current} → {after}（上限 {max}）
       </p>
       <button type="submit" className="button button--primary" disabled={current === after}>
-        変動を記録
+        増減を適用
       </button>
     </form>
   )

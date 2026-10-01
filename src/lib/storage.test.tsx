@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { useEffect } from 'react'
 import { cleanup, render, screen, act, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '../App'
 import { CharacterProvider } from '../state/CharacterProvider'
+import { useCharacter } from '../state/characterContext'
 import { createDefaultCharacter } from '../constants/defaults'
 import {
   BACKUP_KEY,
@@ -48,6 +50,8 @@ describe('ブラウザ保存', () => {
       await vi.advanceTimersByTimeAsync(1000)
     })
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe('{broken')
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBe('{broken')
   })
   it('300ms後に独立したv2キーへ保存する', async () => {
     vi.useFakeTimers()
@@ -64,6 +68,32 @@ describe('ブラウザ保存', () => {
       await vi.advanceTimersByTimeAsync(1)
     })
     expect(readStoredCharacter().character?.schemaVersion).toBe(2)
+  })
+  it.each(['pagehide', 'visibilitychange'])('%sで保存待ちの最新入力を退避する', async (event) => {
+    vi.useFakeTimers()
+    let updateName: (name: string) => void = () => { throw new Error('Provider未初期化') }
+    function Probe() {
+      const { dispatch } = useCharacter()
+      useEffect(() => {
+        updateName = (name) => { dispatch({ type: 'identity', patch: { name } }) }
+      }, [dispatch])
+      return null
+    }
+    render(<CharacterProvider><Probe /></CharacterProvider>)
+    act(() => updateName('途中の名前'))
+    act(() => updateName('保存待ちの人物'))
+    expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull()
+    act(() => {
+      if (event === 'visibilitychange') {
+        vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+        document.dispatchEvent(new Event(event))
+      } else window.dispatchEvent(new Event(event))
+    })
+    expect(readStoredCharacter().character?.identity.name).toBe('保存待ちの人物')
+    const writes = vi.spyOn(Storage.prototype, 'setItem')
+    await act(async () => { await vi.advanceTimersByTimeAsync(300) })
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    expect(writes).not.toHaveBeenCalled()
   })
   it('明示的な新規作成でも読めない元データを退避してから保存する', async () => {
     const user = userEvent.setup()

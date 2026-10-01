@@ -1,4 +1,6 @@
 import {
+  ACTION_GROUPS,
+  ATTRIBUTE_XP_MAX,
   BACKGROUNDS,
   COIN_MAX,
   COMMON_XP_TRIGGERS,
@@ -11,7 +13,6 @@ import {
 import { useCharacter } from '../state/characterContext'
 import {
   AbilityCards,
-  CreationProgress,
   EquipmentPanel,
   HarmPanel,
   RatingsPanel,
@@ -98,8 +99,7 @@ export function OfficialSheetView() {
               .join(' / ')}
           />
         </section>
-        <CreationProgress compact />
-        <section>
+        <section className="os-condition">
           <h3 className="os-minititle">
             ストレス <small>STRESS</small>
           </h3>
@@ -114,13 +114,13 @@ export function OfficialSheetView() {
             </p>
           ))}
         </section>
-        <section>
+        <section className="os-condition">
           <h3 className="os-minititle">
             トラウマ <small>TRAUMA {character.traumas.length}/4</small>
           </h3>
           <TraumaPanel compact />
         </section>
-        <section className="os-harmblock">
+        <section className="os-condition os-harmblock">
           <h3 className="os-minititle">
             傷 <small>HARM</small>
           </h3>
@@ -133,10 +133,16 @@ export function OfficialSheetView() {
           <TextArea
             label="信念・動機・自由メモ"
             value={character.notes}
-            rows={4}
+            rows={2}
             onChange={(value) => dispatch({ type: 'note', value })}
           />
         </section>
+        <details className="os-gather">
+          <summary>情報収集の質問例</summary>
+          <ul>
+            {book.gatherInfo.map((question) => <li key={question}>{question}</li>)}
+          </ul>
+        </details>
       </div>
       <div className="os__col os__col--center">
         <section className="os-panel os-panel--ability">
@@ -200,18 +206,34 @@ export function OfficialSheetView() {
             onChange={(value) => dispatch({ type: 'resource', resource: 'coin', value })}
           />
         </section>
-        <section className="os-track">
-          <div className="os-track__head">
-            <h3 className="os-track__title">PLAYBOOK</h3>
-            <BookmarkTrack
-              name="PLAYBOOK"
-              value={character.xp.playbook}
-              max={PLAYBOOK_XP_MAX}
-              onChange={(value) => dispatch({ type: 'resource', resource: 'playbook', value })}
-            />
+        <RatingsPanel sheet />
+        <section className="os-experience" aria-label="経験値">
+          <h3 className="os-panel__title">
+            EXPERIENCE <small>経験値</small>
+          </h3>
+          <div className="os-experience__tracks">
+            <div className="os-experience__row">
+              <span className="os-minititle">PLAYBOOK</span>
+              <BookmarkTrack
+                name="PLAYBOOK"
+                value={character.xp.playbook}
+                max={PLAYBOOK_XP_MAX}
+                onChange={(value) => dispatch({ type: 'resource', resource: 'playbook', value })}
+              />
+            </div>
+            {ACTION_GROUPS.map((group) => (
+              <div className="os-experience__row" key={group.id}>
+                <span className="os-minititle">{group.name}</span>
+                <BookmarkTrack
+                  name={group.name}
+                  value={character.xp[group.id]}
+                  max={ATTRIBUTE_XP_MAX}
+                  onChange={(value) => dispatch({ type: 'resource', resource: group.id, value })}
+                />
+              </div>
+            ))}
           </div>
         </section>
-        <RatingsPanel sheet />
         <section className="os-xp-rules">
           <h3 className="os-minititle">XP条件</h3>
           <p>Desperateのアクション判定ごとに対応属性へXP1。</p>

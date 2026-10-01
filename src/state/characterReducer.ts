@@ -2,19 +2,15 @@ import type {
   AcquiredAbility,
   ActionId,
   Character,
-  ChoiceList,
   Clock,
-  Crew,
-  CrewMember,
   CustomItem,
   Friend,
   PlaybookId,
   SheetState,
 } from '../types/character'
-import type { ChangeDraft, ResourceKey } from '../types/changelog'
+import type { ResourceAdjustment, ResourceKey } from '../types/resources'
 import { createDefaultCharacter, defaultSheet } from '../constants/defaults'
 import {
-  ACTIONS,
   CREATION_RATING_MAX,
   equipmentFor,
   findAbility,
@@ -22,20 +18,17 @@ import {
   RATING_MAX,
   TRAUMA_MAX,
 } from '../constants/playbooks'
-import { applyChange, recordChange, revertChange } from '../lib/changelog'
 import {
+  adjustResource,
   clamp,
   creationProblems,
   creationRemaining,
   hasSpecialArmor,
   healingMinimum,
-  resourceValue,
   stressMax,
   withResource,
 } from '../lib/rules'
 import { createId, nowIso } from '../lib/id'
-import { RESOURCE_LABELS } from '../constants/labels'
-export type CrewChoiceField = 'liabilities' | 'services' | 'itemRoster'
 export type Action =
   | { type: 'replace'; character: Character }
   | { type: 'reset'; playbookId?: PlaybookId }
@@ -46,8 +39,7 @@ export type Action =
   | { type: 'ratings.reset' }
   | { type: 'rating'; id: ActionId; value: number }
   | { type: 'resource'; resource: ResourceKey; value: number }
-  | { type: 'change.apply'; draft: ChangeDraft }
-  | { type: 'change.revert'; entryId: string }
+  | { type: 'resource.adjust'; adjustment: ResourceAdjustment }
   | { type: 'ability.add'; definitionId: string }
   | { type: 'ability.custom' }
   | { type: 'ability.patch'; id: string; patch: Partial<AcquiredAbility> }
@@ -69,7 +61,6 @@ export type Action =
       field: 'level1' | 'level2' | 'level3' | 'fatal'
       index?: number
       value: string
-      reason?: string
     }
   | { type: 'healing'; value: number }
   | { type: 'armor'; kind: 'armor' | 'heavy' | 'special' }
@@ -78,13 +69,8 @@ export type Action =
   | { type: 'clock.add' }
   | { type: 'clock.patch'; id: string; patch: Partial<Clock> }
   | { type: 'clock.remove'; id: string }
-  | { type: 'crew.patch'; patch: Partial<Crew> }
-  | { type: 'crewChoice.patch'; field: CrewChoiceField; id: string; patch: Partial<ChoiceList> }
-  | { type: 'crewChoice.add'; field: CrewChoiceField }
-  | { type: 'crewChoice.remove'; field: CrewChoiceField; id: string }
-  | { type: 'member.add' }
-  | { type: 'member.patch'; id: string; patch: Partial<CrewMember> }
-  | { type: 'member.remove'; id: string }
+  | { type: 'crew.name'; name: string }
+
 function patchList<T extends { id: string }>(items: T[], id: string, patch: Partial<T>): T[] {
   return items.map((item) => (item.id === id ? { ...item, ...patch, id: item.id } : item))
 }
@@ -92,8 +78,6 @@ function touch(character: Character): Character {
   return { ...character, updatedAt: nowIso() }
 }
 export function characterReducer(character: Character, action: Action): Character {
-  const record = (next: Character, title: string, reason = '') =>
-    recordChange(character, next, title, reason)
   switch (action.type) {
     case 'replace':
       return action.character
@@ -137,24 +121,18 @@ export function characterReducer(character: Character, action: Action): Characte
           },
         ],
       }
-      return record(
-        next,
-        `プレイブック ${PLAYBOOKS[character.playbookId].title} → ${PLAYBOOKS[action.playbookId].title}`,
-      )
+      return touch(next)
     }
     case 'creation.complete':
       return creationProblems(character).length
         ? character
-        : record({ ...character, creationComplete: true }, 'キャラクター作成を完了')
+        : touch({ ...character, creationComplete: true })
     case 'ratings.reset':
-      return record(
-        {
-          ...character,
-          ratings: defaultSheet(character.playbookId).ratings,
-          creationComplete: false,
-        },
-        '初期アクションを再設定',
-      )
+      return touch({
+        ...character,
+        ratings: defaultSheet(character.playbookId).ratings,
+        creationComplete: false,
+      })
     case 'rating': {
       const min = character.creationComplete
         ? 0
@@ -165,25 +143,19 @@ export function characterReducer(character: Character, action: Action): Characte
             CREATION_RATING_MAX,
             character.ratings[action.id] + Math.max(0, creationRemaining(character)),
           )
-      return record(
-        {
-          ...character,
-          ratings: { ...character.ratings, [action.id]: clamp(action.value, min, max) },
-        },
-        `${ACTIONS.find((item) => item.id === action.id)?.name} を変更`,
-      )
+      return touch({
+        ...character,
+        ratings: { ...character.ratings, [action.id]: clamp(action.value, min, max) },
+      })
     }
     case 'resource': {
       const next = withResource(character, action.resource, action.value)
-      return record(
-        next,
-        `${RESOURCE_LABELS[action.resource]} ${resourceValue(character, action.resource)} → ${resourceValue(next, action.resource)}`,
-      )
+      return touch(next)
     }
-    case 'change.apply':
-      return applyChange(character, action.draft)
-    case 'change.revert':
-      return revertChange(character, action.entryId)
+    case 'resource.adjust': {
+      const next = adjustResource(character, action.adjustment)
+      return next === character ? character : touch(next)
+    }
     case 'ability.add': {
       const option = findAbility(action.definitionId)
       if (
@@ -206,10 +178,7 @@ export function characterReducer(character: Character, action: Action): Characte
           },
         ],
       }
-      return record(
-        { ...next, healing: Math.max(next.healing, healingMinimum(next)) },
-        `${option.name} を取得`,
-      )
+      return touch({ ...next, healing: Math.max(next.healing, healingMinimum(next)) })
     }
     case 'ability.custom':
       return touch({
@@ -243,26 +212,21 @@ export function characterReducer(character: Character, action: Action): Characte
       )
         return character
       const next = { ...character, abilities: patchList(character.abilities, item.id, patch) }
-      return action.patch.used === undefined
-        ? touch(next)
-        : record(next, `${option?.name ?? item.name} 使用回数を変更`)
+      return touch(next)
     }
     case 'ability.remove': {
       const next = {
         ...character,
         abilities: character.abilities.filter((item) => item.id !== action.id),
       }
-      return record(
-        {
-          ...next,
-          stress: Math.min(next.stress, stressMax(next)),
-          armorUses: {
-            ...next.armorUses,
-            special: hasSpecialArmor(next) && next.armorUses.special,
-          },
+      return touch({
+        ...next,
+        stress: Math.min(next.stress, stressMax(next)),
+        armorUses: {
+          ...next.armorUses,
+          special: hasSpecialArmor(next) && next.armorUses.special,
         },
-        '特殊能力を削除（入力訂正）',
-      )
+      })
     }
     case 'friend.patch': {
       const friends = character.friends.map((friend) =>
@@ -295,7 +259,7 @@ export function characterReducer(character: Character, action: Action): Characte
       }
       for (const option of equipmentFor(character.playbookId))
         if (option.requires && !equipment[option.requires]) equipment[option.id] = 0
-      return record({ ...character, equipment }, `${item.ja ?? item.name} 宣言数を変更`)
+      return touch({ ...character, equipment })
     }
     case 'item.use': {
       const item = equipmentFor(character.playbookId).find((option) => option.id === action.id)
@@ -311,10 +275,7 @@ export function characterReducer(character: Character, action: Action): Characte
         (_, index) => character.itemUses[item.id]?.[index] ?? '',
       )
       values[action.index] = action.value
-      return record(
-        { ...character, itemUses: { ...character.itemUses, [item.id]: values } },
-        `${item.ja ?? item.name} 使用枠${action.index + 1}を変更`,
-      )
+      return touch({ ...character, itemUses: { ...character.itemUses, [item.id]: values } })
     }
     case 'customItem.add':
       return touch({
@@ -330,9 +291,7 @@ export function characterReducer(character: Character, action: Action): Characte
         ...(action.patch.load === undefined ? {} : { load: clamp(action.patch.load, 0, 9) }),
       }
       const next = { ...character, customItems: patchList(character.customItems, action.id, patch) }
-      return action.patch.declared === undefined
-        ? touch(next)
-        : record(next, '自由記入装備の宣言を変更')
+      return touch(next)
     }
     case 'customItem.remove':
       return touch({
@@ -342,22 +301,16 @@ export function characterReducer(character: Character, action: Action): Characte
     case 'score.patch':
       return touch({ ...character, score: { ...character.score, ...action.patch } })
     case 'score.start':
-      return record(
-        {
-          ...character,
-          equipment: defaultSheet(character.playbookId).equipment,
-          itemUses: defaultSheet(character.playbookId).itemUses,
-          customItems: character.customItems.map((item) => ({ ...item, declared: false })),
-          abilities: character.abilities.map((item) => ({ ...item, used: 0 })),
-          armorUses: { ...character.armorUses, armor: false, heavy: false },
-        },
-        '次の仕事を開始（装備・使用回数・通常鎧をリセット）',
-      )
+      return touch({
+        ...character,
+        equipment: defaultSheet(character.playbookId).equipment,
+        itemUses: defaultSheet(character.playbookId).itemUses,
+        customItems: character.customItems.map((item) => ({ ...item, declared: false })),
+        abilities: character.abilities.map((item) => ({ ...item, used: 0 })),
+        armorUses: { ...character.armorUses, armor: false, heavy: false },
+      })
     case 'specialArmor.reset':
-      return record(
-        { ...character, armorUses: { ...character.armorUses, special: false } },
-        'ダウンタイム開始（特殊鎧をリセット）',
-      )
+      return touch({ ...character, armorUses: { ...character.armorUses, special: false } })
     case 'gather':
       return touch({
         ...character,
@@ -371,17 +324,10 @@ export function characterReducer(character: Character, action: Action): Characte
         row[action.index] = action.value
         harm[action.field] = row
       } else harm[action.field] = action.value
-      const label =
-        action.field === 'fatal'
-          ? '致命的な傷・結果'
-          : `レベル${action.field === 'level1' ? 1 : action.field === 'level2' ? 2 : 3}の傷${action.index === undefined ? '' : ` ${action.index + 1}`}`
-      return record({ ...character, harm }, `${label} を変更`, action.reason)
+      return touch({ ...character, harm })
     }
     case 'healing':
-      return record(
-        { ...character, healing: clamp(action.value, healingMinimum(character), 4) },
-        '治療クロックを変更',
-      )
+      return touch({ ...character, healing: clamp(action.value, healingMinimum(character), 4) })
     case 'armor': {
       if (action.kind === 'special' && !hasSpecialArmor(character)) return character
       if (
@@ -389,33 +335,24 @@ export function characterReducer(character: Character, action: Action): Characte
         !character.equipment[action.kind === 'armor' ? 'armor' : 'armor-heavy']
       )
         return character
-      return record(
-        {
-          ...character,
-          armorUses: { ...character.armorUses, [action.kind]: !character.armorUses[action.kind] },
-        },
-        `鎧 ${action.kind} 使用を変更`,
-      )
+      return touch({
+        ...character,
+        armorUses: { ...character.armorUses, [action.kind]: !character.armorUses[action.kind] },
+      })
     }
     case 'trauma': {
       if (!action.name.trim()) return character
       const removing = character.traumas.includes(action.name)
       if (!removing && character.traumas.length >= TRAUMA_MAX) return character
-      return record(
-        {
-          ...character,
-          traumas: removing
-            ? character.traumas.filter((item) => item !== action.name)
-            : [...character.traumas, action.name],
-        },
-        removing ? 'トラウマを削除（入力訂正）' : 'トラウマを記録',
-      )
+      return touch({
+        ...character,
+        traumas: removing
+          ? character.traumas.filter((item) => item !== action.name)
+          : [...character.traumas, action.name],
+      })
     }
     case 'carriedCoin':
-      return record(
-        { ...character, carriedCoin: clamp(action.value, 0, character.coin) },
-        '携帯するコインを変更',
-      )
+      return touch({ ...character, carriedCoin: clamp(action.value, 0, character.coin) })
     case 'clock.add':
       return touch({
         ...character,
@@ -437,61 +374,7 @@ export function characterReducer(character: Character, action: Action): Characte
         ...character,
         clocks: character.clocks.filter((item) => item.id !== action.id),
       })
-    case 'crew.patch':
-      return touch({ ...character, crew: { ...character.crew, ...action.patch } })
-    case 'crewChoice.patch':
-      return touch({
-        ...character,
-        crew: {
-          ...character.crew,
-          [action.field]: patchList(character.crew[action.field], action.id, action.patch),
-        },
-      })
-    case 'crewChoice.add':
-      return touch({
-        ...character,
-        crew: {
-          ...character.crew,
-          [action.field]: [
-            ...character.crew[action.field],
-            { id: createId('pick'), name: '', note: '' },
-          ],
-        },
-      })
-    case 'crewChoice.remove':
-      return touch({
-        ...character,
-        crew: {
-          ...character.crew,
-          [action.field]: character.crew[action.field].filter((item) => item.id !== action.id),
-        },
-      })
-    case 'member.add':
-      return touch({
-        ...character,
-        crew: {
-          ...character.crew,
-          roster: [
-            ...character.crew.roster,
-            { id: createId('member'), name: '', role: '', note: '', player: false },
-          ],
-        },
-      })
-    case 'member.patch':
-      return touch({
-        ...character,
-        crew: {
-          ...character.crew,
-          roster: patchList(character.crew.roster, action.id, action.patch),
-        },
-      })
-    case 'member.remove':
-      return touch({
-        ...character,
-        crew: {
-          ...character.crew,
-          roster: character.crew.roster.filter((item) => item.id !== action.id),
-        },
-      })
+    case 'crew.name':
+      return touch({ ...character, crew: { ...character.crew, name: action.name } })
   }
 }

@@ -169,8 +169,6 @@ export function DataTab() {
           <dd>{formatTimestamp(character.updatedAt)}</dd>
           <dt>作成日</dt>
           <dd>{formatTimestamp(character.createdAt)}</dd>
-          <dt>記録件数</dt>
-          <dd>{character.log.length} 件</dd>
         </dl>
         <p className="field__hint">
           データはブラウザの中だけに保存されます。別の端末へ移すときは、エクスポートを利用してください。

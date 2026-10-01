@@ -1,4 +1,3 @@
-import type { ChangeEntry } from './changelog'
 
 export const SCHEMA_VERSION = 2
 export type PlaybookId = 'cutter' | 'hound' | 'leech' | 'lurk' | 'slide' | 'spider' | 'whisper'
@@ -120,6 +119,5 @@ export interface Character extends SheetState {
   id: string
   createdAt: string
   updatedAt: string
-  log: ChangeEntry[]
   legacy: LegacyArchive[]
 }

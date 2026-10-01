@@ -1,11 +1,9 @@
-import { useState } from 'react'
 import {
   ACTION_GROUPS,
   ALCHEMICALS,
   CREATION_RATING_MAX,
   findAbility,
   GENERAL_ITEMS,
-  ATTRIBUTE_XP_MAX,
   PLAYBOOKS,
   RATING_MAX,
 } from '../constants/playbooks'
@@ -18,29 +16,32 @@ import {
   loadLimits,
   usedLoad,
 } from '../lib/rules'
-import { Box, Bilingual, RatingDots, HealingClock, BookmarkTrack } from '../sheet/parts'
+import { Box, Bilingual, RatingDots, HealingClock } from '../sheet/parts'
 import { SelectInput, Stepper, TextArea } from './ui'
 import type { EquipmentOption } from '../constants/playbooks'
 import type { SheetState } from '../types/character'
 export function RatingsPanel({ sheet = false }: { sheet?: boolean }) {
   const { character, dispatch } = useCharacter()
   return (
-    <div className="ratings-panel">
+    <div
+      className={`ratings-panel${sheet ? '' : ' ratings-panel--editing'}`}
+      role={sheet ? 'region' : undefined}
+      aria-label={sheet ? '技能・抵抗' : undefined}
+    >
       {ACTION_GROUPS.map((group) => (
         <section key={group.id}>
           <div className={sheet ? 'os-track__head' : undefined}>
             <h3 className={sheet ? 'os-track__title' : undefined}>
-              {group.name}{' '}
+              <span>
+                {group.name}
+                {sheet && (
+                  <>
+                    {' '}<small>{group.ja}</small>
+                  </>
+                )}
+              </span>{' '}
               <span className="field__hint">抵抗 {attributeRating(character, group.id)}</span>
             </h3>
-            {sheet && (
-              <BookmarkTrack
-                name={group.name}
-                value={character.xp[group.id]}
-                max={ATTRIBUTE_XP_MAX}
-                onChange={(value) => dispatch({ type: 'resource', resource: group.id, value })}
-              />
-            )}
           </div>
           {group.items.map((item) => (
             <RatingDots
@@ -49,7 +50,20 @@ export function RatingsPanel({ sheet = false }: { sheet?: boolean }) {
               en={item.name}
               value={character.ratings[item.id]}
               max={sheet || character.creationComplete ? RATING_MAX : CREATION_RATING_MAX}
-              editableMax={character.creationComplete ? RATING_MAX : CREATION_RATING_MAX}
+              editableMax={
+                character.creationComplete
+                  ? RATING_MAX
+                  : Math.min(
+                      CREATION_RATING_MAX,
+                      character.ratings[item.id] + Math.max(0, creationRemaining(character)),
+                    )
+              }
+              fixedValue={
+                !sheet && !character.creationComplete
+                  ? (PLAYBOOKS[character.playbookId].initialRatings[item.id] ?? 0)
+                  : 0
+              }
+              creating={!sheet && !character.creationComplete}
               onChange={
                 sheet ? undefined : (value) => dispatch({ type: 'rating', id: item.id, value })
               }
@@ -269,14 +283,9 @@ function HarmInput({
   compact?: boolean
 }) {
   const { dispatch } = useCharacter()
-  const [draft, setDraft] = useState(value)
   return (
-    <form
+    <div
       className={`harm-input${compact ? ' harm-input--compact' : ''}`}
-      onSubmit={(event) => {
-        event.preventDefault()
-        dispatch({ type: 'harm', field, index, value: draft })
-      }}
     >
       <label>
         <span className={compact ? 'sheet-sr-only' : undefined}>{label}</span>
@@ -285,22 +294,17 @@ function HarmInput({
             className="os-harm__input"
             aria-label={label}
             rows={2}
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
+            value={value}
+            onChange={(event) => dispatch({ type: 'harm', field, index, value: event.target.value })}
           />
         ) : (
-          <input value={draft} onChange={(event) => setDraft(event.target.value)} />
+          <input
+            value={value}
+            onChange={(event) => dispatch({ type: 'harm', field, index, value: event.target.value })}
+          />
         )}
       </label>
-      <button
-        type="submit"
-        className="button button--ghost"
-        disabled={draft === value}
-        aria-label={`${label}を記録`}
-      >
-        記録
-      </button>
-    </form>
+    </div>
   )
 }
 export function HarmPanel({ compact = false }: { compact?: boolean }) {
@@ -335,7 +339,7 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
                     <td key={index} colSpan={level === 3 ? 2 : undefined}>
                       <HarmInput
                         compact
-                        key={`${field}:${index}:${value}`}
+                        key={`${field}:${index}`}
                         label={
                           level === 3
                             ? 'レベル3の傷（手助け・自分を追い込む）'
@@ -356,7 +360,6 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
       ) : (
         <>
           <HarmInput
-            key={`3:${character.harm.level3}`}
             label="レベル3の傷（手助け・自分を追い込む）"
             field="level3"
             value={character.harm.level3}
@@ -364,7 +367,7 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
           {(['level2', 'level1'] as const).map((field) =>
             character.harm[field].map((value, index) => (
               <HarmInput
-                key={`${field}:${index}:${value}`}
+                key={`${field}:${index}`}
                 label={`レベル${field === 'level2' ? 2 : 1}の傷 ${index + 1}（${field === 'level2' ? '−1d' : '効果低下'}）`}
                 field={field}
                 index={index}
@@ -376,7 +379,6 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
       )}
       <div className={compact ? 'os-fatal' : undefined}>
         <HarmInput
-          key={`fatal:${character.harm.fatal}`}
           label="致命的な傷・結果"
           field="fatal"
           value={character.harm.fatal}
@@ -422,13 +424,13 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
     </>
   )
 }
-export function CreationProgress({ compact = false }: { compact?: boolean }) {
+export function CreationProgress() {
   const { character } = useCharacter()
   if (character.creationComplete) return null
   return (
     <p role="status" className="creation-progress">
-      作成中：追加4点の残り {creationRemaining(character)}
-      {compact ? '' : '。出自・経歴に対応する各1点と自由な2点を配分します。'}
+      PLの追加点：{4 - creationRemaining(character)} / 4点（残り {creationRemaining(character)}点）
+      。出自・経歴に対応する各1点と自由な2点を配分します。
     </p>
   )
 }

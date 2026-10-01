@@ -2,21 +2,15 @@ import { useState } from 'react'
 import { useCharacter } from './state/characterContext'
 import { OfficialSheetView } from './sheet/OfficialSheetView'
 import { AbilitiesTab } from './tabs/AbilitiesTab'
-import { CrewTab } from './tabs/CrewTab'
 import { DataTab } from './tabs/DataTab'
-import { LogTab } from './tabs/LogTab'
-import { OperationTab } from './tabs/OperationTab'
 import { SetupTab } from './tabs/SetupTab'
 import { StatusTab } from './tabs/StatusTab'
 import { WeaponsTab } from './tabs/WeaponsTab'
 const TABS = [
   { id: 'setup', label: '初期設定', Component: SetupTab },
   { id: 'abilities', label: '特殊能力', Component: AbilitiesTab },
-  { id: 'status', label: '変動記録', Component: StatusTab },
+  { id: 'status', label: '状態', Component: StatusTab },
   { id: 'weapons', label: '装備', Component: WeaponsTab },
-  { id: 'operation', label: '作戦メモ', Component: OperationTab },
-  { id: 'log', label: '履歴', Component: LogTab },
-  { id: 'crew', label: 'クルー', Component: CrewTab },
   { id: 'data', label: 'データ', Component: DataTab },
 ] as const
 export default function App() {

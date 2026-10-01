@@ -89,7 +89,6 @@ export function createDefaultCharacter(playbookId: PlaybookId = 'cutter'): Chara
     id: createId('char'),
     createdAt: at,
     updatedAt: at,
-    log: [],
     legacy: [],
   }
 }

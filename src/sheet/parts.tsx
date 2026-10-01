@@ -102,6 +102,8 @@ export function RatingDots({
   value,
   max = RATING_MAX,
   editableMax = max,
+  fixedValue = 0,
+  creating = false,
   onChange,
 }: {
   name: string
@@ -109,6 +111,8 @@ export function RatingDots({
   value: number
   max?: number
   editableMax?: number
+  fixedValue?: number
+  creating?: boolean
   onChange?: (value: number) => void
 }) {
   return (
@@ -120,14 +124,27 @@ export function RatingDots({
         title={onChange ? undefined : MESSAGE.ratingEditHint}
       >
         {Array.from({ length: max }, (_, index) =>
-          onChange ? (
+          onChange && index < fixedValue ? (
+            <span
+              key={index}
+              className="os-rating__dot os-rating__dot--fixed"
+              role="img"
+              aria-label={`${en ?? name} ${index + 1}（プレイブック固定・変更不可）`}
+              title="プレイブック固定・変更不可"
+            />
+          ) : onChange ? (
             <button
               key={index}
               type="button"
-              className={`os-rating__dot${index < value ? ' os-rating__dot--on' : ''}`}
+              className={`os-rating__dot os-rating__dot--editable${index < value ? ' os-rating__dot--selected' : ''}`}
               disabled={index >= editableMax}
               aria-pressed={index < value}
               aria-label={`${en ?? name} ${index + 1}`}
+              title={
+                index >= editableMax
+                  ? '追加点が残っていません。選択済みの点を解除すると配分できます。'
+                  : `${creating ? 'PLの追加点：' : ''}${index < value ? 'クリックで減らす' : 'クリックで増やす'}`
+              }
               onClick={() => onChange(index === value - 1 ? index : index + 1)}
             />
           ) : (

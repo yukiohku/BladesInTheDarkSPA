@@ -18,7 +18,7 @@ import {
 } from '../components/SheetPanels'
 import { TextArea } from '../components/ui'
 import { TraumaPanel } from '../tabs/StatusTab'
-import { BookmarkTrack, CoinTrack, StressBoxes, Box } from './parts'
+import { BookmarkTrack, CoinTrack, StressBoxes } from './parts'
 import { abilityDefinitions, loadLimits, stressMax } from '../lib/rules'
 import { characterStatus } from '../lib/status'
 import logoUrl from '../assets/blades-logo.png'
@@ -151,34 +151,36 @@ export function OfficialSheetView() {
           </h3>
           {character.friends.map((friend) => (
             <div className="os-friend" key={friend.id}>
-              <Box
-                size="small"
-                label={`${friend.name}：親しい人物`}
-                checked={friend.relation === 'friend'}
-                onChange={(checked) =>
-                  dispatch({
-                    type: 'friend.patch',
-                    id: friend.id,
-                    patch: { relation: checked ? 'friend' : 'neutral' },
-                  })
-                }
-              />
-              <Box
-                size="small"
-                label={`${friend.name}：ライバル`}
-                checked={friend.relation === 'rival'}
-                onChange={(checked) =>
-                  dispatch({
-                    type: 'friend.patch',
-                    id: friend.id,
-                    patch: { relation: checked ? 'rival' : 'neutral' },
-                  })
-                }
-              />
+              {(['friend', 'rival'] as const).map((relation) => {
+                const selected = friend.relation === relation
+                const isFriend = relation === 'friend'
+                const relationship = isFriend ? '親しい人物' : 'ライバル'
+                return (
+                  <button
+                    key={relation}
+                    type="button"
+                    className={`os-friend__mark os-friend__mark--${relation}`}
+                    aria-pressed={selected}
+                    aria-label={`${friend.name}：${relationship}`}
+                    title={`${friend.name}：${relationship}`}
+                    onClick={() =>
+                      dispatch({
+                        type: 'friend.patch',
+                        id: friend.id,
+                        patch: { relation: selected ? 'neutral' : relation },
+                      })
+                    }
+                  >
+                    <span aria-hidden="true">
+                      {isFriend ? (selected ? '▲' : '△') : selected ? '▼' : '▽'}
+                    </span>
+                  </button>
+                )
+              })}
               <span className="os-friend__readout">{friend.name}</span>
             </div>
           ))}
-          <p className="os-friendlegend">左：親しい人物 / 右：ライバル</p>
+          <p className="os-friendlegend">△ 親しい人物 / ▽ ライバル</p>
         </section>
         <section className="os-panel os-equipment">
           <h3 className="os-panel__title">

@@ -36,12 +36,31 @@ playbook を増やすときは `src/constants/playbooks.ts` に定義を追加�
 
 ## 使い方
 
+### 開発環境
+
+Node.js 22 系（22.22.2 以上）または 24 系（24.15.0 以上）と npm を使います。
+CI は Node.js 22 系です。ローカルでは Node.js 24.18.0 / npm 11.16.0 で
+依存導入、lint、型チェック、テスト、本番ビルドを確認しています。
+正確な対応バージョンは `package.json` の `engines` を参照してください。
+
+初回はリポジトリのルートで `npm ci` を実行します。
+`package-lock.json` に固定された依存が入り、npm のキャッシュは
+`.npmrc` の設定によりプロジェクト内の `.npm-cache/` に保存されます。
+`node_modules/`、`.npm-cache/`、`dist/` は Git の管理対象外です。
+
 ```bash
-npm install
+npm ci
 npm run dev        # 開発サーバー
 npm run build      # dist/ に本番ビルド
 npm run preview    # ビルド結果の確認
 ```
+
+開発サーバー起動後はターミナルに表示された URL（通常は
+`http://localhost:5173/`）をブラウザで開きます。
+コードを保存すると画面に反映されます。停止は起動したターミナルで `Ctrl+C` です。
+
+Windows PowerShell で `npm.ps1` の実行が制限される場合は、
+`npm.cmd ci`、`npm.cmd run dev` のように `npm.cmd` を使います。
 
 ### 品質チェック
 
@@ -122,6 +141,13 @@ src/
   components/   再利用可能なUI部品
   tabs/         シートの各セクション
 ```
+
+## 改善のための参考資料
+
+[docs/research/README.md](docs/research/README.md) に、公式の無料プレイブックと
+SRDのキャラクター関連ルールを出典付きで整理しています。
+プレイブックごとの差、共通ルール、現行実装との比較を確認できます。
+取得した原本は `docs/research/originals/` に保存し、Git管理からは除外しています。
 
 ## 二次配布について
 

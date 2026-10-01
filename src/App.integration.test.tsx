@@ -107,7 +107,6 @@ describe('基本7種の操作', () => {
     expect(screen.getByRole('img', { name: `${second.name}：親しい人物` }).textContent).toBe('▲▽')
     expect(screen.queryByRole('button', { name: /：親しい人物|：ライバル/ })).toBeNull()
     expect(screen.queryByRole('combobox', { name: /との関係/ })).toBeNull()
-    expect(screen.getByText('知人との関係の変更は「編集」→「初期設定」で行います。')).toBeTruthy()
     await user.click(firstRival)
     expect(document.activeElement).not.toBe(firstRival)
     await user.keyboard('{Enter} ')

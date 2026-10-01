@@ -1,4 +1,3 @@
-import { MESSAGE } from '../constants/labels'
 import {
   BACKGROUNDS,
   COIN_MAX,
@@ -175,7 +174,6 @@ export function OfficialSheetView() {
             </div>
           ))}
           <p className="os-friendlegend">△ 親しい人物 / ▽ ライバル</p>
-          <p className="os-friendlegend">{MESSAGE.friendEditHint}</p>
         </section>
         <section className="os-panel os-equipment">
           <h3 className="os-panel__title">

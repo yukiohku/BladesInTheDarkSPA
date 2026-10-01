@@ -148,7 +148,6 @@ export function normalizeSheet(value: unknown): SheetState {
     creationComplete: bool(source.creationComplete),
     identity: {
       name: str(identity.name),
-      alias: str(identity.alias),
       look: str(identity.look),
       heritageId: str(identity.heritageId),
       heritageDetail: str(identity.heritageDetail),

@@ -45,7 +45,6 @@ export function defaultSheet(playbookId: PlaybookId = 'cutter'): SheetState {
     creationComplete: false,
     identity: {
       name: '',
-      alias: '',
       look: '',
       heritageId: '',
       heritageDetail: '',

@@ -69,7 +69,7 @@ describe('characterReducer', () => {
     expect(next.ratings.hunt).toBe(4)
     expect(attributeRating(next, 'insight')).toBe(2)
   })
-  it('共通値と能力を保ち、固有データを置換・保管する', () => {
+  it('共通値を保ち、固有データと取得済み能力を置換・保管する', () => {
     const original = run([
       { type: 'identity', patch: { name: 'テスト' } },
       { type: 'ability.add', definitionId: 'cutter:mule' },
@@ -86,12 +86,34 @@ describe('characterReducer', () => {
     expect(next.identity.name).toBe('テスト')
     expect(next.stress).toBe(6)
     expect(next.ratings).toEqual(original.ratings)
-    expect(next.abilities).toEqual(original.abilities)
+    expect(next.abilities).toEqual([])
     expect(next.equipment.blade).toBe(1)
     expect(next.equipment['cutter:hand-weapon']).toBeUndefined()
     expect(next.friends[0].name).toContain('Steiner')
     expect(next.gatherNotes).toEqual({})
-    expect(next.legacy[0].data).toMatchObject({ gatherNotes: { 'cutter:0': '旧メモ' } })
+    expect(next.legacy[0].data).toMatchObject({
+      gatherNotes: { 'cutter:0': '旧メモ' },
+      abilities: original.abilities,
+    })
+  })
+  it('プレイブック変更で能力由来のストレス上限と特殊鎧使用を補正する', () => {
+    const original = run([
+      { type: 'ability.add', definitionId: 'hound:survivor' },
+      { type: 'ability.add', definitionId: 'hound:focused' },
+      { type: 'resource', resource: 'stress', value: 10 },
+      { type: 'armor', kind: 'special' },
+    ])
+    expect(stressMax(original)).toBe(10)
+    expect(original.armorUses.special).toBe(true)
+    const next = characterReducer(original, {
+      type: 'playbook.change',
+      playbookId: 'hound',
+      resetRatings: true,
+    })
+    expect(next.abilities).toEqual([])
+    expect(stressMax(next)).toBe(9)
+    expect(next.stress).toBe(9)
+    expect(next.armorUses.special).toBe(false)
   })
   it('明示した初期値の再設定だけがレートを置き換える', () => {
     const next = run([{ type: 'playbook.change', playbookId: 'whisper', resetRatings: true }])

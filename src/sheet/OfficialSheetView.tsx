@@ -64,11 +64,8 @@ export function OfficialSheetView() {
       <div className="os__col os__col--left">
         <section className="os-identity" aria-label="人物情報">
           <div className="os-charname">
-            <span className="os-charname__label">名前 / NAME</span>
-            <span className="os-charname__value">
-              {identity.name || '（未設定）'}
-              {identity.alias && <small> / {identity.alias}</small>}
-            </span>
+            <span className="os-charname__label">名前</span>
+            <span className="os-charname__value">{identity.name || '（未設定）'}</span>
           </div>
           <IdentityRow label="クルー" value={character.crew.name} />
           <IdentityRow

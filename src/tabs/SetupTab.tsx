@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   BACKGROUNDS,
   HERITAGES,
@@ -11,11 +10,8 @@ import { useCharacter } from '../state/characterContext'
 import { Grid, Section, SelectInput, TextArea, TextInput } from '../components/ui'
 import { CreationProgress, RatingsPanel } from '../components/SheetPanels'
 import { creationProblems } from '../lib/rules'
-import type { PlaybookId } from '../types/character'
 export function SetupTab() {
   const { character, dispatch } = useCharacter()
-  const [pending, setPending] = useState<PlaybookId | null>(null)
-  const [resetRatings, setResetRatings] = useState(false)
   const problems = creationProblems(character)
   const identity = character.identity
   const patch = (field: keyof typeof identity, value: string) =>
@@ -24,7 +20,7 @@ export function SetupTab() {
     <>
       <Section
         title="プレイブック"
-        hint="基本7種から選びます。能力・固有装備・知人・XP条件が変わります。"
+        hint="基本7種から選びます。切り替えると知人・固有装備・情報収集メモ・取得済み特殊能力は新しい内容に置き換わり、アクションは初期値に戻ります。名前・状態・資産・XPは維持し、置き換え前の固有データはデータ画面に保管します。"
       >
         <SelectInput
           label="プレイブック"
@@ -35,99 +31,20 @@ export function SetupTab() {
           }))}
           onChange={(value) => {
             if (isPlaybookId(value) && value !== character.playbookId) {
-              setPending(value)
-              setResetRatings(!character.creationComplete)
+              dispatch({ type: 'playbook.change', playbookId: value, resetRatings: true })
             }
           }}
         />
         <a href={PLAYBOOKS[character.playbookId].source} target="_blank" rel="noreferrer">
           このプレイブックの公式原本
         </a>
-        {pending && (
-          <div className="switch-preview" role="region" aria-label="プレイブック変更の確認">
-            <h3>
-              {PLAYBOOKS[character.playbookId].title} → {PLAYBOOKS[pending].title}
-            </h3>
-            <p>名前・ストレス・傷・資産・XP・取得済み能力・自由記入装備は維持します。</p>
-            <p>
-              知人{character.friends.length}
-              件、固有装備の宣言と使用枠、情報収集の質問メモを新しいプレイブックのものに置き換えます。変更前の内容はデータ画面に保管します。
-            </p>
-            <ul>
-              {character.friends.map((friend) => (
-                <li key={friend.id}>
-                  {friend.name || '未設定'}（
-                  {friend.relation === 'friend'
-                    ? '友人'
-                    : friend.relation === 'rival'
-                      ? 'ライバル'
-                      : '未選択'}
-                  ）
-                </li>
-              ))}
-            </ul>
-            <p>置き換える固有装備の宣言・使用枠：</p>
-            <ul>
-              {PLAYBOOKS[character.playbookId].items.map((item) => (
-                <li key={item.id}>
-                  {item.ja || item.name}：{character.equipment[item.id] || 0}個
-                  {character.itemUses[item.id]?.some(Boolean) &&
-                    `（使用枠：${character.itemUses[item.id].map((value) => value || '未使用').join(' / ')}）`}
-                </li>
-              ))}
-            </ul>
-            {Object.values(character.gatherNotes).some(Boolean) && (
-              <>
-                <p>置き換える情報収集メモ：</p>
-                <ul>
-                  {Object.entries(character.gatherNotes)
-                    .filter(([, note]) => note)
-                    .map(([id, note]) => (
-                      <li key={id}>{note}</li>
-                    ))}
-                </ul>
-              </>
-            )}
-            <label className="checkbox">
-              <input
-                type="checkbox"
-                checked={resetRatings}
-                onChange={(event) => setResetRatings(event.target.checked)}
-              />
-              アクションを新しい初期値に戻し、追加4点を配分し直す
-            </label>
-            <p>アクション：{resetRatings ? '初期値に再設定する' : '現在の値を維持する'}</p>
-            <div className="inline-add">
-              <button
-                type="button"
-                className="button button--primary"
-                onClick={() => {
-                  dispatch({ type: 'playbook.change', playbookId: pending, resetRatings })
-                  setPending(null)
-                }}
-              >
-                変更を確定
-              </button>
-              <button type="button" className="button" onClick={() => setPending(null)}>
-                キャンセル
-              </button>
-            </div>
-          </div>
-        )}
       </Section>
       <Section title="基本情報">
-        <Grid>
-          <TextInput
-            label="名前"
-            value={identity.name}
-            onChange={(value) => patch('name', value)}
-          />
-          <TextInput
-            label="偽名"
-            value={identity.alias}
-            onChange={(value) => patch('alias', value)}
-          />
-        </Grid>
+        <TextInput
+          label="名前"
+          value={identity.name}
+          onChange={(value) => patch('name', value)}
+        />
         <TextInput
           label="所属クルー名"
           value={character.crew.name}

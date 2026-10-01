@@ -90,7 +90,7 @@ export function characterReducer(character: Character, action: Action): Characte
     case 'playbook.change': {
       if (action.playbookId === character.playbookId) return character
       const base = defaultSheet(action.playbookId)
-      const next = {
+      const cleared: Character = {
         ...character,
         playbookId: action.playbookId,
         friends: base.friends,
@@ -104,8 +104,17 @@ export function characterReducer(character: Character, action: Action): Characte
         },
         itemUses: base.itemUses,
         gatherNotes: {},
+        abilities: [],
         ratings: action.resetRatings ? base.ratings : character.ratings,
         creationComplete: action.resetRatings ? false : character.creationComplete,
+      }
+      const next = {
+        ...cleared,
+        stress: Math.min(character.stress, stressMax(cleared)),
+        armorUses: {
+          ...character.armorUses,
+          special: hasSpecialArmor(cleared) && character.armorUses.special,
+        },
         legacy: [
           ...character.legacy,
           {
@@ -117,6 +126,7 @@ export function characterReducer(character: Character, action: Action): Characte
               itemUses: character.itemUses,
               gatherNotes: character.gatherNotes,
               ratings: character.ratings,
+              abilities: character.abilities,
             },
           },
         ],

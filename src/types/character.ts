@@ -78,7 +78,6 @@ export interface SheetState {
   creationComplete: boolean
   identity: {
     name: string
-    alias: string
     look: string
     heritageId: string
     heritageDetail: string

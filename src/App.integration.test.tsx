@@ -22,7 +22,6 @@ async function tab(user: ReturnType<typeof userEvent.setup>, name: string) {
 async function chooseBook(user: ReturnType<typeof userEvent.setup>, book: string) {
   await tab(user, '初期設定')
   await user.selectOptions(screen.getByLabelText('プレイブック'), book)
-  if (book !== 'cutter') await user.click(screen.getByRole('button', { name: '変更を確定' }))
 }
 beforeEach(() => {
   window.localStorage.clear()
@@ -175,18 +174,26 @@ describe('基本7種の操作', () => {
     expect(screen.getByText(book.xpTrigger)).toBeTruthy()
     expect(screen.getByRole('button', { name: book.items[0].ja })).toBeTruthy()
   }, 15000)
-  it('プレイブック変更をキャンセルすると既存の状態を保つ', async () => {
+  it('プレイブック変更は確認なしで確定しアクションと特殊能力を初期化する', async () => {
     const user = userEvent.setup()
     renderApp()
     await tab(user, '初期設定')
     await user.type(screen.getByLabelText('名前'), '人物')
+    await user.click(screen.getByLabelText('Hunt 1'))
+    expect(screen.getByText(/PLの追加点：1 \/ 4点/)).toBeTruthy()
+    await tab(user, '特殊能力')
+    await user.click(screen.getByRole('button', { name: `取得：${PLAYBOOK_LIST[0].abilities[0].name}` }))
+    expect(screen.queryByText('未取得（編集の特殊能力から取得できます）')).toBeNull()
+    await tab(user, '初期設定')
     await user.selectOptions(screen.getByLabelText('プレイブック'), 'hound')
-    expect(screen.getByRole('region', { name: 'プレイブック変更の確認' }).textContent).toContain(
-      '知人5件',
-    )
-    await user.click(screen.getByRole('button', { name: 'キャンセル' }))
-    expect((screen.getByLabelText('プレイブック') as HTMLSelectElement).value).toBe('cutter')
+    expect((screen.getByLabelText('プレイブック') as HTMLSelectElement).value).toBe('hound')
     expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('人物')
+    expect(screen.queryByRole('region', { name: 'プレイブック変更の確認' })).toBeNull()
+    expect(screen.getByLabelText('Hunt 2（プレイブック固定・変更不可）')).toBeTruthy()
+    expect(screen.getByLabelText('Skirmish 1')).toBeTruthy()
+    expect(screen.getByText(/PLの追加点：0 \/ 4点/)).toBeTruthy()
+    await tab(user, '特殊能力')
+    expect(screen.getByText('未取得（編集の特殊能力から取得できます）')).toBeTruthy()
   })
   it('知人との関係は編集で設定し、シートでは表示だけにする', async () => {
     const user = userEvent.setup()

@@ -283,13 +283,15 @@ export function EquipmentPanel() {
           />
         </div>
       ))}
-      <Stepper
-        label="携帯するコイン（1 Coin＝Load 1）"
-        value={character.carriedCoin}
-        min={0}
-        max={character.coin}
-        onChange={(value) => dispatch({ type: 'carriedCoin', value })}
-      />
+      {character.coin > 0 && (
+        <Stepper
+          label="携帯するコイン（1 Coin＝Load 1）"
+          value={character.carriedCoin}
+          min={0}
+          max={character.coin}
+          onChange={(value) => dispatch({ type: 'carriedCoin', value })}
+        />
+      )}
     </>
   )
 }

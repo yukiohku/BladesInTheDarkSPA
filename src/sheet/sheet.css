@@ -1177,6 +1177,23 @@ button.os-rating__dot {
   height: 1.6rem;
   min-width: 1.6rem;
 }
+
+.os .stepper__button:disabled {
+  opacity: 0.5;
+  color: var(--os-dim);
+  border-color: var(--os-band);
+  border-style: dashed;
+}
+
+.os .stepper__value {
+  appearance: textfield;
+}
+
+.os .stepper__value::-webkit-outer-spin-button,
+.os .stepper__value::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
+}
 .os .os-coin {
   display: grid;
   grid-template-columns: 3.7rem minmax(0, 1fr) auto;

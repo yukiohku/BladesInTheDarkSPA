@@ -383,7 +383,10 @@ body {
 }
 
 .stepper__button:disabled {
-  opacity: 0.35;
+  opacity: 0.4;
+  color: var(--text-faint);
+  background: transparent;
+  border-color: var(--line);
   cursor: not-allowed;
 }
 
@@ -396,6 +399,13 @@ body {
   background: var(--bg-input);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
+  appearance: textfield;
+}
+
+.stepper__value::-webkit-outer-spin-button,
+.stepper__value::-webkit-inner-spin-button {
+  margin: 0;
+  appearance: none;
 }
 
 .stepper__suffix {

@@ -1,92 +1,93 @@
-import { LABELS } from '../constants/labels'
+import { useState } from 'react'
 import { useCharacter } from '../state/characterContext'
-import { Grid, Section, TextInput, TextListEditor } from '../components/ui'
-
+import { Grid, Section, Stepper, TextArea, TextInput } from '../components/ui'
+import { EquipmentPanel } from '../components/SheetPanels'
 export function WeaponsTab() {
   const { character, dispatch } = useCharacter()
-
+  const [confirmScore, setConfirmScore] = useState(false)
   return (
     <>
-      <Section title={LABELS.weapons}>
-        {character.weapons.length === 0 && <p className="empty">未登録</p>}
-        <div className="stack">
-          {character.weapons.map((weapon) => (
-            <div className="slot" key={weapon.id}>
-              <div className="slot__head">
-                <span className="slot__index">{weapon.name || '装備'}</span>
-                <button
-                  type="button"
-                  className="button button--danger-ghost"
-                  onClick={() => dispatch({ type: 'weapon.remove', id: weapon.id })}
-                >
-                  削除
-                </button>
-              </div>
+      <Section
+        title="仕事の装備"
+        hint="装備は必要になった時点で宣言します。Load 2や3の連結欄は1つの装備として扱います。"
+      >
+        <EquipmentPanel />
+      </Section>
+      <Section
+        title="自由記入装備"
+        hint="原典にない装備や入手した品の名前・Load・説明を記録できます。"
+      >
+        {character.customItems.map((item) => (
+          <div className="slot" key={item.id}>
+            <Grid>
               <TextInput
-                label="名称"
-                value={weapon.name}
-                onChange={(name) => dispatch({ type: 'weapon.patch', id: weapon.id, patch: { name } })}
+                label="装備名"
+                value={item.name}
+                onChange={(name) =>
+                  dispatch({ type: 'customItem.patch', id: item.id, patch: { name } })
+                }
               />
-              <Grid columns={2}>
-                <TextInput
-                  label="射程"
-                  value={weapon.range}
-                  placeholder="近接 / 10m など"
-                  onChange={(range) =>
-                    dispatch({ type: 'weapon.patch', id: weapon.id, patch: { range } })
-                  }
-                />
-                <TextInput
-                  label="ダメージ"
-                  value={weapon.damage}
-                  placeholder="1d6 など"
-                  onChange={(damage) =>
-                    dispatch({ type: 'weapon.patch', id: weapon.id, patch: { damage } })
-                  }
-                />
-                <TextInput
-                  label="負荷"
-                  value={weapon.load}
-                  placeholder="軽 / 重"
-                  onChange={(load) =>
-                    dispatch({ type: 'weapon.patch', id: weapon.id, patch: { load } })
-                  }
-                />
-                <TextInput
-                  label="効果"
-                  value={weapon.effect}
-                  placeholder="+効果 1 など"
-                  onChange={(effect) =>
-                    dispatch({ type: 'weapon.patch', id: weapon.id, patch: { effect } })
-                  }
-                />
-              </Grid>
-            </div>
-          ))}
-        </div>
-        <button type="button" className="button" onClick={() => dispatch({ type: 'weapon.add' })}>
+              <Stepper
+                label={`${item.name || '装備'}のLoad`}
+                value={item.load}
+                min={0}
+                max={9}
+                onChange={(load) =>
+                  dispatch({ type: 'customItem.patch', id: item.id, patch: { load } })
+                }
+              />
+            </Grid>
+            <TextArea
+              label="装備の説明"
+              value={item.notes}
+              rows={2}
+              onChange={(notes) =>
+                dispatch({ type: 'customItem.patch', id: item.id, patch: { notes } })
+              }
+            />
+            <button
+              className="button button--danger-ghost"
+              type="button"
+              onClick={() => dispatch({ type: 'customItem.remove', id: item.id })}
+            >
+              削除：{item.name || '装備'}
+            </button>
+          </div>
+        ))}
+        <button
+          className="button"
+          type="button"
+          onClick={() => dispatch({ type: 'customItem.add' })}
+        >
           装備を追加
         </button>
       </Section>
-
-      <Section title={LABELS.dramaticUnderscores}>
-        <TextListEditor
-          label={LABELS.dramaticUnderscores}
-          items={character.dramaticUnderscores}
-          placeholder="入力して追加"
-          onAdd={(value) => dispatch({ type: 'text.add', field: 'dramaticUnderscores', value })}
-          onRemove={(index) => dispatch({ type: 'text.remove', field: 'dramaticUnderscores', index })}
-        />
-      </Section>
-
-<Section title={LABELS.customMoves}>
-        <TextListEditor
-          label={LABELS.customMoves}
-          items={character.customMoves}
-          placeholder="入力して追加"
-          onAdd={(value) => dispatch({ type: 'text.add', field: 'customMoves', value })}
-          onRemove={(index) => dispatch({ type: 'text.remove', field: 'customMoves', index })}
-        />
+      <Section
+        title="次の仕事を始める"
+        hint="装備の宣言・弾帯の使用枠・仕事ごとの能力使用回数・通常鎧と重装の使用をリセットします。特殊鎧はダウンタイム開始時に別途リセットします。"
+      >
+        {!confirmScore ? (
+          <button type="button" className="button" onClick={() => setConfirmScore(true)}>
+            次の仕事を開始
+          </button>
+        ) : (
+          <div className="inline-add">
+            <p>現在の仕事の使用状況をリセットします。履歴から直近の操作を取り消せます。</p>
+            <button
+              type="button"
+              className="button button--primary"
+              onClick={() => {
+                dispatch({ type: 'score.start' })
+                setConfirmScore(false)
+              }}
+            >
+              リセットして開始
+            </button>
+            <button className="button" type="button" onClick={() => setConfirmScore(false)}>
+              キャンセル
+            </button>
+          </div>
+        )}
       </Section>
     </>
   )

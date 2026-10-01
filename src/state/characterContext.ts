@@ -4,7 +4,8 @@ import type { Action } from './characterReducer'
 
 export interface CharacterContextValue {
   character: Character
-  dispatch: (action: Action) => void
+  storageError: string
+  dispatch: (action: Action) => boolean
 }
 
 export const CharacterContext = createContext<CharacterContextValue | null>(null)

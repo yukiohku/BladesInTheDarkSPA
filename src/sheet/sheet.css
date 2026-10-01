@@ -1,6 +1,6 @@
 /**
- * 公式キャラクターシート（横1ページ）の再現。
- * 画面ではスクロール表示、@media print では横1ページとして印刷する。
+ * 公式キャラクターシートの三列構成を、プレイ中の操作に合わせた紙面。
+ * 表・罫線・見出しの強弱で情報をまとめ、シート領域内でスクロールする。
  */
 
 .os {
@@ -169,7 +169,6 @@
   white-space: pre-wrap;
 }
 
-
 /* 英字の見出しは縦長ゴシック + tracking で少しだけ格好をつける */
 .os-panel__title,
 .os-track__title,
@@ -208,7 +207,6 @@
   display: flex;
   align-items: center;
 }
-
 
 .os-loadlegend {
   float: right;
@@ -301,7 +299,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 0.3rem;
 }
-
 
 .os-friend__name,
 .os-extra__label,
@@ -759,4 +756,460 @@
   .os-identity {
     break-inside: avoid;
   }
+}
+/* 紙面の構図を保つ。狭い画面ではシートの領域だけ横にスクロールする。 */
+.main--sheet {
+  overflow-x: auto;
+}
+.os {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.28fr) minmax(0, 1.06fr);
+  gap: 0;
+  min-width: 74rem;
+  overflow: visible;
+  border-radius: 2px;
+  padding: 0.5rem;
+  color-scheme: light;
+}
+.os__col {
+  gap: 0.45rem;
+}
+.os__col--right {
+  border-right: 0;
+}
+.os__descriptor {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  margin-top: 0.45rem;
+  text-shadow: none;
+  text-align: right;
+}
+.os-panel {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  gap: 0.2rem;
+}
+.os-panel--ability {
+  border: 1px solid var(--os-line);
+  padding: 0.2rem;
+  background: rgba(0, 0, 0, 0.035);
+}
+.os-panel__title small {
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: inherit;
+}
+.os-minititle small {
+  font-size: 0.7rem;
+  color: var(--os-dim);
+  letter-spacing: 0.03em;
+}
+.os .field__input {
+  color: var(--os-ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--os-band);
+  border-radius: 0;
+  padding: 0.2rem;
+  min-height: 1.75rem;
+}
+.os .field__label,
+.os .field__hint {
+  color: var(--os-dim);
+  font-size: 0.75rem;
+}
+.os .field {
+  margin: 0;
+  gap: 0.1rem;
+}
+.os .button {
+  color: var(--os-ink);
+  background: transparent;
+  border: 1px solid var(--os-band);
+  border-radius: 0;
+  padding: 0.1rem 0.3rem;
+  min-height: 1.5rem;
+  font-size: 0.75rem;
+}
+.os .button:hover {
+  background: var(--os-band);
+}
+.os button:focus-visible,
+.os input:focus-visible,
+.os textarea:focus-visible,
+.os select:focus-visible,
+.os summary:focus-visible {
+  outline: 2px solid var(--os-ink);
+  outline-offset: 2px;
+}
+.os p {
+  margin: 0.2rem 0;
+  overflow-wrap: anywhere;
+}
+.os .creation-progress {
+  border: 0;
+  border-left: 2px solid var(--os-dim);
+  padding: 0 0.4rem;
+  border-radius: 0;
+  color: var(--os-dim);
+  font-size: 0.75rem;
+}
+.os .trauma-options {
+  gap: 0.1rem 0.4rem;
+}
+.os .trauma-options label {
+  display: flex;
+  align-items: center;
+}
+.os .trauma-options input,
+.os .armor-control input {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--os-ink);
+  border-radius: 0;
+  margin: 0 0.25rem 0 0;
+  background: transparent;
+  cursor: pointer;
+}
+.os .trauma-options input:checked,
+.os .armor-control input:checked {
+  background: var(--os-on);
+}
+.os input:disabled,
+.os button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.os .trauma-extra,
+.os .os-xp-rules details {
+  font-size: 0.75rem;
+  color: var(--os-dim);
+}
+.os .trauma-extra summary,
+.os .os-xp-rules summary {
+  cursor: pointer;
+}
+.os .harm-input--compact {
+  position: relative;
+  margin: 0;
+  display: block;
+}
+.os .harm-input--compact textarea {
+  border: 0;
+  background: transparent;
+  height: 3.4rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.9rem;
+}
+.os .harm-input--compact .button {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  background: #f4f2ee;
+}
+.os .harm-input--compact .button:disabled {
+  display: none;
+}
+.os-harm__levelcell {
+  font-size: 1.15rem;
+  text-align: center;
+  vertical-align: middle !important;
+}
+.os-harm__col-level {
+  width: 2rem;
+}
+.os-harm__col-effect {
+  width: 4.4rem;
+}
+.os-harm td.os-harm__effect {
+  vertical-align: middle;
+  font-size: 0.7rem;
+}
+.os-fatal {
+  position: relative;
+  margin: 0.15rem 0 0.35rem;
+  border-bottom: 1px solid var(--os-band);
+}
+.os .os-fatal .harm-input textarea {
+  height: 1.9rem;
+  min-height: 1.9rem;
+  padding-left: 6.7rem;
+}
+.os-fatal__label {
+  position: absolute;
+  left: 0;
+  top: 0.3rem;
+  font-size: 0.7rem;
+  color: var(--os-dim);
+  pointer-events: none;
+}
+.os .os-duo h4 {
+  font-size: 0.8rem;
+  margin: 0 0 0.15rem;
+}
+.os .armor-control {
+  margin: 0.1rem 0;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+}
+.os .armor-control small {
+  display: none;
+}
+.os .armor-control:has(input:disabled) {
+  color: var(--os-dim);
+}
+.os .os-healing {
+  flex-wrap: wrap;
+}
+.os .os-healing__step {
+  width: 0.75rem;
+  height: 1.1rem;
+}
+.os .ability-card {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.2rem 0;
+}
+.os .ability-card + .ability-card {
+  border-top: 1px solid var(--os-band);
+}
+.os .ability-card h3 {
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem;
+}
+.os .ability-card p {
+  line-height: 1.5;
+}
+.os .ability-card small {
+  color: var(--os-dim);
+}
+.os .ability-card .field {
+  margin-top: 0.3rem;
+}
+.os .stack {
+  gap: 0.3rem;
+}
+.os .empty {
+  padding: 0.3rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--os-dim);
+  min-height: 4rem;
+}
+.os-friend__readout {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 1px solid var(--os-band);
+  padding: 0.1rem 0.2rem;
+  font-size: 0.9rem;
+}
+.os .os-friendlegend {
+  color: var(--os-dim);
+  font-size: 0.7rem;
+}
+.os-equipment {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.5rem;
+}
+.os-equipment > .os-panel__title,
+.os-equipment > h4,
+.os-equipment > .equipment-list,
+.os-equipment > .equipment-heading,
+.os-equipment > .stepper {
+  grid-column: 1 / -1;
+}
+.os-equipment > .field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+.os-equipment > .field .field__input {
+  width: auto;
+}
+.os .load-total {
+  font-size: 0.75rem;
+  align-self: center;
+  font-weight: 700;
+}
+.os .equipment-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.1rem 0.6rem;
+}
+.os .equipment-row {
+  border: 0;
+  padding: 0.1rem 0;
+}
+.os .equipment-row--uses {
+  grid-column: 1 / -1;
+}
+.os .equipment-heading {
+  margin: 0;
+  gap: 0.25rem;
+  justify-content: start;
+}
+.os .equipment-checks {
+  order: -1;
+  gap: 0.15rem;
+}
+.os .equipment-checks button {
+  width: 1.05rem;
+  height: 1.05rem;
+  border-color: var(--os-ink);
+}
+.os .equipment-checks .os-box--on {
+  background: var(--os-on);
+}
+.os .equipment-heading .os-bi__ja {
+  font-size: 0.85rem;
+}
+.os .equipment-heading .os-bi__en {
+  font-size: 0.75rem;
+  margin-left: 0.2rem;
+}
+.os .equipment-heading small {
+  display: inline;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--os-dim);
+  margin-left: 0.2rem;
+}
+.os-equipment > h4 {
+  margin: 0.25rem 0 0.1rem;
+  padding-top: 0.2rem;
+  border-top: 1px solid var(--os-band);
+  font-size: 0.75rem;
+  color: var(--os-dim);
+}
+.os .equipment-row .grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+  padding-left: 1.3rem;
+}
+.os .equipment-row .field__input {
+  font-size: 0.75rem;
+}
+.os .stepper {
+  font-size: 0.75rem;
+  margin-top: 0.3rem;
+}
+.os-equipment > .field:last-child {
+  grid-column: 1 / -1;
+  justify-content: space-between;
+}
+.os .stepper__button,
+.os .stepper__value {
+  background: transparent;
+  color: var(--os-ink);
+  border: 1px solid var(--os-band);
+  border-radius: 0;
+  height: 1.6rem;
+  min-width: 1.6rem;
+}
+.os .os-coin {
+  display: grid;
+  grid-template-columns: 3.7rem minmax(0, 1fr) auto;
+  gap: 0.25rem;
+  margin-bottom: 0.3rem;
+}
+.os .os-coin__boxes {
+  display: grid;
+  grid-template-columns: repeat(4, 1rem);
+  gap: 2px;
+}
+.os .os-coin--stash .os-coin__boxes {
+  grid-template-columns: repeat(10, 1rem);
+}
+.os .os-coin__box {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--os-line);
+  background: #dedad3;
+}
+.os .os-coin__box--on {
+  background: var(--os-on);
+}
+.os .os-track__head {
+  gap: 0.25rem;
+}
+.os .os-bookmark {
+  width: 1rem;
+  height: 1.15rem;
+}
+.os .os-bookmarks {
+  gap: 2px;
+}
+.os .ratings-panel h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.os .os-track__title .field__hint {
+  color: #c9c6c0;
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.os .ratings-panel section {
+  margin-top: 0.4rem;
+}
+.os .ratings-panel .os-rating {
+  margin: 0.15rem 0;
+  gap: 0.4rem;
+}
+.os .ratings-panel .os-rating__dots {
+  gap: 3px;
+}
+.os .ratings-panel .os-rating__dot {
+  width: 1rem;
+  height: 1rem;
+  min-width: 0;
+  min-height: 0;
+}
+.os .os-rating__name {
+  font-size: 0.95rem;
+}
+.os-xp-rules {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--os-band);
+  padding-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--os-dim);
+}
+.os-xp-rules ul {
+  padding-left: 1.2rem;
+  margin: 0.3rem 0;
+}
+.os-xp-rules li {
+  margin: 0.2rem 0;
+}
+.os .field__error,
+.os .sheet-warning {
+  color: #922819;
+  font-size: 0.8rem;
+}
+.sheet-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.app:not(.app--sheet) .ratings-panel {
+  --os-ink: var(--text);
+  --os-on: var(--accent);
+}
+.app:not(.app--sheet) .os-healing {
+  --os-on: var(--accent);
 }

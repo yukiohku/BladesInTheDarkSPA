@@ -1,103 +1,108 @@
-import { TRAUMAS } from '../constants/bitd'
-import { HARM_LEVELS, LABELS } from '../constants/labels'
-import { characterStatus } from '../lib/status'
+import { useState } from 'react'
+import { TRAUMAS } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
+import { ClockEditor, Section, TextInput } from '../components/ui'
+import { HarmPanel } from '../components/SheetPanels'
 import { ChangeRecorder } from '../components/ChangeRecorder'
-import { ChoiceListEditor, ClockEditor, Grid, Section, Stepper } from '../components/ui'
-
-export function StatusTab() {
+export function TraumaPanel({ compact = false }: { compact?: boolean }) {
   const { character, dispatch } = useCharacter()
-  const notes = characterStatus(character)
-
+  const [custom, setCustom] = useState('')
   return (
     <>
-      <Section title="変動を記録" hint="プレイ中の数値変動はここから記録すると、履歴に残ります。">
+      {!compact && (
+        <p className="field__hint">
+          トラウマは永続的です。チェック解除は入力訂正です。4つ目で通常の悪党としての活動を終えます。
+        </p>
+      )}
+      <div className="trauma-options">
+        {TRAUMAS.map((option) => (
+          <label key={option.id}>
+            <input
+              type="checkbox"
+              checked={character.traumas.includes(option.id)}
+              disabled={!character.traumas.includes(option.id) && character.traumas.length >= 4}
+              onChange={() => dispatch({ type: 'trauma', name: option.id })}
+            />
+            {option.name}
+          </label>
+        ))}
+      </div>
+      {character.traumas
+        .filter((name) => !TRAUMAS.some((option) => option.id === name))
+        .map((name) => (
+          <label key={name}>
+            <input type="checkbox" checked onChange={() => dispatch({ type: 'trauma', name })} />
+            {name}（取り込み・自由記入）
+          </label>
+        ))}
+      <details className="trauma-extra" open={compact ? undefined : true}>
+        {compact && <summary>自由記入・説明</summary>}
+        {compact && (
+          <p className="field__hint">
+            トラウマは永続的です。解除は入力訂正。4つ目で通常の悪党としての活動を終えます。
+          </p>
+        )}
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (custom.trim()) {
+              dispatch({ type: 'trauma', name: custom.trim() })
+              setCustom('')
+            }
+          }}
+        >
+          <TextInput label="自由記入のトラウマ" value={custom} onChange={setCustom} />
+          <button
+            className="button"
+            type="submit"
+            disabled={
+              !custom.trim() ||
+              character.traumas.length >= 4 ||
+              character.traumas.includes(custom.trim())
+            }
+          >
+            トラウマを追加
+          </button>
+        </form>
+      </details>
+    </>
+  )
+}
+export function StatusTab() {
+  const { character, dispatch } = useCharacter()
+  return (
+    <>
+      <Section title="変動を記録">
         <ChangeRecorder />
       </Section>
-
-      {notes.length > 0 && (
-        <ul className="notes">
-          {notes.map((note) => (
-            <li className={`note note--${note.level}`} key={note.text}>
-              {note.text}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <Section title="現在の数値">
-        <Grid>
-          <Stepper
-            label={`${LABELS.edges}（${LABELS.edgesAlt}）`}
-            value={character.edges}
-            min={0}
-            max={4}
-            onChange={(value) => dispatch({ type: 'number', field: 'edges', value })}
-          />
-          <Stepper
-            label={LABELS.stress}
-            value={character.stress}
-            min={0}
-            max={character.stressMax}
-            onChange={(value) => dispatch({ type: 'number', field: 'stress', value })}
-            hint={`上限 ${character.stressMax}`}
-          />
-          <Stepper
-            label={LABELS.stressMax}
-            value={character.stressMax}
-            min={1}
-            max={20}
-            onChange={(value) => dispatch({ type: 'number', field: 'stressMax', value })}
-          />
-          <Stepper
-            label={LABELS.harm}
-            value={character.harm}
-            min={0}
-            max={4}
-            onChange={(value) => dispatch({ type: 'number', field: 'harm', value })}
-            level={HARM_LEVELS[character.harm]}
-          />
-          <Stepper
-            label={LABELS.armor}
-            value={character.armor}
-            min={0}
-            max={6}
-            onChange={(value) => dispatch({ type: 'number', field: 'armor', value })}
-          />
-          <Stepper
-            label={LABELS.armorEffect}
-            value={character.armorEffect}
-            min={0}
-            max={6}
-            onChange={(value) => dispatch({ type: 'number', field: 'armorEffect', value })}
-          />
-        </Grid>
+      <Section title="傷・治療・鎧">
+        <HarmPanel />
       </Section>
-
-      <Section title={LABELS.traumas}>
-        <ChoiceListEditor
-          label={LABELS.traumas}
-          items={character.traumas}
-          options={TRAUMAS}
-          onPatch={(id, patch) => dispatch({ type: 'choice.patch', field: 'traumas', id, patch })}
-          onRemove={(id) => dispatch({ type: 'choice.remove', field: 'traumas', id })}
-          onAdd={() => dispatch({ type: 'choice.add', field: 'traumas' })}
-        />
+      <Section title="トラウマ">
+        <TraumaPanel />
       </Section>
-
-      <Section title={LABELS.harmClocks}>
-        {character.harmClocks.length === 0 && <p className="empty">未登録</p>}
-        <div className="stack">
-          {character.harmClocks.map((clock) => (
-            <ClockEditor
-              key={clock.id}
-              label="傷のクロック"
-              clock={clock}
-              onPatch={(patch) => dispatch({ type: 'clock.patch', id: clock.id, patch })}
-              onRemove={() => dispatch({ type: 'clock.remove', id: clock.id })}
-            />
-          ))}
-        </div>
+      <Section
+        title="ダウンタイムの開始"
+        hint="能力の説明に従って特殊鎧を回復させます。ストレス・傷・能力の効果は手動で処理します。"
+      >
+        <button
+          type="button"
+          className="button"
+          onClick={() => dispatch({ type: 'specialArmor.reset' })}
+        >
+          特殊鎧の使用をリセット
+        </button>
+      </Section>
+      <Section title="長期プロジェクト・クロック">
+        {character.clocks.map((clock) => (
+          <ClockEditor
+            key={clock.id}
+            label={clock.name || 'クロック'}
+            clock={clock}
+            onPatch={(patch) => dispatch({ type: 'clock.patch', id: clock.id, patch })}
+            onRemove={() => dispatch({ type: 'clock.remove', id: clock.id })}
+          />
+        ))}
         <button type="button" className="button" onClick={() => dispatch({ type: 'clock.add' })}>
           クロックを追加
         </button>

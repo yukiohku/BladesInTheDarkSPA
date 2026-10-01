@@ -1,63 +1,60 @@
-import { PLAYBOOKS } from '../constants/playbooks'
-import { LABELS } from '../constants/labels'
+import { useState } from 'react'
+import { isPlaybookId, PLAYBOOK_LIST, PLAYBOOKS } from '../constants/playbooks'
+import type { PlaybookId } from '../types/character'
 import { useCharacter } from '../state/characterContext'
-import { Grid, Section, TextInput } from '../components/ui'
-
-/**
- * 特殊能力の参照と選択。
- * 効果文はプレイ中にphem必要ないので、ここに閉じ込めている。
- */
+import { Section, SelectInput } from '../components/ui'
+import { AbilityCards } from '../components/SheetPanels'
 export function AbilitiesTab() {
   const { character, dispatch } = useCharacter()
-  const official = character.official
-  const playbook = PLAYBOOKS[official.playbookId] ?? PLAYBOOKS.cutter
-
+  const [source, setSource] = useState<PlaybookId>(character.playbookId)
   return (
     <>
       <Section
-        title={LABELS.specialAbilities}
-        hint="1つ選びます。ティアが上がるたびに増やせます。シートには名前だけが表示されます。"
+        title="取得済みの特殊能力"
+        hint="作成時に1つ、成長時に追加します。取得数はTierと連動しません。効果は参考訳・要約です。"
       >
-        <div className="stack">
-          {playbook.abilities.map((ability) => {
-            const selected = official.abilityId === ability.id
-            return (
-              <label className={`pick${selected ? ' pick--on' : ''}`} key={ability.id}>
-                <input
-                  type="radio"
-                  name="ability"
-                  checked={selected}
-                  onChange={() => dispatch({ type: 'official.ability', value: ability.id })}
-                />
-                <span>
-                  <b>{ability.name}: </b>
-                  {ability.effect}
-                </span>
-              </label>
-            )
-          })}
-        </div>
+        <AbilityCards editing />
       </Section>
-
-      <Section title="VETERAN" hint="別のソースから選ぶ枠。3つまで。">
-        <Grid columns={3}>
-          {Array.from({ length: 3 }, (_, index) => (
-            <TextInput
-              key={index}
-              label={`枠 ${index + 1}`}
-              value={official.veteranSlots[index] ?? ''}
-              onChange={(value) => dispatch({ type: 'official.veteran', index, value })}
-            />
-          ))}
-        </Grid>
-      </Section>
-
-      <Section title={LABELS.crewRole} hint="クルー内での立場。公式シートには枠がありません。">
-        <TextInput
-          label={LABELS.crewRole}
-          value={character.crewRole}
-          onChange={(value) => dispatch({ type: 'crewRole', value })}
+      <Section
+        title="能力を取得"
+        hint="他の基本プレイブックの能力はVeteranとして取得できます。追加取得できる能力は複数の選択内容を記録できます。"
+      >
+        <SelectInput
+          label="能力の取得元"
+          value={source}
+          options={PLAYBOOK_LIST.map((book) => ({ id: book.id, name: book.title }))}
+          onChange={(value) => {
+            if (isPlaybookId(value)) setSource(value)
+          }}
         />
+        <div className="stack">
+          {PLAYBOOKS[source].abilities.map((ability) => (
+            <div className="ability-option" key={ability.id}>
+              <h3>
+                {ability.ja} / {ability.name}
+              </h3>
+              <p>{ability.effect}</p>
+              <button
+                className="button"
+                type="button"
+                disabled={
+                  !ability.repeatable &&
+                  character.abilities.some((item) => item.definitionId === ability.id)
+                }
+                onClick={() => dispatch({ type: 'ability.add', definitionId: ability.id })}
+              >
+                取得：{ability.name}
+              </button>
+            </div>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="button"
+          onClick={() => dispatch({ type: 'ability.custom' })}
+        >
+          自由記入の能力を追加
+        </button>
       </Section>
     </>
   )

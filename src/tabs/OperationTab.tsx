@@ -1,62 +1,46 @@
-import { PLAYBOOKS } from '../constants/playbooks'
+import { PLANS, PLAYBOOKS } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
-import { CheckList, Grid, Section, TextArea, TextInput } from '../components/ui'
-
-/**
- * 作戦ごとのメモ。プレイシートには載せず、ここに退避している。
- * シートからBeck的前景を要求和されたため。
- */
+import { Section, SelectInput, TextArea } from '../components/ui'
 export function OperationTab() {
   const { character, dispatch } = useCharacter()
-  const official = character.official
-  const playbook = PLAYBOOKS[official.playbookId] ?? PLAYBOOKS.cutter
-
+  const book = PLAYBOOKS[character.playbookId]
+  const plan = PLANS.find((item) => item.id === character.score.planId)
   return (
     <>
-      <Section title="TEAMWORK" hint="手を出したらチェックする。">
-        <CheckList
-          options={playbook.teamwork}
-          selected={playbook.teamwork.filter((item) => official.teamwork[item.id]).map((i) => i.id)}
-          onToggle={(id) => dispatch({ type: 'official.toggle', bucket: 'teamwork', id })}
-          columns={2}
+      <Section title="計画と詳細">
+        <SelectInput
+          label="計画"
+          value={character.score.planId}
+          options={PLANS}
+          onChange={(planId) => dispatch({ type: 'score.patch', patch: { planId } })}
+        />
+        <TextArea
+          label={plan?.prompt ?? '計画の詳細'}
+          value={character.score.detail}
+          onChange={(detail) => dispatch({ type: 'score.patch', patch: { detail } })}
         />
       </Section>
-
-      <Section title="PLANNING &amp; LOAD" hint="chosen a plan, detail を決める。">
-        <Grid columns={2}>
-          {playbook.planning.map((item) => (
-            <Section key={item.id} title={`${item.name}: ${item.prompt}`}>
-              <TextInput
-                label="detail"
-                value={official.planning[item.id]?.detail ?? ''}
-                onChange={(value) =>
-                  dispatch({ type: 'official.planning', id: item.id, patch: { detail: value } })
-                }
-              />
-              <TextInput
-                label="load 上限"
-                value={official.planning[item.id]?.load ?? ''}
-                onChange={(value) =>
-                  dispatch({ type: 'official.planning', id: item.id, patch: { load: value } })
-                }
-              />
-            </Section>
-          ))}
-        </Grid>
-      </Section>
-
-      <Section title="GATHER INFORMATION" hint="询问した内容をメモしておく。">
+      <Section
+        title="情報収集"
+        hint={`${book.title}の質問例。状況に応じて自由に情報を集められます。`}
+      >
         <div className="stack">
-          {playbook.gatherInfo.map((question, index) => (
+          {book.gatherInfo.map((question, index) => (
             <TextArea
-              key={question}
+              key={`${book.id}:${index}`}
               label={question}
-              rows={2}
-              value={official.gatherInfo[index] ?? ''}
-              onChange={(value) => dispatch({ type: 'official.gather', index, value })}
+              value={character.gatherNotes[`${book.id}:${index}`] ?? ''}
+              onChange={(value) => dispatch({ type: 'gather', key: `${book.id}:${index}`, value })}
             />
           ))}
         </div>
+      </Section>
+      <Section title="チームワーク">
+        <p>仲間を助ける（Assist）：ストレス1で味方に＋1d。</p>
+        <p>
+          集団行動の指揮（Lead）、仲間を守る（Protect）、仕込み（Set
+          up）の結果と負担は卓で判断して記録します。
+        </p>
       </Section>
     </>
   )

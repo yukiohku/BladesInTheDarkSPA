@@ -1,29 +1,49 @@
-import { useEffect, useMemo, useReducer } from 'react'
+import { useEffect, useMemo, useReducer, useState } from 'react'
 import type { ReactNode } from 'react'
 import { createDefaultCharacter } from '../constants/defaults'
-import { loadCharacter, saveCharacter } from '../lib/storage'
+import { preserveUnreadableData, readStoredCharacter, saveCharacter } from '../lib/storage'
 import { CharacterContext } from './characterContext'
-import type { CharacterContextValue } from './characterContext'
 import { characterReducer } from './characterReducer'
-
-const SAVE_DEBOUNCE_MS = 300
-
+import type { Action } from './characterReducer'
 export function CharacterProvider({ children }: { children: ReactNode }) {
-  const [character, dispatch] = useReducer(characterReducer, null, () => {
-    return loadCharacter() ?? createDefaultCharacter()
-  })
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      saveCharacter(character)
-    }, SAVE_DEBOUNCE_MS)
-    return () => window.clearTimeout(timer)
-  }, [character])
-
-  const value = useMemo<CharacterContextValue>(
-    () => ({ character, dispatch }),
-    [character],
+  const [initial] = useState(readStoredCharacter)
+  const [character, reduce] = useReducer(
+    characterReducer,
+    initial.character,
+    (saved) => saved ?? createDefaultCharacter(),
   )
-
+  const [blocked, setBlocked] = useState(initial.error)
+  const [saveError, setSaveError] = useState('')
+  useEffect(() => {
+    if (blocked) return
+    const timer = window.setTimeout(
+      () =>
+        setSaveError(
+          saveCharacter(character)
+            ? ''
+            : '自動保存できませんでした。JSONを書き出して保存してください。',
+        ),
+      300,
+    )
+    return () => window.clearTimeout(timer)
+  }, [character, blocked])
+  const value = useMemo(
+    () => ({
+      character,
+      storageError: saveError || blocked,
+      dispatch: (action: Action) => {
+        if (action.type === 'replace' || action.type === 'reset') {
+          if (blocked && !preserveUnreadableData()) {
+            setSaveError('元の保存データを退避できなかったため、置き換えを中止しました。')
+            return false
+          }
+          setBlocked('')
+        }
+        reduce(action)
+        return true
+      },
+    }),
+    [character, blocked, saveError],
+  )
   return <CharacterContext.Provider value={value}>{children}</CharacterContext.Provider>
 }

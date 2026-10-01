@@ -1,31 +1,47 @@
 import type { Character } from '../types/character'
 import { parseCharacterFile } from './serialize'
-
-const STORAGE_KEY = 'bitd.character.v1'
-const BACKUP_KEY = 'bitd.character.backup'
-
-function hasStorage(): boolean {
+export const STORAGE_KEY = 'bitd.character.v2'
+export const OLD_STORAGE_KEY = 'bitd.character.v1'
+export const BACKUP_KEY = 'bitd.character.backup'
+export const UNREADABLE_BACKUP_KEY = 'bitd.character.unreadable-backup'
+export interface StoredCharacter {
+  character: Character | null
+  error: string
+}
+export function readStoredCharacter(): StoredCharacter {
   try {
-    return typeof window !== 'undefined' && !!window.localStorage
+    if (typeof window === 'undefined') return { character: null, error: '' }
+    const raw =
+      window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(OLD_STORAGE_KEY)
+    if (!raw) return { character: null, error: '' }
+    const result = parseCharacterFile(raw)
+    return result.ok
+      ? { character: result.character, error: '' }
+      : {
+          character: null,
+          error: `${result.error} 保存データを保護するため自動保存を停止しています。データ画面からJSONを取り込むか新規作成してください。`,
+        }
+  } catch {
+    return {
+      character: null,
+      error: '保存データにアクセスできません。JSONの書き出しで保存してください。',
+    }
+  }
+}
+export function loadCharacter() {
+  return readStoredCharacter().character
+}
+export function preserveUnreadableData() {
+  try {
+    const raw =
+      window.localStorage.getItem(STORAGE_KEY) ?? window.localStorage.getItem(OLD_STORAGE_KEY)
+    if (raw) window.localStorage.setItem(UNREADABLE_BACKUP_KEY, raw)
+    return true
   } catch {
     return false
   }
 }
-
-export function loadCharacter(): Character | null {
-  if (!hasStorage()) return null
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const result = parseCharacterFile(raw)
-    return result.ok ? result.character : null
-  } catch {
-    return null
-  }
-}
-
-export function saveCharacter(character: Character): boolean {
-  if (!hasStorage()) return false
+export function saveCharacter(character: Character) {
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
     return true
@@ -33,28 +49,15 @@ export function saveCharacter(character: Character): boolean {
     return false
   }
 }
-
-export function clearStoredCharacter(): void {
-  if (!hasStorage()) return
-  try {
-    window.localStorage.removeItem(STORAGE_KEY)
-  } catch {
-    /* 保存できなくても処理は続行する */
-  }
-}
-
-/** 取り込み直前に現在のシートを退避し、戻せるようにする。 */
-export function saveBackup(character: Character): void {
-  if (!hasStorage()) return
+export function saveBackup(character: Character) {
   try {
     window.localStorage.setItem(BACKUP_KEY, JSON.stringify(character))
+    return true
   } catch {
-    /* 退避できなくても取り込み自体は続行する */
+    return false
   }
 }
-
 export function loadBackup(): Character | null {
-  if (!hasStorage()) return null
   try {
     const raw = window.localStorage.getItem(BACKUP_KEY)
     if (!raw) return null
@@ -64,9 +67,7 @@ export function loadBackup(): Character | null {
     return null
   }
 }
-
-export function hasBackup(): boolean {
-  if (!hasStorage()) return false
+export function hasBackup() {
   try {
     return window.localStorage.getItem(BACKUP_KEY) !== null
   } catch {

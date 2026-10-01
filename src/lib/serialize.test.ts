@@ -1,95 +1,177 @@
 import { describe, expect, it } from 'vitest'
 import { createDefaultCharacter } from '../constants/defaults'
-import { applyChange } from './changelog'
+import { PLAYBOOK_LIST } from '../constants/playbooks'
+import { characterReducer } from '../state/characterReducer'
+import { canRevert } from './changelog'
 import { normalizeCharacter, parseCharacterFile, serializeCharacter } from './serialize'
-
-describe('parseCharacterFile', () => {
-  it('書き出した内容をそのまま読み込める', () => {
-    const original = applyChange(
-      createDefaultCharacter(),
-      { resource: 'stress', operation: 'increase', amount: 3, reason: '耐える' },
-    )
+import { resourceValue, usedLoad } from './rules'
+const oldSheet = {
+  schemaVersion: 1,
+  id: 'old',
+  createdAt: '2026-09-01T00:00:00.000Z',
+  updatedAt: '2026-09-02T00:00:00.000Z',
+  basics: { name: '旧人物', summary: '人物の概要' },
+  attributes: { edge: 3 },
+  edges: 4,
+  stress: 8,
+  stressMax: 12,
+  traumas: [{ id: 't', name: '冷酷', note: '旧メモ' }],
+  weapons: [{ id: 'w', name: '旧武器', damage: '特殊な値' }],
+  official: {
+    playbookId: 'cutter',
+    ratings: { 'prowess.skirmish': 3, 'resolve.command': 2 },
+    abilityId: 'mule',
+    veteranSlots: ['自由な能力'],
+    friends: [{ id: 'f', name: '友人', up: true, down: false }],
+    harmNotes: { '1': '打撲', '2': '骨折', '3': '' },
+    healingFilled: 6,
+    coin: 7,
+    stash: 9,
+    crewName: '旧クルー',
+    generalItems: { blade: true },
+    playbookItems: { 'large-weapon': true },
+    gatherInfo: ['', '答え'],
+  },
+  notes: 'メモ',
+  log: [{ id: 'log', resource: 'edges', before: 0, after: 4 }],
+}
+describe('保存と移行', () => {
+  it.each(PLAYBOOK_LIST)('$titleの書き出しを再読込して全状態を保持する', (book) => {
+    let original = createDefaultCharacter(book.id)
+    original = characterReducer(original, {
+      type: 'ability.add',
+      definitionId: book.abilities[0].id,
+    })
+    original = characterReducer(original, { type: 'resource', resource: 'stress', value: 3 })
     const result = parseCharacterFile(serializeCharacter(original))
-
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.character).toEqual(original)
+    expect(canRevert(result.character, result.character.log[0].id)).toBe(true)
   })
-
-  it('JSONとして壊れている場合はエラー', () => {
-    const result = parseCharacterFile('{ 壊れている')
-    expect(result.ok).toBe(false)
-  })
-
-  it('オブジェクトでなければエラー', () => {
-    expect(parseCharacterFile('[]').ok).toBe(false)
-    expect(parseCharacterFile('123').ok).toBe(false)
-    expect(parseCharacterFile('"text"').ok).toBe(false)
-  })
-
-  it('シートの構造でなければエラー', () => {
-    const result = parseCharacterFile('{"foo":1}')
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.error).toContain('キャラクターシート')
-  })
-
-  it('新しいバージョンのファイルは拒否する', () => {
-    const future = JSON.stringify({ schemaVersion: 999, basics: {}, attributes: {} })
-    const result = parseCharacterFile(future)
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result.error).toContain('新しいバージョン')
-  })
-})
-
-describe('normalizeCharacter', () => {
-  it('欠けた項目は既定値で埋める', () => {
-    const result = normalizeCharacter({ basics: { name: '太郎' } })
-    expect(result.basics.name).toBe('太郎')
-    expect(result.stress).toBe(0)
-    expect(result.drives).toHaveLength(3)
-    expect(result.vices).toHaveLength(3)
-  })
-
-  it('範囲外の値は範囲内に丸める', () => {
-    const result = normalizeCharacter({
-      basics: {},
-      attributes: { edge: 99, cool: -5, grit: 2.6 },
-      edges: 88,
-      harm: -3,
+  it('弾帯の未使用枠の位置、能力の選択・メモ・使用回数を保持する', () => {
+    let original = createDefaultCharacter('leech')
+    original = characterReducer(original, {
+      type: 'equipment',
+      id: 'leech:bandolier-1',
+      quantity: 1,
     })
-    expect(result.attributes.edge).toBe(4)
-    expect(result.attributes.cool).toBe(0)
-    expect(result.attributes.grit).toBe(3)
-    expect(result.edges).toBe(4)
-    expect(result.harm).toBe(0)
-  })
-
-  it('壊れた変動履歴は落とす', () => {
-    const result = normalizeCharacter({
-      basics: {},
-      log: [
-        { id: 'ok', resource: 'stress', operation: 'increase', amount: 1 },
-        { id: 'bad', resource: 'unknown', operation: 'increase' },
-        'not-an-object',
-      ],
+    original = characterReducer(original, {
+      type: 'item.use',
+      id: 'leech:bandolier-1',
+      index: 2,
+      value: 'Grenade',
     })
-    expect(result.log).toHaveLength(1)
-    expect(result.log[0].id).toBe('ok')
-  })
-
-  it('傷のクロックの進行は範囲内に収める', () => {
-    const result = normalizeCharacter({
-      basics: {},
-      harmClocks: [{ name: '傷', filled: 99, total: 4 }],
+    original = characterReducer(original, { type: 'ability.add', definitionId: 'spider:foresight' })
+    original = characterReducer(original, {
+      type: 'ability.patch',
+      id: original.abilities[0].id,
+      patch: { notes: '準備', used: 1 },
     })
-    expect(result.harmClocks[0]).toMatchObject({ filled: 4, total: 4 })
+    const result = parseCharacterFile(serializeCharacter(original))
+    if (!result.ok) throw new Error(result.error)
+    expect(result.character).toEqual(original)
+    expect(result.character.itemUses['leech:bandolier-1']).toEqual(['', '', 'Grenade'])
   })
-
-  it('オブジェクトでなければ既定値を返す', () => {
-    const result = normalizeCharacter('nope')
-    expect(result.basics.name).toBe('')
-    expect(result.attributes).toEqual(createDefaultCharacter().attributes)
+  it('仕事のリセット後も往復保存で状態と取消を保持する', () => {
+    let original = createDefaultCharacter('leech')
+    original = characterReducer(original, {
+      type: 'equipment',
+      id: 'leech:bandolier-1',
+      quantity: 1,
+    })
+    original = characterReducer(original, { type: 'score.start' })
+    const result = parseCharacterFile(serializeCharacter(original))
+    if (!result.ok) throw new Error(result.error)
+    expect(result.character).toEqual(original)
+    expect(canRevert(result.character, result.character.log[0].id)).toBe(true)
+  })
+  it('v1を移行し、独自項目・旧履歴・範囲外の元値を丸ごと保管する', () => {
+    const originalJson = JSON.stringify(oldSheet)
+    const result = parseCharacterFile(originalJson)
+    if (!result.ok) throw new Error(result.error)
+    const next = result.character
+    expect(next.schemaVersion).toBe(2)
+    expect(next.identity.name).toBe('旧人物')
+    expect(next.ratings.skirmish).toBe(3)
+    expect(next.ratings.command).toBe(2)
+    expect(next.ratings.hunt).toBe(0)
+    expect(next.abilities.map((item) => item.definitionId)).toEqual(['cutter:mule', ''])
+    expect(next.crew.name).toBe('旧クルー')
+    expect(next.harm.level1).toEqual(['打撲', ''])
+    expect(next.coin).toBe(4)
+    expect(next.healing).toBe(4)
+    expect(next.equipment['large-weapon']).toBe(1)
+    expect(next.legacy[0].data).toEqual(oldSheet)
+    expect(next.log).toEqual([])
+    expect(JSON.stringify(oldSheet)).toBe(originalJson)
+    const again = parseCharacterFile(serializeCharacter(next))
+    if (!again.ok) throw new Error(again.error)
+    expect(again.character).toEqual(next)
+  })
+  it('officialがない旧データでも名前と原データを保管する', () => {
+    const next = normalizeCharacter({ basics: { name: '人物' } })
+    expect(next.identity.name).toBe('人物')
+    expect(Object.values(next.ratings).every((value) => value === 0)).toBe(true)
+    expect(next.legacy).toHaveLength(1)
+  })
+  it('旧データに傷の段階だけあっても移行後に表示を失わない', () => {
+    const next = normalizeCharacter({ schemaVersion: 1, basics: {}, harm: 2 })
+    expect(next.harm.level2[0]).toContain('レベル2の傷あり')
+  })
+  it('v1のシートに書かれた傷の各欄を独立して移行する', () => {
+    const next = normalizeCharacter({
+      schemaVersion: 1,
+      basics: {},
+      official: {
+        harmNotes: { '3-0': '重傷', '2-0': '骨折', '2-1': '裂傷', '1-0': '打撲', '1-1': '疲労' },
+      },
+    })
+    expect(next.harm.level3).toBe('重傷')
+    expect(next.harm.level2).toEqual(['骨折', '裂傷'])
+    expect(next.harm.level1).toEqual(['打撲', '疲労'])
+  })
+  it.each([
+    '{ 壊れている',
+    '[]',
+    '123',
+    '{"foo":1}',
+    '{"schemaVersion":999,"identity":{},"playbookId":"cutter"}',
+    '{"schemaVersion":2,"identity":{},"playbookId":"vampire"}',
+    '{"schemaVersion":"2","identity":{}}',
+  ])('壊れた構造・未来版・未対応プレイブックを拒否する: %s', (raw) => {
+    expect(parseCharacterFile(raw).ok).toBe(false)
+  })
+  it('欠落・非有限数・範囲外の数値を正規化する', () => {
+    const next = normalizeCharacter({
+      schemaVersion: 2,
+      playbookId: 'cutter',
+      identity: {},
+      coin: 99,
+      stash: -2,
+      stress: Infinity,
+      ratings: { hunt: NaN, study: -1, survey: 3.5 },
+      xp: { playbook: 99 },
+      customItems: [{ name: '道具', load: 2, declared: true }],
+    })
+    expect(next.coin).toBe(4)
+    expect(next.stash).toBe(0)
+    expect(next.stress).toBe(0)
+    expect(next.ratings.hunt).toBe(0)
+    expect(next.ratings.study).toBe(0)
+    expect(next.ratings.survey).toBe(4)
+    expect(resourceValue(next, 'playbook')).toBe(8)
+    expect(usedLoad(next)).toBe(2)
+  })
+  it('不正な履歴を取り除き、入力オブジェクトを変更しない', () => {
+    const source = {
+      schemaVersion: 2,
+      playbookId: 'cutter',
+      identity: {},
+      log: [{ title: '壊れた履歴' }, 'wrong'],
+    }
+    const snapshot = JSON.stringify(source)
+    expect(normalizeCharacter(source).log).toEqual([])
+    expect(JSON.stringify(source)).toBe(snapshot)
   })
 })

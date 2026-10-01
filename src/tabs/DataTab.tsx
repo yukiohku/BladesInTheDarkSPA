@@ -3,7 +3,9 @@ import { MESSAGE } from '../constants/labels'
 import { parseCharacterFile, serializeCharacter, suggestedFileName } from '../lib/serialize'
 import { hasBackup, loadBackup, saveBackup } from '../lib/storage'
 import { useCharacter } from '../state/characterContext'
-import { Section } from '../components/ui'
+import { Section, SelectInput } from '../components/ui'
+import { isPlaybookId, PLAYBOOK_LIST } from '../constants/playbooks'
+import type { PlaybookId } from '../types/character'
 
 function formatTimestamp(iso: string): string {
   const date = new Date(iso)
@@ -17,6 +19,7 @@ export function DataTab() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [preview, setPreview] = useState(false)
+  const [newPlaybook, setNewPlaybook] = useState<PlaybookId>('cutter')
 
   const json = serializeCharacter(character)
   const canRestore = hasBackup()
@@ -46,7 +49,13 @@ export function DataTab() {
   }
 
   const upload = async (file: File) => {
-    const text = await file.text()
+    let text: string
+    try {
+      text = await file.text()
+    } catch {
+      setError('ファイルを読み込めませんでした。')
+      return
+    }
     const result = parseCharacterFile(text)
 
     if (!result.ok) {
@@ -55,13 +64,23 @@ export function DataTab() {
       return
     }
 
-    const name = result.character.basics.name || '無名'
-    if (!window.confirm(`「${name}」を読み込みます。現在のシートは置き換わります。よろしいですか？`)) {
+    const name = result.character.identity.name || '無名'
+    if (
+      !window.confirm(`「${name}」を読み込みます。現在のシートは置き換わります。よろしいですか？`)
+    ) {
       return
     }
 
-    saveBackup(character)
-    dispatch({ type: 'replace', character: result.character })
+    if (!saveBackup(character)) {
+      setError(
+        'バックアップを保存できなかったため、取り込みを中止しました。現在のJSONを書き出してください。',
+      )
+      return
+    }
+    if (!dispatch({ type: 'replace', character: result.character })) {
+      setError('元の保存データを保護できなかったため、取り込みを中止しました。')
+      return
+    }
     setError('')
     setMessage(MESSAGE.importOk)
   }
@@ -75,14 +94,24 @@ export function DataTab() {
     }
     if (!window.confirm('取り込み前のシートに戻します。よろしいですか？')) return
 
-    dispatch({ type: 'replace', character: backup })
+    if (!dispatch({ type: 'replace', character: backup })) {
+      setError('元の保存データを保護できなかったため、復元を中止しました。')
+      return
+    }
     setError('')
     setMessage(MESSAGE.restored)
   }
 
   const reset = () => {
     if (!window.confirm(MESSAGE.resetConfirm)) return
-    dispatch({ type: 'reset' })
+    if (!saveBackup(character)) {
+      setError('バックアップを保存できなかったため、新規作成を中止しました。')
+      return
+    }
+    if (!dispatch({ type: 'reset', playbookId: newPlaybook })) {
+      setError('元の保存データを保護できなかったため、新規作成を中止しました。')
+      return
+    }
     setError('')
     setMessage(MESSAGE.resetDone)
   }
@@ -108,6 +137,7 @@ export function DataTab() {
           ref={fileInput}
           className="field__input"
           type="file"
+          aria-label="キャラクターJSONファイル"
           accept="application/json,.json"
           onChange={(event) => {
             const file = event.target.files?.[0]
@@ -145,10 +175,32 @@ export function DataTab() {
         <p className="field__hint">
           データはブラウザの中だけに保存されます。別の端末へ移すときは、エクスポートを利用してください。
         </p>
+        <SelectInput
+          label="新しいキャラクターのプレイブック"
+          value={newPlaybook}
+          options={PLAYBOOK_LIST.map((book) => ({ id: book.id, name: book.title }))}
+          onChange={(value) => {
+            if (isPlaybookId(value)) setNewPlaybook(value)
+          }}
+        />
         <button type="button" className="button button--danger" onClick={reset}>
-          シートを初期化
+          新しいキャラクターを作成
         </button>
       </Section>
+
+      {character.legacy.length > 0 && (
+        <Section
+          title="移行・変更前のデータ"
+          hint="旧形式の独自項目や履歴、修正前の上限を超える値はここに保管しています。現在のJSONにも含まれます。"
+        >
+          {character.legacy.map((archive, index) => (
+            <details key={`${archive.at}:${index}`}>
+              <summary>{archive.title}</summary>
+              <pre className="code">{JSON.stringify(archive.data, null, 2)}</pre>
+            </details>
+          ))}
+        </Section>
+      )}
 
       {(message || error) && (
         <p className={error ? 'field__error' : 'field__ok'} role="status">

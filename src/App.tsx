@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { HARM_LEVELS, LABELS } from './constants/labels'
+import { PLAYBOOKS } from './constants/playbooks'
+import { stressMax } from './lib/rules'
 import { useCharacter } from './state/characterContext'
 import { OfficialSheetView } from './sheet/OfficialSheetView'
 import { AbilitiesTab } from './tabs/AbilitiesTab'
@@ -10,72 +11,63 @@ import { OperationTab } from './tabs/OperationTab'
 import { SetupTab } from './tabs/SetupTab'
 import { StatusTab } from './tabs/StatusTab'
 import { WeaponsTab } from './tabs/WeaponsTab'
-
 const TABS = [
   { id: 'setup', label: '初期設定', Component: SetupTab },
   { id: 'abilities', label: '特殊能力', Component: AbilitiesTab },
   { id: 'status', label: '変動記録', Component: StatusTab },
+  { id: 'weapons', label: '装備', Component: WeaponsTab },
   { id: 'operation', label: '作戦メモ', Component: OperationTab },
   { id: 'log', label: '履歴', Component: LogTab },
   { id: 'crew', label: 'クルー', Component: CrewTab },
-  { id: 'weapons', label: '装備', Component: WeaponsTab },
   { id: 'data', label: 'データ', Component: DataTab },
 ] as const
-
-type ViewMode = 'sheet' | 'edit'
-
 export default function App() {
-  const { character } = useCharacter()
-  const [mode, setMode] = useState<ViewMode>('sheet')
+  const { character, storageError } = useCharacter()
+  const [mode, setMode] = useState<'sheet' | 'edit'>('sheet')
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('setup')
-
-  const active = TABS.find((candidate) => candidate.id === tab) ?? TABS[0]
-  const Panel = active.Component
-
+  const Panel = (TABS.find((candidate) => candidate.id === tab) ?? TABS[0]).Component
   return (
     <div className={`app${mode === 'sheet' ? ' app--sheet' : ''}`}>
-      {/* シート自体にロゴがあるため、ここは操作バーに留める */}
       <header className="topbar">
         <div className="topbar__left">
-          <span className="topbar__name">{character.basics.name || '未設定'}</span>
+          <span className="topbar__name">
+            {character.identity.name || '未設定'} / {PLAYBOOKS[character.playbookId].title}
+          </span>
         </div>
-
         <div className="topbar__right">
-          {mode === 'edit' && (
-            <p className="status" role="group" aria-label="主要数値">
-              <StatusItem label={LABELS.edges} value={`${character.edges}`} />
-              <StatusItem
-                label={LABELS.stress}
-                value={`${character.stress}/${character.stressMax}`}
-              />
-              <StatusItem label={LABELS.harm} value={HARM_LEVELS[character.harm]} />
-              <StatusItem label={LABELS.traumas} value={`${character.traumas.length}`} />
-            </p>
-          )}
-
+          <p className="status" role="group" aria-label="主要数値">
+            <span>
+              ストレス{character.stress}/{stressMax(character)}
+            </span>
+            <span>トラウマ{character.traumas.length}</span>
+            <span>コイン{character.coin}</span>
+          </p>
           <div className="modes" role="group" aria-label="表示モード">
-            <button
-              type="button"
-              className={`mode${mode === 'sheet' ? ' mode--on' : ''}`}
-              aria-pressed={mode === 'sheet'}
-              onClick={() => setMode('sheet')}
-            >
-              シート
-            </button>
-            <button
-              type="button"
-              className={`mode${mode === 'edit' ? ' mode--on' : ''}`}
-              aria-pressed={mode === 'edit'}
-              onClick={() => setMode('edit')}
-            >
-              編集
-            </button>
+            {(['sheet', 'edit'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                className={`mode${mode === value ? ' mode--on' : ''}`}
+                aria-pressed={mode === value}
+                onClick={() => setMode(value)}
+              >
+                {value === 'sheet' ? 'シート' : '編集'}
+              </button>
+            ))}
           </div>
         </div>
       </header>
-
+      {storageError && (
+        <p role="alert" className="field__error">
+          {storageError}
+        </p>
+      )}
       {mode === 'sheet' ? (
-        <main className="main main--sheet">
+        <main
+          className="main main--sheet"
+          tabIndex={0}
+          aria-label="プレイシート（横スクロールできます）"
+        >
           <OfficialSheetView />
         </main>
       ) : (
@@ -99,14 +91,5 @@ export default function App() {
         </>
       )}
     </div>
-  )
-}
-
-function StatusItem({ label, value }: { label: string; value: string }) {
-  return (
-    <span className="status__item">
-      <span className="status__label">{label}</span>
-      <span className="status__value">{value}</span>
-    </span>
   )
 }

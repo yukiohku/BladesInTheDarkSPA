@@ -29,6 +29,45 @@ export function Grid({ children, columns = 2 }: { children: ReactNode; columns?:
   )
 }
 
+export function SelectInput({
+  label,
+  value,
+  onChange,
+  options,
+  emptyLabel = '選択してください',
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  options: readonly { id: string; name: string }[]
+  emptyLabel?: string
+}) {
+  const id = useId()
+  return (
+    <div className="field">
+      <label className="field__label" htmlFor={id}>
+        {label}
+      </label>
+      <select
+        id={id}
+        className="field__input"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      >
+        <option value="">{emptyLabel}</option>
+        {value && !options.some((option) => option.id === value) && (
+          <option value={value}>{value}（取り込み値）</option>
+        )}
+        {options.map((option) => (
+          <option key={option.id} value={option.id}>
+            {option.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  )
+}
+
 export function TextInput({
   label,
   value,
@@ -305,11 +344,7 @@ export function CheckList({
           const on = selected.includes(option.id)
           return (
             <label className={`checkitem${on ? ' checkitem--on' : ''}`} key={option.id}>
-              <input
-                type="checkbox"
-                checked={on}
-                onChange={() => onToggle(option.id)}
-              />
+              <input type="checkbox" checked={on} onChange={() => onToggle(option.id)} />
               <span>{option.name}</span>
             </label>
           )
@@ -422,7 +457,10 @@ export function ClockEditor({
       />
       <div className="pips pips--clock" id={id} role="group" aria-label={`${label}の進行`}>
         {Array.from({ length: clock.total }, (_, index) => (
-          <span key={index} className={`pip pip--static${index < clock.filled ? ' pip--on' : ''}`} />
+          <span
+            key={index}
+            className={`pip pip--static${index < clock.filled ? ' pip--on' : ''}`}
+          />
         ))}
       </div>
     </div>

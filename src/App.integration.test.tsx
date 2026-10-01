@@ -1,9 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { CharacterProvider } from './state/CharacterProvider'
-
+import { createDefaultCharacter } from './constants/defaults'
+import { PLAYBOOK_LIST } from './constants/playbooks'
+import { STORAGE_KEY } from './lib/storage'
 function renderApp() {
   return render(
     <CharacterProvider>
@@ -11,249 +13,199 @@ function renderApp() {
     </CharacterProvider>,
   )
 }
-
-async function openTab(user: ReturnType<typeof userEvent.setup>, name: string) {
-  // 既定表示はプレイシート。編集タブを出すにはモードを切り替える
-  await user.click(screen.getByRole('button', { name: '編集' }))
+async function tab(user: ReturnType<typeof userEvent.setup>, name: string) {
+  if (!screen.queryByRole('button', { name: '初期設定' }))
+    await user.click(screen.getByRole('button', { name: '編集' }))
   await user.click(screen.getByRole('button', { name }))
 }
-
-/** 上の細いバーの数値を読み取るため、編集モードに切り替える */
-async function readStatus(user: ReturnType<typeof userEvent.setup>): Promise<string> {
-  await user.click(screen.getByRole('button', { name: '編集' }))
-  return screen.getByRole('group', { name: '主要数値' }).textContent ?? ''
+async function chooseBook(user: ReturnType<typeof userEvent.setup>, book: string) {
+  await tab(user, '初期設定')
+  await user.selectOptions(screen.getByLabelText('プレイブック'), book)
+  if (book !== 'cutter') await user.click(screen.getByRole('button', { name: '変更を確定' }))
 }
-
-describe('変動記録', () => {
-  beforeEach(() => {
-    window.localStorage.clear()
-  })
-
-  afterEach(() => {
-    cleanup()
-  })
-
-  it('名前を入力するとヘッダーに反映される', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    // 名前は初期設定タブで入力する（シートは表示のみ）
-    await openTab(user, '初期設定')
-    await user.type(screen.getByLabelText('名前'), 'ヴィクセン')
-    expect(screen.getByText('ヴィクセン')).toBeTruthy()
-  })
-
-  it('属性は初期設定タブで増減する', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    await openTab(user, '初期設定')
-    const group = screen.getByRole('group', { name: '喧嘩' })
-
-    const pips = within(group).getAllByRole('button')
-    await user.click(pips[2])
-    expect(pips[2].getAttribute('aria-pressed')).toBe('true')
-
-    // 同じピップをもう一度押すと1つ減る
-    await user.click(pips[2])
-    expect(pips[2].getAttribute('aria-pressed')).toBe('false')
-  })
-
-  it('記録すると上のバーと履歴の両方が更新される', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    await openTab(user, '変動記録')
-    await user.selectOptions(screen.getByLabelText('理由'), '押して賭ける（耐える）')
-
-    // 数量は入力欄が常に範囲内に丸められるため、+ ボタンで増やす
-    const plus = screen.getByRole('button', { name: '数量を1増やす' })
-    await user.click(plus)
-    await user.click(plus)
-
-    await user.click(screen.getByRole('button', { name: '承受を記録' }))
-    expect(await readStatus(user)).toContain('3/9')
-
-    await user.click(screen.getByRole('button', { name: '履歴' }))
-    expect(screen.getByText('ストレス承受（+3）')).toBeTruthy()
-  })
-
-  it('直近の履歴は取り消せる', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    await openTab(user, '変動記録')
-    await user.click(screen.getByRole('button', { name: '承受を記録' }))
-
-    await user.click(screen.getByRole('button', { name: '履歴' }))
-    await user.click(screen.getByRole('button', { name: '取り消す' }))
-
-    expect(screen.getByText('まだ記録がありません。')).toBeTruthy()
-  })
-
-  it('トラウマは名前を入力しないと記録されない', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    await openTab(user, '変動記録')
-    await user.click(screen.getByRole('button', { name: /トラウマ/ }))
-
-    // 内容が空ならボタンが無効
-    const submit = screen.getByRole('button', { name: '受入を記録' })
-    expect(submit.hasAttribute('disabled')).toBe(true)
-
-    await user.type(screen.getByLabelText('トラウマの内容'), '聾')
-    expect(submit.hasAttribute('disabled')).toBe(false)
-
-    await user.click(submit)
-    expect(await readStatus(user)).toContain('トラウマ1')
-  })
+beforeEach(() => {
+  window.localStorage.clear()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
 })
-
-describe('プレイシートの操作', () => {
-  beforeEach(() => {
-    window.localStorage.clear()
-  })
-
-  afterEach(() => {
-    cleanup()
-  })
-
-  it('プレイシートが既定で出る', () => {
-    renderApp()
-    expect(screen.getByRole('group', { name: 'ストレス' })).toBeTruthy()
-    expect(screen.queryByRole('button', { name: 'Akoros' })).toBeNull()
-  })
-
-  it('モードを切り替えると編集タブが出る', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    await user.click(screen.getByRole('button', { name: '編集' }))
-    expect(screen.getByRole('button', { name: '初期設定' })).toBeTruthy()
-  })
-
-  it('ストレスのマスを押すと上のバーに反映される', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    const group = screen.getByRole('group', { name: 'ストレス' })
-    const box = within(group).getByRole('button', { name: 'ストレス 3' })
-    await user.click(box)
-
-    expect(box.getAttribute('aria-pressed')).toBe('true')
-    expect(await readStatus(user)).toContain('ストレス3/9')
-  })
-
-  it('アクションレートを上下できる', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    const dot = screen.getByRole('button', { name: 'Skirmish 2' })
-    await user.click(dot)
-    expect(dot.getAttribute('aria-pressed')).toBe('true')
-    await user.click(dot)
-    expect(dot.getAttribute('aria-pressed')).toBe('false')
-  })
-
-  it('アイテムは日英併記で切り替えられる', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    // 日正式名のままでは照合できない
-    const box = screen.getByRole('button', { name: '短刀' })
-    await user.click(box)
-    expect(box.getAttribute('aria-pressed')).toBe('true')
-
-    // 英語も併記されている
-    expect(screen.getByText('A Blade or Two')).toBeTruthy()
-  })
-
-  it('エッジは右のコイン列で変更できる', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    await user.click(screen.getByRole('button', { name: 'エッジ 2' }))
-    expect(await readStatus(user)).toContain('エッジ2')
-  })
-
-  it('シートで選んだトラウマが上のバーの件数に出る', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    const traumaBox = screen.getByRole('button', { name: '冷酷' })
-    expect(traumaBox.getAttribute('aria-pressed')).toBe('false')
-
-    await user.click(traumaBox)
-    expect(traumaBox.getAttribute('aria-pressed')).toBe('true')
-    expect(await readStatus(user)).toContain('トラウマ1')
-  })
-
-  it('傷の行を押すと上のバーの表示が変わる', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    const level = screen.getByRole('button', { name: '2' })
-    await user.click(level)
-    expect(level.getAttribute('aria-pressed')).toBe('true')
-    expect(await readStatus(user)).toContain('傷重傷')
-  })
-
-  it('進行の栞を進められる', async () => {
-    const user = userEvent.setup()
-    renderApp()
-
-    const mark = screen.getByRole('button', { name: 'RESOLVE 2' })
-    await user.click(mark)
-    expect(mark.getAttribute('aria-pressed')).toBe('true')
-  })
+afterEach(() => {
+  cleanup()
+  vi.restoreAllMocks()
 })
-
-describe('初期設定タブ', () => {
-  beforeEach(() => {
-    window.localStorage.clear()
-  })
-
-  afterEach(() => {
-    cleanup()
-  })
-
-  it('血統と経歴と悪癖を選べる', async () => {
+describe('基本7種の操作', () => {
+  it.each(PLAYBOOK_LIST)('$titleを選んで固有能力を取得しシートに表示する', async (book) => {
     const user = userEvent.setup()
     renderApp()
-    await openTab(user, '初期設定')
-
-    const akoros = screen.getByRole('checkbox', { name: 'Akoros' })
-    await user.click(akoros)
-    expect((akoros as HTMLInputElement).checked).toBe(true)
-
-    const law = screen.getByRole('checkbox', { name: '法律' })
-    await user.click(law)
-    expect((law as HTMLInputElement).checked).toBe(true)
-
-    const gamble = screen.getByRole('checkbox', { name: '賭' })
-    await user.click(gamble)
-    expect((gamble as HTMLInputElement).checked).toBe(true)
-  })
-
-  it('初期設定の値はシートには出ない', async () => {
-    const user = userEvent.setup()
-    renderApp()
-    await openTab(user, '初期設定')
-    await user.click(screen.getByRole('checkbox', { name: 'Akoros' }))
-
+    await chooseBook(user, book.id)
+    await tab(user, '特殊能力')
+    await user.click(screen.getByRole('button', { name: `取得：${book.abilities[0].name}` }))
     await user.click(screen.getByRole('button', { name: 'シート' }))
-    expect(screen.queryByRole('button', { name: 'Akoros' })).toBeNull()
+    expect(screen.getByRole('heading', { name: book.title })).toBeTruthy()
+    expect(screen.getByText(book.abilities[0].name)).toBeTruthy()
+    expect(screen.getByText(book.xpTrigger)).toBeTruthy()
+    expect(screen.getByRole('button', { name: book.items[0].ja })).toBeTruthy()
   })
-
-  it('特殊能力を選んで名前がシートに出る', async () => {
+  it('プレイブック変更をキャンセルすると既存の状態を保つ', async () => {
     const user = userEvent.setup()
     renderApp()
-
-    await openTab(user, '特殊能力')
-    await user.click(screen.getByRole('radio', { name: /Mule/ }))
-
+    await tab(user, '初期設定')
+    await user.type(screen.getByLabelText('名前'), '人物')
+    await user.selectOptions(screen.getByLabelText('プレイブック'), 'hound')
+    expect(screen.getByRole('region', { name: 'プレイブック変更の確認' }).textContent).toContain(
+      '知人5件',
+    )
+    await user.click(screen.getByRole('button', { name: 'キャンセル' }))
+    expect((screen.getByLabelText('プレイブック') as HTMLSelectElement).value).toBe('cutter')
+    expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('人物')
+  })
+  it('シートの知人チェックで関係を選び、編集画面にも反映する', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    const [first, second] = PLAYBOOK_LIST[0].friends
+    const firstFriend = screen.getByRole('button', { name: `${first.name}：親しい人物` })
+    await user.click(firstFriend)
+    await user.click(screen.getByRole('button', { name: `${second.name}：親しい人物` }))
+    expect(firstFriend.getAttribute('aria-pressed')).toBe('false')
+    await user.click(screen.getByRole('button', { name: `${first.name}：ライバル` }))
+    await tab(user, '初期設定')
+    expect((screen.getByLabelText(`${first.name}との関係`) as HTMLSelectElement).value).toBe(
+      'rival',
+    )
+    expect((screen.getByLabelText(`${second.name}との関係`) as HTMLSelectElement).value).toBe(
+      'friend',
+    )
+  })
+  it('追加4点と能力1つで作成を完了する', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await tab(user, '初期設定')
+    expect(
+      screen.getByRole('button', { name: 'キャラクター作成を完了' }).hasAttribute('disabled'),
+    ).toBe(true)
+    await user.click(screen.getByRole('button', { name: 'Hunt 2' }))
+    await user.click(screen.getByRole('button', { name: 'Study 2' }))
+    expect(screen.getByText(/追加4点の残り 0/)).toBeTruthy()
+    await tab(user, '特殊能力')
+    await user.click(screen.getByRole('button', { name: '取得：Mule' }))
+    await tab(user, '初期設定')
+    await user.click(screen.getByRole('button', { name: 'キャラクター作成を完了' }))
+    expect(screen.getByRole('button', { name: 'Skirmish 4' })).toBeTruthy()
+    expect(screen.getByText(/作成済み/)).toBeTruthy()
+  })
+  it('複数能力・Veteran・上限補正を表示する', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await tab(user, '特殊能力')
+    await user.click(screen.getByRole('button', { name: '取得：Mule' }))
+    await user.selectOptions(screen.getByLabelText('能力の取得元'), 'hound')
+    await user.click(screen.getByRole('button', { name: '取得：Survivor' }))
     await user.click(screen.getByRole('button', { name: 'シート' }))
     expect(screen.getByText('Mule')).toBeTruthy()
+    expect(screen.getByText('Survivor')).toBeTruthy()
+    expect(screen.getByText('Veteran')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'ストレス 10' })).toBeTruthy()
+    expect(screen.getByRole('option', { name: '重 8' })).toBeTruthy()
+  })
+  it('Leechの薬品枠とLoad超過を扱う', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await chooseBook(user, 'leech')
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    await user.click(screen.getByRole('button', { name: '弾帯1' }))
+    await user.selectOptions(screen.getByLabelText('弾帯1 使用枠 3'), 'Grenade')
+    expect((screen.getByLabelText('弾帯1 使用枠 1') as HTMLSelectElement).value).toBe('')
+    expect((screen.getByLabelText('弾帯1 使用枠 3') as HTMLSelectElement).value).toBe('Grenade')
+    await user.selectOptions(screen.getByLabelText('仕事のLoad'), 'light')
+    await user.click(screen.getByRole('button', { name: '良質な破壊道具' }))
+    await user.click(screen.getByRole('button', { name: '仕掛け道具 2' }))
+    expect(screen.getByText(/使用Load 5 \/ 3/)).toBeTruthy()
+  })
+  it('個別の傷と治療4分割、XP8と6、資産の上限を表示する', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    expect(
+      within(screen.getByRole('group', { name: 'PLAYBOOK' })).getAllByRole('button'),
+    ).toHaveLength(8)
+    expect(
+      within(screen.getByRole('group', { name: 'INSIGHT' })).getAllByRole('button'),
+    ).toHaveLength(6)
+    expect(screen.queryByRole('button', { name: 'COIN 5' })).toBeNull()
+    expect(screen.getByRole('button', { name: 'STASH 40' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '治療クロック 5' })).toBeNull()
+    await user.type(screen.getByLabelText('レベル1の傷 1（効果低下）'), '打撲')
+    await user.click(screen.getByRole('button', { name: 'レベル1の傷 1（効果低下）を記録' }))
+    await user.type(screen.getByLabelText('レベル1の傷 2（効果低下）'), '疲労')
+    await user.click(screen.getByRole('button', { name: 'レベル1の傷 2（効果低下）を記録' }))
+    await tab(user, '履歴')
+    await user.click(screen.getByRole('button', { name: '取り消す' }))
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect((screen.getByLabelText('レベル1の傷 1（効果低下）') as HTMLInputElement).value).toBe(
+      '打撲',
+    )
+    expect((screen.getByLabelText('レベル1の傷 2（効果低下）') as HTMLInputElement).value).toBe('')
+  })
+  it('変動フォームの理由と取消が状態に反映される', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await tab(user, '変動記録')
+    await user.type(screen.getByLabelText('理由'), '抵抗した')
+    await user.click(screen.getByRole('button', { name: '数量を1増やす' }))
+    await user.click(screen.getByRole('button', { name: '変動を記録' }))
+    expect(screen.getByRole('group', { name: '主要数値' }).textContent).toContain('ストレス2/9')
+    await tab(user, '履歴')
+    expect(screen.getByText('抵抗した')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: '取り消す' }))
+    expect(screen.getByRole('group', { name: '主要数値' }).textContent).toContain('ストレス0/9')
+  })
+  it('LurkのExpertiseの対象とWhisperの儀式メモを入力する', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await chooseBook(user, 'lurk')
+    await tab(user, '特殊能力')
+    await user.click(screen.getByRole('button', { name: '取得：Expertise' }))
+    await user.selectOptions(screen.getByLabelText('Expertise の選択内容'), 'prowl')
+    await user.selectOptions(screen.getByLabelText('能力の取得元'), 'whisper')
+    await user.click(screen.getByRole('button', { name: '取得：Ritual' }))
+    await user.type(screen.getByLabelText('Ritual：習得した儀式・手順・代償'), '霊を呼ぶ儀式')
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect((screen.getByLabelText('Expertise の選択内容') as HTMLSelectElement).value).toBe('prowl')
+    expect(
+      (screen.getByLabelText('Ritual：習得した儀式・手順・代償') as HTMLTextAreaElement).value,
+    ).toBe('霊を呼ぶ儀式')
+  })
+  it('保存した別プレイブックを再描画し、独自の属性・エッジを表示しない', () => {
+    const character = createDefaultCharacter('spider')
+    character.identity.name = '保存人物'
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
+    renderApp()
+    expect(screen.getByRole('heading', { name: 'SPIDER' })).toBeTruthy()
+    expect(screen.getByRole('group', { name: '主要数値' }).textContent).not.toContain('エッジ')
+    expect(screen.queryByRole('button', { name: 'エッジ 2' })).toBeNull()
+  })
+  it('壊れたJSONの取り込みで現在のキャラクターを維持する', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await tab(user, '初期設定')
+    await user.type(screen.getByLabelText('名前'), '維持する人物')
+    await tab(user, 'データ')
+    const file = new File(['{broken'], 'broken.json', { type: 'application/json' })
+    Object.defineProperty(file, 'text', { value: async () => '{broken' })
+    await user.upload(screen.getByLabelText('キャラクターJSONファイル'), file)
+    expect(await screen.findByText(/JSONを読み込めません/)).toBeTruthy()
+    expect(window.confirm).not.toHaveBeenCalled()
+    await tab(user, '初期設定')
+    expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('維持する人物')
+  })
+  it('新規作成前のバックアップから戻せる', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await tab(user, '初期設定')
+    await user.type(screen.getByLabelText('名前'), '戻す人物')
+    await tab(user, 'データ')
+    await user.selectOptions(screen.getByLabelText('新しいキャラクターのプレイブック'), 'hound')
+    await user.click(screen.getByRole('button', { name: '新しいキャラクターを作成' }))
+    await user.click(screen.getByRole('button', { name: '取り込み前のシートに戻す' }))
+    await tab(user, '初期設定')
+    expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('戻す人物')
+    expect((screen.getByLabelText('プレイブック') as HTMLSelectElement).value).toBe('cutter')
   })
 })

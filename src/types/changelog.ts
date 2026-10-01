@@ -1,23 +1,18 @@
-export type ResourceKey = 'edges' | 'stress' | 'harm' | 'trauma'
-
+import type { SheetState } from './character'
+export type ResourceKey =
+  'stress' | 'coin' | 'stash' | 'playbook' | 'insight' | 'prowess' | 'resolve'
 export type ChangeOperation = 'increase' | 'decrease'
-
-export interface ChangeEntry {
-  id: string
-  resource: ResourceKey
-  operation: ChangeOperation
-  amount: number
-  reason: string
-  detail: string
-  before: number
-  after: number
-  at: string
-}
-
 export interface ChangeDraft {
   resource: ResourceKey
   operation: ChangeOperation
   amount: number
   reason: string
-  detail?: string
+}
+export interface ChangeEntry {
+  id: string
+  title: string
+  reason: string
+  at: string
+  before: SheetState
+  after: SheetState
 }

@@ -1,11 +1,4 @@
-import {
-  COIN_MAX,
-  HEALING_CLOCK_SEGMENTS,
-  RATING_MAX,
-  XP_TRACK_MAX,
-} from '../constants/playbooks'
-
-/** 公式シートの小さなチェックボックス */
+import { HEALING_CLOCK_SEGMENTS, RATING_MAX } from '../constants/playbooks'
 export function Box({
   checked,
   onChange,
@@ -28,45 +21,16 @@ export function Box({
     />
   )
 }
-
-/** 日本語訳がありる項目は「日本語（英語）」の順に出す */
 export function Bilingual({ name, ja }: { name: string; ja?: string }) {
-  if (!ja) return <>{name}</>
-  return (
+  return ja ? (
     <>
       <span className="os-bi__ja">{ja}</span>
       <span className="os-bi__en">{name}</span>
     </>
+  ) : (
+    <>{name}</>
   )
 }
-
-export function CheckRow({
-  id,
-  name,
-  ja,
-  checked,
-  onToggle,
-  trailing,
-}: {
-  id: string
-  name: string
-  ja?: string
-  checked: boolean
-  onToggle: (id: string) => void
-  trailing?: React.ReactNode
-}) {
-  return (
-    <div className={`os-checkrow${checked ? ' os-checkrow--on' : ''}`}>
-      <Box checked={checked} onChange={() => onToggle(id)} label={ja ?? name} />
-      <span className="os-checkrow__name">
-        <Bilingual name={name} ja={ja} />
-      </span>
-      {trailing}
-    </div>
-  )
-}
-
-/** 箱が数字を表す UI に添える分数表示（例: 5/9） */
 function Count({ value, max }: { value: number; max: number }) {
   return (
     <span className="os-count" aria-label={`${value} / ${max}`}>
@@ -74,8 +38,6 @@ function Count({ value, max }: { value: number; max: number }) {
     </span>
   )
 }
-
-/** ストレスの9マス */
 export function StressBoxes({
   value,
   max,
@@ -83,100 +45,85 @@ export function StressBoxes({
 }: {
   value: number
   max: number
-  onChange: (next: number) => void
+  onChange: (value: number) => void
 }) {
   return (
     <div className="os-stressrow">
       <div className="os-stress" role="group" aria-label="ストレス">
-        {Array.from({ length: max }, (_, index) => {
-          const filled = index < value
-          return (
-            <button
-              key={index}
-              type="button"
-              className={`os-stress__box${filled ? ' os-stress__box--on' : ''}`}
-              aria-pressed={filled}
-              aria-label={`ストレス ${index + 1}`}
-              onClick={() => onChange(filled && index === value - 1 ? index : index + 1)}
-            />
-          )
-        })}
+        {Array.from({ length: max }, (_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={`os-stress__box${index < value ? ' os-stress__box--on' : ''}`}
+            aria-pressed={index < value}
+            aria-label={`ストレス ${index + 1}`}
+            onClick={() => onChange(index === value - 1 ? index : index + 1)}
+          />
+        ))}
       </div>
       <Count value={value} max={max} />
     </div>
   )
 }
-
-/** コイン・貯蔵品のトラック。9マス + 末尾の1マス（公式と同じ） */
 export function CoinTrack({
   label,
   value,
+  max,
   onChange,
-  checks,
 }: {
   label: string
   value: number
-  onChange: (next: number) => void
-  checks?: [boolean, boolean]
+  max: number
+  onChange: (value: number) => void
 }) {
   return (
-    <div className="os-coin">
+    <div className={`os-coin${max > 10 ? ' os-coin--stash' : ''}`}>
       <span className="os-coin__label">{label}</span>
-      {checks && (
-        <span className="os-coin__checks">
-          <Box checked={checks[0]} onChange={() => onChange(value)} label={`${label} 補助1`} size="small" />
-          <Box checked={checks[1]} onChange={() => onChange(value)} label={`${label} 補助2`} size="small" />
-        </span>
-      )}
       <span className="os-coin__boxes">
-        {Array.from({ length: COIN_MAX }, (_, index) => {
-          const filled = index < value
-          return (
-            <button
-              key={index}
-              type="button"
-              className={`os-coin__box${filled ? ' os-coin__box--on' : ''}`}
-              aria-pressed={filled}
-              aria-label={`${label} ${index + 1}`}
-              onClick={() => onChange(filled && index === value - 1 ? index : index + 1)}
-            />
-          )
-        })}
-        <span className="os-coin__tall" aria-hidden="true" />
+        {Array.from({ length: max }, (_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={`os-coin__box${index < value ? ' os-coin__box--on' : ''}`}
+            aria-pressed={index < value}
+            aria-label={`${label} ${index + 1}`}
+            onClick={() => onChange(index === value - 1 ? index : index + 1)}
+          />
+        ))}
       </span>
-      <Count value={value} max={COIN_MAX} />
+      <Count value={value} max={max} />
     </div>
   )
 }
-
-/** アクションレート。1Dana目と derret目を分ける縦線つき */
 export function RatingDots({
   name,
   en,
   value,
+  max = RATING_MAX,
+  editableMax = max,
   onChange,
 }: {
   name: string
   en?: string
   value: number
-  onChange: (next: number) => void
+  max?: number
+  editableMax?: number
+  onChange: (value: number) => void
 }) {
   return (
     <div className="os-rating">
       <span className="os-rating__dots">
-        {Array.from({ length: RATING_MAX }, (_, index) => {
-          const filled = index < value
-          return (
-            <button
-              key={index}
-              type="button"
-              className={`os-rating__dot${filled ? ' os-rating__dot--on' : ''}`}
-              aria-pressed={filled}
-              aria-label={`${en ?? name} ${index + 1}`}
-              onClick={() => onChange(filled && index === value - 1 ? index : index + 1)}
-            />
-          )
-        })}
+        {Array.from({ length: max }, (_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={`os-rating__dot${index < value ? ' os-rating__dot--on' : ''}`}
+            disabled={index >= editableMax}
+            aria-pressed={index < value}
+            aria-label={`${en ?? name} ${index + 1}`}
+            onClick={() => onChange(index === value - 1 ? index : index + 1)}
+          />
+        ))}
       </span>
       <span className="os-rating__name">
         <Bilingual name={en ?? name} ja={en ? name : undefined} />
@@ -184,90 +131,78 @@ export function RatingDots({
     </div>
   )
 }
-
-/** 進行トラック（6個の栞） */
 export function BookmarkTrack({
   name,
   value,
+  max,
   onChange,
 }: {
   name: string
   value: number
-  onChange: (next: number) => void
+  max: number
+  onChange: (value: number) => void
 }) {
   return (
     <div className="os-bookmarkrow">
       <div className="os-bookmarks" role="group" aria-label={name}>
-        {Array.from({ length: XP_TRACK_MAX }, (_, index) => {
-          const filled = index < value
-          return (
-            <button
-              key={index}
-              type="button"
-              className={`os-bookmark${filled ? ' os-bookmark--on' : ''}`}
-              aria-pressed={filled}
-              aria-label={`${name} ${index + 1}`}
-              onClick={() => onChange(filled && index === value - 1 ? index : index + 1)}
-            />
-          )
-        })}
+        {Array.from({ length: max }, (_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={`os-bookmark${index < value ? ' os-bookmark--on' : ''}`}
+            aria-pressed={index < value}
+            aria-label={`${name} ${index + 1}`}
+            onClick={() => onChange(index === value - 1 ? index : index + 1)}
+          />
+        ))}
       </div>
-      <Count value={value} max={XP_TRACK_MAX} />
+      <Count value={value} max={max} />
     </div>
   )
 }
-
-/** 治療クロック。6分割の円 */
 export function HealingClock({
   filled,
+  minimum = 0,
   onChange,
 }: {
   filled: number
-  onChange: (next: number) => void
+  minimum?: number
+  onChange: (value: number) => void
 }) {
   const size = 56
   const radius = size / 2
   const segments = Array.from({ length: HEALING_CLOCK_SEGMENTS }, (_, index) => {
     const start = (index / HEALING_CLOCK_SEGMENTS) * Math.PI * 2 - Math.PI / 2
     const end = ((index + 1) / HEALING_CLOCK_SEGMENTS) * Math.PI * 2 - Math.PI / 2
-    const x1 = radius + radius * Math.cos(start)
-    const y1 = radius + radius * Math.sin(start)
-    const x2 = radius + radius * Math.cos(end)
-    const y2 = radius + radius * Math.sin(end)
-    return {
-      d: `M ${radius} ${radius} L ${x1} ${y1} A ${radius} ${radius} 0 0 1 ${x2} ${y2} Z`,
-      on: index < filled,
-    }
+    return `M ${radius} ${radius} L ${radius + radius * Math.cos(start)} ${radius + radius * Math.sin(start)} A ${radius} ${radius} 0 0 1 ${radius + radius * Math.cos(end)} ${radius + radius * Math.sin(end)} Z`
   })
-
   return (
     <div className="os-healing">
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-        {segments.map((segment, index) => (
+        {segments.map((d, index) => (
           <path
             key={index}
-            d={segment.d}
-            className={`os-healing__seg${segment.on ? ' os-healing__seg--on' : ''}`}
+            d={d}
+            className={`os-healing__seg${index < filled ? ' os-healing__seg--on' : ''}`}
             stroke="#1a1a1a"
             strokeWidth={1}
           />
         ))}
       </svg>
       <span className="os-healing__steps">
-        {Array.from({ length: HEALING_CLOCK_SEGMENTS }, (_, index) => {
-          const on = index < filled
-          return (
-            <button
-              key={index}
-              type="button"
-              className={`os-healing__step${on ? ' os-healing__step--on' : ''}`}
-              aria-pressed={on}
-              aria-label={`治療クロック ${index + 1}`}
-              onClick={() => onChange(on && index === filled - 1 ? index : index + 1)}
-            />
-          )
-        })}
+        {segments.map((_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={`os-healing__step${index < filled ? ' os-healing__step--on' : ''}`}
+            disabled={index < minimum}
+            aria-pressed={index < filled}
+            aria-label={`治療クロック ${index + 1}`}
+            onClick={() => onChange(Math.max(minimum, index === filled - 1 ? index : index + 1))}
+          />
+        ))}
       </span>
+      <Count value={filled} max={HEALING_CLOCK_SEGMENTS} />
     </div>
   )
 }

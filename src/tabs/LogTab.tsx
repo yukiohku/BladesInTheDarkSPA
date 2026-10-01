@@ -1,28 +1,14 @@
-import { LABELS } from '../constants/labels'
 import { useCharacter } from '../state/characterContext'
 import { LogList } from '../components/LogList'
-import { Section, TextArea } from '../components/ui'
-
+import { Section } from '../components/ui'
 export function LogTab() {
-  const { character, dispatch } = useCharacter()
-
+  const { character } = useCharacter()
   return (
-    <>
-      <Section
-        title={LABELS.log}
-        hint="記録した変動を新しい順に表示しています。直近の1件は取り消せます。"
-      >
-        <LogList entries={character.log} />
-      </Section>
-
-      <Section title={LABELS.notes}>
-        <TextArea
-          label={LABELS.notes}
-          value={character.notes}
-          rows={10}
-          onChange={(notes) => dispatch({ type: 'note', value: notes })}
-        />
-      </Section>
-    </>
+    <Section
+      title="変更履歴"
+      hint="直近の記録後に別の編集がない場合、その記録を取り消せます。旧形式の履歴はデータ画面に保管しています。"
+    >
+      <LogList entries={character.log} />
+    </Section>
   )
 }

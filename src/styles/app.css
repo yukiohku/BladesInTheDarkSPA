@@ -9,8 +9,8 @@
       BIZ UDPゴシックはユニバーサルデザイン書体で Windows 10/11 に標準搭載。
   */
   --font-ui:
-    'Noto Sans JP', 'Noto Sans CJK JP', 'BIZ UDPGothic', 'Hiragino Kaku Gothic ProN',
-    'Yu Gothic', Meiryo, sans-serif;
+    'Noto Sans JP', 'Noto Sans CJK JP', 'BIZ UDPGothic', 'Hiragino Kaku Gothic ProN', 'Yu Gothic',
+    Meiryo, sans-serif;
   /*
     英語ラベル: "Arial Narrow" は Windows に無いので Arial に化けてしまう。
     実在する "Bahnschrift Condensed"（DIN 風の縦長）を使う。
@@ -389,7 +389,9 @@ body {
   border: 1px solid var(--line-strong);
   border-radius: 50%;
   cursor: pointer;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  transition:
+    background 0.12s ease,
+    border-color 0.12s ease;
 }
 
 .pip:hover {
@@ -806,5 +808,161 @@ body {
   .topbar__right {
     flex: 1 1 100%;
     justify-content: space-between;
+  }
+}
+.ability-card,
+.ability-option {
+  padding: 0.75rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+}
+.ability-card h3,
+.ability-option h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  overflow-wrap: anywhere;
+}
+.ability-card .os-bi__en {
+  margin-left: 0.4rem;
+}
+.ability-card small {
+  display: inline-block;
+  font-size: 0.75rem;
+}
+.ability-card p,
+.ability-option p {
+  overflow-wrap: anywhere;
+}
+.equipment-row {
+  border-bottom: 1px solid var(--line-strong);
+  padding: 0.4rem 0;
+}
+.equipment-heading {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0.4rem 0;
+}
+.equipment-heading > span:first-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.equipment-heading small {
+  display: block;
+  font-size: 0.8rem;
+}
+.equipment-checks {
+  display: flex;
+  gap: 0.3rem;
+  flex-shrink: 0;
+}
+.equipment-checks button {
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid currentColor;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+.equipment-checks .os-box--on {
+  background: var(--accent);
+}
+.equipment-checks button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.ratings-panel h3 {
+  font-size: 1rem;
+  margin: 0.7rem 0;
+}
+.ratings-panel .os-rating__dots {
+  display: flex;
+  gap: 0.25rem;
+}
+.ratings-panel .os-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.35rem 0;
+}
+.ratings-panel .os-rating__dot {
+  min-width: 1.65rem;
+  min-height: 1.65rem;
+}
+.harm-input {
+  display: flex;
+  align-items: end;
+  gap: 0.4rem;
+  margin: 0.45rem 0;
+}
+.harm-input label {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+}
+.harm-input input {
+  display: block;
+  width: 100%;
+  padding: 0.35rem;
+  min-height: 2rem;
+  border: 1px solid #8f8b85;
+  background: #fffdfa;
+  color: #14120f;
+}
+.armor-control {
+  display: block;
+  margin: 0.5rem 0;
+}
+.armor-control input,
+.trauma-options input {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-right: 0.5rem;
+}
+.trauma-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.friend-editor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 0.8rem;
+}
+.friend-editor .field {
+  flex: 1 1 12rem;
+}
+.switch-preview {
+  padding: 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+}
+.creation-progress {
+  padding: 0.5rem;
+  border: 1px solid #ac682e;
+  border-radius: 4px;
+}
+.code {
+  max-width: 100%;
+  overflow: auto;
+}
+select.field__input {
+  min-height: 2.5rem;
+}
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
   }
 }

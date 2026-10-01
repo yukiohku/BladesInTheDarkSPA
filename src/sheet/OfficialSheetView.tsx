@@ -1,3 +1,4 @@
+import { MESSAGE } from '../constants/labels'
 import {
   BACKGROUNDS,
   COIN_MAX,
@@ -151,36 +152,30 @@ export function OfficialSheetView() {
           </h3>
           {character.friends.map((friend) => (
             <div className="os-friend" key={friend.id}>
-              {(['friend', 'rival'] as const).map((relation) => {
-                const selected = friend.relation === relation
-                const isFriend = relation === 'friend'
-                const relationship = isFriend ? '親しい人物' : 'ライバル'
-                return (
-                  <button
-                    key={relation}
-                    type="button"
-                    className={`os-friend__mark os-friend__mark--${relation}`}
-                    aria-pressed={selected}
-                    aria-label={`${friend.name}：${relationship}`}
-                    title={`${friend.name}：${relationship}`}
-                    onClick={() =>
-                      dispatch({
-                        type: 'friend.patch',
-                        id: friend.id,
-                        patch: { relation: selected ? 'neutral' : relation },
-                      })
-                    }
-                  >
-                    <span aria-hidden="true">
+              <span
+                className="os-friend__relation"
+                role="img"
+                aria-label={`${friend.name}：${friend.relation === 'friend' ? '親しい人物' : friend.relation === 'rival' ? 'ライバル' : '未選択'}`}
+              >
+                {(['friend', 'rival'] as const).map((relation) => {
+                  const selected = friend.relation === relation
+                  const isFriend = relation === 'friend'
+                  return (
+                    <span
+                      key={relation}
+                      className={`os-friend__mark os-friend__mark--${relation}${selected ? ' os-friend__mark--selected' : ''}`}
+                      aria-hidden="true"
+                    >
                       {isFriend ? (selected ? '▲' : '△') : selected ? '▼' : '▽'}
                     </span>
-                  </button>
-                )
-              })}
+                  )
+                })}
+              </span>
               <span className="os-friend__readout">{friend.name}</span>
             </div>
           ))}
           <p className="os-friendlegend">△ 親しい人物 / ▽ ライバル</p>
+          <p className="os-friendlegend">{MESSAGE.friendEditHint}</p>
         </section>
         <section className="os-panel os-equipment">
           <h3 className="os-panel__title">

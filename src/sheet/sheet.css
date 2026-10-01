@@ -693,6 +693,12 @@ button.os-rating__dot {
   gap: 0.25rem;
 }
 
+.os-friend__relation {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 0.25rem;
+}
+
 .os-friend__mark {
   display: inline-flex;
   flex: 0 0 1.2rem;
@@ -706,14 +712,13 @@ button.os-rating__dot {
   font-family: Georgia, 'Times New Roman', serif;
   font-size: 1rem;
   line-height: 1;
-  cursor: pointer;
 }
 
 .os-friend__mark--friend {
   color: #64836c;
 }
 
-.os-friend__mark--friend[aria-pressed='true'] {
+.os-friend__mark--friend.os-friend__mark--selected {
   color: #315d3d;
 }
 
@@ -721,12 +726,8 @@ button.os-rating__dot {
   color: #a8746d;
 }
 
-.os-friend__mark--rival[aria-pressed='true'] {
+.os-friend__mark--rival.os-friend__mark--selected {
   color: #98483f;
-}
-
-.os-friend__mark:hover {
-  filter: brightness(0.8);
 }
 
 .os-friend__name {

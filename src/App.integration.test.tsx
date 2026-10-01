@@ -89,15 +89,28 @@ describe('基本7種の操作', () => {
     expect((screen.getByLabelText('プレイブック') as HTMLSelectElement).value).toBe('cutter')
     expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('人物')
   })
-  it('シートの知人チェックで関係を選び、編集画面にも反映する', async () => {
+  it('知人との関係は編集で設定し、シートでは表示だけにする', async () => {
     const user = userEvent.setup()
     renderApp()
     const [first, second] = PLAYBOOK_LIST[0].friends
-    const firstFriend = screen.getByRole('button', { name: `${first.name}：親しい人物` })
-    await user.click(firstFriend)
-    await user.click(screen.getByRole('button', { name: `${second.name}：親しい人物` }))
-    expect(firstFriend.getAttribute('aria-pressed')).toBe('false')
-    await user.click(screen.getByRole('button', { name: `${first.name}：ライバル` }))
+    expect(screen.getByRole('img', { name: `${first.name}：未選択` })).toBeTruthy()
+    await tab(user, '初期設定')
+    await user.selectOptions(screen.getByLabelText(`${first.name}との関係`), 'friend')
+    await user.selectOptions(screen.getByLabelText(`${second.name}との関係`), 'friend')
+    expect((screen.getByLabelText(`${first.name}との関係`) as HTMLSelectElement).value).toBe(
+      'neutral',
+    )
+    await user.selectOptions(screen.getByLabelText(`${first.name}との関係`), 'rival')
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    const firstRival = screen.getByRole('img', { name: `${first.name}：ライバル` })
+    expect(firstRival.textContent).toBe('△▼')
+    expect(screen.getByRole('img', { name: `${second.name}：親しい人物` }).textContent).toBe('▲▽')
+    expect(screen.queryByRole('button', { name: /：親しい人物|：ライバル/ })).toBeNull()
+    expect(screen.queryByRole('combobox', { name: /との関係/ })).toBeNull()
+    expect(screen.getByText('知人との関係の変更は「編集」→「初期設定」で行います。')).toBeTruthy()
+    await user.click(firstRival)
+    expect(document.activeElement).not.toBe(firstRival)
+    await user.keyboard('{Enter} ')
     await tab(user, '初期設定')
     expect((screen.getByLabelText(`${first.name}との関係`) as HTMLSelectElement).value).toBe(
       'rival',
@@ -105,6 +118,9 @@ describe('基本7種の操作', () => {
     expect((screen.getByLabelText(`${second.name}との関係`) as HTMLSelectElement).value).toBe(
       'friend',
     )
+    await user.selectOptions(screen.getByLabelText(`${first.name}との関係`), 'neutral')
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect(screen.getByRole('img', { name: `${first.name}：未選択` }).textContent).toBe('△▽')
   })
   it('追加4点と能力1つで作成を完了する', async () => {
     const user = userEvent.setup()

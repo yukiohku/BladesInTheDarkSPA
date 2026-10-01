@@ -1,13 +1,11 @@
 import type { Character, RatingGroup, SheetState } from '../types/character'
 import {
   ACTION_GROUPS,
-  ACTIONS,
   ATTRIBUTE_XP_MAX,
   COIN_MAX,
   equipmentFor,
   findAbility,
   LOAD_LIMITS,
-  PLAYBOOKS,
   PLAYBOOK_XP_MAX,
   STASH_MAX,
   STRESS_BOXES,
@@ -53,27 +51,6 @@ export function usedLoad(sheet: SheetState) {
     sheet.customItems.reduce((sum, item) => sum + (item.declared ? item.load : 0), 0) +
     sheet.carriedCoin
   )
-}
-export function creationRemaining(sheet: SheetState) {
-  return 7 - ACTIONS.reduce((sum, item) => sum + sheet.ratings[item.id], 0)
-}
-export function creationProblems(sheet: SheetState): string[] {
-  const problems: string[] = []
-  if (creationRemaining(sheet) !== 0) problems.push('追加4点の配分を完了してください。')
-  if (
-    ACTIONS.some(
-      (item) =>
-        sheet.ratings[item.id] < (PLAYBOOKS[sheet.playbookId].initialRatings[item.id] ?? 0) ||
-        sheet.ratings[item.id] > 2,
-    )
-  )
-    problems.push('作成時の初期値と各アクションの上限2を確認してください。')
-  if (sheet.abilities.length !== 1) problems.push('最初の特殊能力を1つ取得してください。')
-  if (
-    sheet.abilities.some((item) => findAbility(item.definitionId)?.choices?.length && !item.choice)
-  )
-    problems.push('能力の選択内容を指定してください。')
-  return problems
 }
 export function resourceMax(sheet: SheetState, key: ResourceKey) {
   if (key === 'stress') return stressMax(sheet)

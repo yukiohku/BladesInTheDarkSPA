@@ -42,7 +42,6 @@ export function defaultSheet(playbookId: PlaybookId = 'cutter'): SheetState {
   for (const action of ACTIONS) ratings[action.id] = book.initialRatings[action.id] ?? 0
   return {
     playbookId,
-    creationComplete: false,
     identity: {
       name: '',
       look: '',

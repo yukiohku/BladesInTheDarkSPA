@@ -36,8 +36,6 @@ export interface Playbook {
   source: string
 }
 export const RATING_MAX = 4
-export const CREATION_RATING_MAX = 2
-export const CREATION_POINTS = 4
 export const COIN_MAX = 4
 export const STASH_MAX = 40
 export const PLAYBOOK_XP_MAX = 8

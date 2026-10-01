@@ -4,7 +4,7 @@ import { ALL_ABILITIES, GENERAL_ITEMS, PLAYBOOK_LIST } from '../constants/playbo
 import { characterReducer } from './characterReducer'
 import type { Action } from './characterReducer'
 import type { Character } from '../types/character'
-import { attributeRating, creationRemaining, loadLimits, stressMax, usedLoad } from '../lib/rules'
+import { attributeRating, loadLimits, stressMax, usedLoad } from '../lib/rules'
 const run = (actions: Action[], base = createDefaultCharacter()) =>
   actions.reduce(characterReducer, base)
 describe('基本7種の定義と新規作成', () => {
@@ -27,7 +27,6 @@ describe('基本7種の定義と新規作成', () => {
       ]),
     )
     expect(Object.values(character.ratings).reduce((sum, value) => sum + value, 0)).toBe(3)
-    expect(creationRemaining(character)).toBe(4)
     expect(character.friends).toHaveLength(5)
     expect(book.items).toHaveLength(6)
     expect(book.gatherInfo).toHaveLength(7)
@@ -43,31 +42,34 @@ describe('基本7種の定義と新規作成', () => {
   })
 })
 describe('characterReducer', () => {
-  it('作成中は初期値を減らせず、追加4点と各上限2を守る', () => {
+  it('初期点を固定し、合計点数や能力取得に関係なく各アクションを4まで入力できる', () => {
     const character = run([
       { type: 'rating', id: 'skirmish', value: 0 },
+      { type: 'rating', id: 'command', value: -1 },
       { type: 'rating', id: 'hunt', value: 4 },
       { type: 'rating', id: 'study', value: 2 },
       { type: 'rating', id: 'tinker', value: 2 },
     ])
     expect(character.ratings.skirmish).toBe(2)
-    expect(character.ratings.hunt).toBe(2)
+    expect(character.ratings.command).toBe(1)
+    expect(character.ratings.hunt).toBe(4)
     expect(character.ratings.study).toBe(2)
-    expect(character.ratings.tinker).toBe(0)
-    expect(creationRemaining(character)).toBe(0)
+    expect(character.ratings.tinker).toBe(2)
+    expect(character.abilities).toHaveLength(0)
+    expect(attributeRating(character, 'insight')).toBe(3)
   })
-  it('配分と能力取得が済んでから作成を完了し、成長を入力できる', () => {
-    expect(run([{ type: 'creation.complete' }]).creationComplete).toBe(false)
-    const next = run([
-      { type: 'rating', id: 'hunt', value: 2 },
-      { type: 'rating', id: 'study', value: 2 },
-      { type: 'ability.add', definitionId: 'cutter:mule' },
-      { type: 'creation.complete' },
-      { type: 'rating', id: 'hunt', value: 99 },
-    ])
-    expect(next.creationComplete).toBe(true)
-    expect(next.ratings.hunt).toBe(4)
-    expect(attributeRating(next, 'insight')).toBe(2)
+  it.each([
+    [-1, 0],
+    [0, 0],
+    [1, 1],
+    [2, 2],
+    [3, 3],
+    [4, 4],
+    [99, 4],
+    [Number.NaN, 0],
+  ])('アクション入力 %s を0〜4の範囲で %s として記録する', (value, expected) => {
+    const next = run([{ type: 'rating', id: 'hunt', value }])
+    expect(next.ratings.hunt).toBe(expected)
   })
   it('共通値を保ち、固有データと取得済み能力を置換・保管する', () => {
     const original = run([

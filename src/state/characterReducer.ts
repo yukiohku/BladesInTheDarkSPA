@@ -11,7 +11,6 @@ import type {
 import type { ResourceAdjustment, ResourceKey } from '../types/resources'
 import { createDefaultCharacter, defaultSheet } from '../constants/defaults'
 import {
-  CREATION_RATING_MAX,
   equipmentFor,
   findAbility,
   PLAYBOOKS,
@@ -21,8 +20,6 @@ import {
 import {
   adjustResource,
   clamp,
-  creationProblems,
-  creationRemaining,
   hasSpecialArmor,
   healingMinimum,
   stressMax,
@@ -35,8 +32,6 @@ export type Action =
   | { type: 'identity'; patch: Partial<SheetState['identity']> }
   | { type: 'note'; value: string }
   | { type: 'playbook.change'; playbookId: PlaybookId; resetRatings: boolean }
-  | { type: 'creation.complete' }
-  | { type: 'ratings.reset' }
   | { type: 'rating'; id: ActionId; value: number }
   | { type: 'resource'; resource: ResourceKey; value: number }
   | { type: 'resource.adjust'; adjustment: ResourceAdjustment }
@@ -106,7 +101,6 @@ export function characterReducer(character: Character, action: Action): Characte
         gatherNotes: {},
         abilities: [],
         ratings: action.resetRatings ? base.ratings : character.ratings,
-        creationComplete: action.resetRatings ? false : character.creationComplete,
       }
       const next = {
         ...cleared,
@@ -133,31 +127,18 @@ export function characterReducer(character: Character, action: Action): Characte
       }
       return touch(next)
     }
-    case 'creation.complete':
-      return creationProblems(character).length
-        ? character
-        : touch({ ...character, creationComplete: true })
-    case 'ratings.reset':
+    case 'rating':
       return touch({
         ...character,
-        ratings: defaultSheet(character.playbookId).ratings,
-        creationComplete: false,
+        ratings: {
+          ...character.ratings,
+          [action.id]: clamp(
+            action.value,
+            PLAYBOOKS[character.playbookId].initialRatings[action.id] ?? 0,
+            RATING_MAX,
+          ),
+        },
       })
-    case 'rating': {
-      const min = character.creationComplete
-        ? 0
-        : (PLAYBOOKS[character.playbookId].initialRatings[action.id] ?? 0)
-      const max = character.creationComplete
-        ? RATING_MAX
-        : Math.min(
-            CREATION_RATING_MAX,
-            character.ratings[action.id] + Math.max(0, creationRemaining(character)),
-          )
-      return touch({
-        ...character,
-        ratings: { ...character.ratings, [action.id]: clamp(action.value, min, max) },
-      })
-    }
     case 'resource': {
       const next = withResource(character, action.resource, action.value)
       return touch(next)

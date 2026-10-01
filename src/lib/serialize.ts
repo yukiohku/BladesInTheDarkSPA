@@ -19,6 +19,7 @@ import {
   HEALING_CLOCK_SEGMENTS,
   isPlaybookId,
   PLAYBOOK_XP_MAX,
+  RATING_MAX,
   STASH_MAX,
   TRAUMAS,
 } from '../constants/playbooks'
@@ -145,7 +146,6 @@ export function normalizeSheet(value: unknown): SheetState {
   const next: SheetState = {
     ...base,
     playbookId,
-    creationComplete: bool(source.creationComplete),
     identity: {
       name: str(identity.name),
       look: str(identity.look),
@@ -220,7 +220,12 @@ export function normalizeSheet(value: unknown): SheetState {
     crew: crew(source.crew),
   }
   for (const item of ACTIONS)
-    next.ratings[item.id] = num(ratingSource[item.id], base.ratings[item.id], 0, 4)
+    next.ratings[item.id] = num(
+      ratingSource[item.id],
+      base.ratings[item.id],
+      base.ratings[item.id],
+      RATING_MAX,
+    )
   next.stress = Math.min(next.stress, stressMax(next))
   next.healing = Math.max(next.healing, healingMinimum(next))
   for (const item of equipmentFor(playbookId))
@@ -280,7 +285,6 @@ function migratedSheet(source: Record<string, unknown>): SheetState {
       : '')
   const next = normalizeSheet({
     ...base,
-    creationComplete: true,
     ratings,
     abilities: acquired,
     identity: {

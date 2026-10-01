@@ -75,41 +75,50 @@ describe('基本7種の操作', () => {
     expect(saved?.identity.heritageId).toBe('akoros')
     expect(saved?.identity.heritageDetail).toBe('港で荷運びをする一家')
   })
-  it('固定点を操作対象から外し、追加点の選択・解除と残り点数を表示する', async () => {
+  it('初期点は固定し、特殊能力を取得せずに全アクションを4まで編集・保存できる', async () => {
     const user = userEvent.setup()
     renderApp()
-    expect(screen.queryByText(/残り：\d+点/)).toBeNull()
     await tab(user, '初期設定')
-    expect(screen.getByText('技能ポイントを4点割り振ってください（各技能は最大2）')).toBeTruthy()
-    expect(screen.getByText('残り：4点')).toBeTruthy()
-    expect(screen.queryByText(/成長後は通常3/)).toBeNull()
-    const allocationDetails = screen.getByText('ポイントの割り振りについて')
-    expect(allocationDetails.closest('details')?.open).toBe(false)
-    await user.click(allocationDetails)
-    expect(allocationDetails.closest('details')?.open).toBe(true)
-    expect(screen.getByText(/出自を表す技能に1点、経歴を表す技能に1点、残り2点/)).toBeTruthy()
-    await user.click(allocationDetails)
-    expect(allocationDetails.closest('details')?.open).toBe(false)
-    const fixed = screen.getByLabelText('Command 1（プレイブック固定・変更不可）')
-    expect(screen.queryByText(/固定 \d ＋ 追加 \d/)).toBeNull()
+    expect(screen.getByRole('heading', { name: 'アクション' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'キャラクター作成を完了' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '初期アクションを再設定' })).toBeNull()
+    expect(screen.queryByText(/作成済み|技能ポイントを4点|残り：\d+点|ポイントの割り振りについて|成長後は通常3/)).toBeNull()
+    expect(screen.getAllByRole('img', { name: /プレイブック固定・変更不可/ })).toHaveLength(3)
+    const fixed = screen.getByRole('img', { name: 'Command 1（プレイブック固定・変更不可）' })
+    expect(screen.queryByRole('button', { name: 'Command 1' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Skirmish 2' })).toBeNull()
     await user.click(fixed)
     expect(document.activeElement).not.toBe(fixed)
-    expect(screen.getByLabelText('Command 2').getAttribute('aria-pressed')).toBe('false')
-    await user.click(screen.getByLabelText('Command 2'))
-    expect(screen.getByLabelText('Command 2').getAttribute('aria-pressed')).toBe('true')
-    await user.click(screen.getByLabelText('Hunt 2'))
-    await user.click(screen.getByLabelText('Study 1'))
-    expect(screen.getByText('残り：0点')).toBeTruthy()
-    expect(screen.getByLabelText('Tinker 1').hasAttribute('disabled')).toBe(true)
-    await user.click(screen.getByLabelText('Command 2'))
-    expect(screen.getByLabelText('Command 2').getAttribute('aria-pressed')).toBe('false')
-    expect(screen.getByLabelText('Tinker 1').hasAttribute('disabled')).toBe(false)
-    expect(screen.getByText('残り：1点')).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Skirmish 3' }))
+    await user.click(screen.getByRole('button', { name: 'Skirmish 3' }))
+    expect(screen.getByRole('button', { name: 'Skirmish 3' }).getAttribute('aria-pressed')).toBe('false')
+    await user.click(screen.getByRole('button', { name: 'Hunt 1' }))
+    await user.click(screen.getByRole('button', { name: 'Hunt 1' }))
     await user.click(screen.getByRole('button', { name: 'シート' }))
-    expect(screen.queryByText(/残り：\d+点|ポイントの割り振りについて/)).toBeNull()
     expect(screen.getByRole('img', { name: '指揮（Command）：1' })).toBeTruthy()
     expect(screen.getByRole('img', { name: '乱戦（Skirmish）：2' })).toBeTruthy()
-  })
+    expect(screen.getByRole('img', { name: '狩り（Hunt）：0' })).toBeTruthy()
+
+    await tab(user, '初期設定')
+    for (const action of ACTIONS) {
+      const fourth = screen.getByRole('button', { name: `${action.name} 4` })
+      expect(fourth.hasAttribute('disabled')).toBe(false)
+      await user.click(fourth)
+      expect(fourth.getAttribute('aria-pressed')).toBe('true')
+    }
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    for (const action of ACTIONS) {
+      expect(screen.getByRole('img', { name: `${action.ja}（${action.name}）：4` })).toBeTruthy()
+    }
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    const saved = readStoredCharacter().character
+    expect(saved?.abilities).toHaveLength(0)
+    for (const action of ACTIONS) expect(saved?.ratings[action.id]).toBe(4)
+    expect(saved).not.toHaveProperty('creationComplete')
+    const raw = window.localStorage.getItem(STORAGE_KEY)
+    expect(raw).toBeTruthy()
+    expect(JSON.parse(raw ?? '{}')).not.toHaveProperty('creationComplete')
+  }, 15000)
   it('専用タブを外し、クルー名と質問例を残して以前の詳細を保存する', async () => {
     const user = userEvent.setup()
     const character = createDefaultCharacter()
@@ -164,12 +173,11 @@ describe('基本7種の操作', () => {
       expect(restored.getByRole('button', { name: `${name} 2` }).getAttribute('aria-pressed')).toBe('true')
     }
   })
-  it.each([false, true])(
-    '作成完了=%sでもシートのアクションは表示のみで、編集の変更とXP操作を反映する',
-    async (creationComplete) => {
+  it(
+    'シートのアクションは表示のみで、編集の変更とXP操作を反映する',
+    async () => {
       const user = userEvent.setup()
       const character = createDefaultCharacter()
-      character.creationComplete = creationComplete
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
       renderApp()
 
@@ -201,12 +209,17 @@ describe('基本7種の操作', () => {
     const user = userEvent.setup()
     renderApp()
     await chooseBook(user, book.id)
-    expect(screen.getAllByRole('img', { name: /プレイブック固定・変更不可/ })).toHaveLength(3)
     for (const action of ACTIONS) {
-      const fixed = book.initialRatings[action.id] ?? 0
-      for (let index = 1; index <= fixed; index++) {
-        expect(screen.getByLabelText(`${action.name} ${index}（プレイブック固定・変更不可）`)).toBeTruthy()
-        expect(screen.getByLabelText(`${action.name} ${index}（プレイブック固定・変更不可）`).tagName).toBe('SPAN')
+      const initial = book.initialRatings[action.id] ?? 0
+      for (let index = 1; index <= 4; index++) {
+        if (index <= initial) {
+          expect(screen.getByRole('img', { name: `${action.name} ${index}（プレイブック固定・変更不可）` })).toBeTruthy()
+          expect(screen.queryByRole('button', { name: `${action.name} ${index}` })).toBeNull()
+          continue
+        }
+        const dot = screen.getByRole('button', { name: `${action.name} ${index}` })
+        expect(dot.getAttribute('aria-pressed')).toBe(String(index <= initial))
+        expect(dot.hasAttribute('disabled')).toBe(false)
       }
     }
     await tab(user, '特殊能力')
@@ -223,7 +236,7 @@ describe('基本7種の操作', () => {
     await tab(user, '初期設定')
     await user.type(screen.getByLabelText('名前'), '人物')
     await user.click(screen.getByLabelText('Hunt 1'))
-    expect(screen.getByText('残り：3点')).toBeTruthy()
+    expect(screen.getByLabelText('Hunt 1').getAttribute('aria-pressed')).toBe('true')
     await tab(user, '特殊能力')
     await user.click(screen.getByRole('button', { name: `取得：${PLAYBOOK_LIST[0].abilities[0].name}` }))
     expect(screen.queryByText('未取得（編集の特殊能力から取得できます）')).toBeNull()
@@ -232,9 +245,10 @@ describe('基本7種の操作', () => {
     expect((screen.getByLabelText('プレイブック') as HTMLSelectElement).value).toBe('hound')
     expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('人物')
     expect(screen.queryByRole('region', { name: 'プレイブック変更の確認' })).toBeNull()
-    expect(screen.getByLabelText('Hunt 2（プレイブック固定・変更不可）')).toBeTruthy()
-    expect(screen.getByLabelText('Skirmish 1')).toBeTruthy()
-    expect(screen.getByText('残り：4点')).toBeTruthy()
+    expect(screen.getByRole('img', { name: 'Hunt 2（プレイブック固定・変更不可）' })).toBeTruthy()
+    expect(screen.getByLabelText('Skirmish 1').getAttribute('aria-pressed')).toBe('false')
+    await user.click(screen.getByLabelText('Hunt 4'))
+    expect(screen.getByLabelText('Hunt 4').getAttribute('aria-pressed')).toBe('true')
     await tab(user, '特殊能力')
     expect(screen.getByText('未取得（編集の特殊能力から取得できます）')).toBeTruthy()
   })
@@ -269,25 +283,6 @@ describe('基本7種の操作', () => {
     await user.selectOptions(screen.getByLabelText(`${first.name}との関係`), 'neutral')
     await user.click(screen.getByRole('button', { name: 'シート' }))
     expect(screen.getByRole('img', { name: `${first.name}：未選択` }).textContent).toBe('△▽')
-  })
-  it('追加4点と能力1つで作成を完了する', async () => {
-    const user = userEvent.setup()
-    renderApp()
-    await tab(user, '初期設定')
-    expect(
-      screen.getByRole('button', { name: 'キャラクター作成を完了' }).hasAttribute('disabled'),
-    ).toBe(true)
-    await user.click(screen.getByLabelText('Hunt 2'))
-    await user.click(screen.getByLabelText('Study 2'))
-    expect(screen.getByText('残り：0点')).toBeTruthy()
-    await tab(user, '特殊能力')
-    await user.click(screen.getByRole('button', { name: '取得：Mule' }))
-    await tab(user, '初期設定')
-    await user.click(screen.getByRole('button', { name: 'キャラクター作成を完了' }))
-    expect(screen.getByLabelText('Skirmish 4')).toBeTruthy()
-    expect(screen.getByText(/作成済み/)).toBeTruthy()
-    expect(screen.getByText(/成長後は通常3/)).toBeTruthy()
-    expect(screen.queryByText(/技能ポイントを4点|残り：\d+点|ポイントの割り振りについて/)).toBeNull()
   })
   it('複数能力・Veteran・上限補正を表示する', async () => {
     const user = userEvent.setup()

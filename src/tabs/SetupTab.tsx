@@ -8,12 +8,10 @@ import {
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
 import { Grid, Section, SelectInput, TextArea, TextInput } from '../components/ui'
-import { CreationProgress, RatingsPanel } from '../components/SheetPanels'
-import { creationProblems } from '../lib/rules'
-import { CREATION_LABELS } from '../constants/labels'
+import { RatingsPanel } from '../components/SheetPanels'
+import { SETUP_LABELS } from '../constants/labels'
 export function SetupTab() {
   const { character, dispatch } = useCharacter()
-  const problems = creationProblems(character)
   const identity = character.identity
   const heritage = HERITAGES.find((item) => item.id === identity.heritageId)
   const patch = (field: keyof typeof identity, value: string) =>
@@ -68,7 +66,7 @@ export function SetupTab() {
           label="出自の詳細"
           value={identity.heritageDetail}
           rows={2}
-          placeholder={CREATION_LABELS.heritageDetailPlaceholder}
+          placeholder={SETUP_LABELS.heritageDetailPlaceholder}
           onChange={(value) => patch('heritageDetail', value)}
         />
         <SelectInput
@@ -101,49 +99,8 @@ export function SetupTab() {
           onChange={(value) => patch('purveyor', value)}
         />
       </Section>
-      <Section
-        title="アクションとキャラクター作成"
-        hint={character.creationComplete ? CREATION_LABELS.growthHint : CREATION_LABELS.allocationHint}
-      >
-        <CreationProgress />
+      <Section title="アクション">
         <RatingsPanel />
-        {!character.creationComplete ? (
-          <>
-            <details>
-              <summary>{CREATION_LABELS.allocationDetails}</summary>
-              <p>{CREATION_LABELS.allocationExplanation}</p>
-            </details>
-            <ul>
-              {problems.map((problem) => (
-                <li key={problem}>{problem}</li>
-              ))}
-            </ul>
-            <button
-              className="button button--primary"
-              type="button"
-              disabled={problems.length > 0}
-              onClick={() => dispatch({ type: 'creation.complete' })}
-            >
-              キャラクター作成を完了
-            </button>
-          </>
-        ) : (
-          <p>作成済み。成長後のアクション値を編集できます。</p>
-        )}
-        <button
-          className="button button--ghost"
-          type="button"
-          onClick={() => {
-            if (
-              window.confirm(
-                'アクションを印刷済み初期値に戻します。追加4点は配分し直します。よろしいですか？',
-              )
-            )
-              dispatch({ type: 'ratings.reset' })
-          }}
-        >
-          初期アクションを再設定
-        </button>
       </Section>
       <Section
         title={PLAYBOOKS[character.playbookId].friendsTitle}

@@ -42,10 +42,15 @@ describe('保存と移行', () => {
       definitionId: book.abilities[0].id,
     })
     original = characterReducer(original, { type: 'resource', resource: 'stress', value: 3 })
+    original = characterReducer(original, { type: 'rating', id: 'tinker', value: 0 })
+    original = characterReducer(original, { type: 'rating', id: 'hunt', value: 4 })
     const result = parseCharacterFile(serializeCharacter(original))
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.character).toEqual(original)
+    expect(result.character.ratings.tinker).toBe(book.initialRatings.tinker ?? 0)
+    expect(result.character.ratings.hunt).toBe(4)
+    expect(result.character).not.toHaveProperty('creationComplete')
   })
   it('弾帯の未使用枠の位置、能力の選択・メモ・使用回数を保持する', () => {
     let original = createDefaultCharacter('leech')
@@ -109,7 +114,7 @@ describe('保存と移行', () => {
   it('officialがない旧データでも名前と原データを保管する', () => {
     const next = normalizeCharacter({ basics: { name: '人物' } })
     expect(next.identity.name).toBe('人物')
-    expect(Object.values(next.ratings).every((value) => value === 0)).toBe(true)
+    expect(next.ratings).toEqual(createDefaultCharacter().ratings)
     expect(next.legacy).toHaveLength(1)
   })
   it('旧データに傷の段階だけあっても移行後に表示を失わない', () => {
@@ -147,7 +152,7 @@ describe('保存と移行', () => {
       coin: 99,
       stash: -2,
       stress: Infinity,
-      ratings: { hunt: NaN, study: -1, survey: 3.5 },
+      ratings: { hunt: NaN, study: -1, survey: 3.5, skirmish: 0, command: -1 },
       xp: { playbook: 99 },
       customItems: [{ name: '道具', load: 2, declared: true }],
     })
@@ -157,6 +162,8 @@ describe('保存と移行', () => {
     expect(next.ratings.hunt).toBe(0)
     expect(next.ratings.study).toBe(0)
     expect(next.ratings.survey).toBe(4)
+    expect(next.ratings.skirmish).toBe(2)
+    expect(next.ratings.command).toBe(1)
     expect(resourceValue(next, 'playbook')).toBe(8)
     expect(usedLoad(next)).toBe(2)
   })

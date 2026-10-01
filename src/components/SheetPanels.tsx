@@ -2,19 +2,16 @@ import { useRef, useState } from 'react'
 import {
   ACTION_GROUPS,
   ALCHEMICALS,
-  CREATION_RATING_MAX,
   findAbility,
   GENERAL_ITEMS,
   PLAYBOOKS,
-  RATING_MAX,
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
-import { ABILITY_LABELS, CREATION_LABELS } from '../constants/labels'
+import { ABILITY_LABELS } from '../constants/labels'
 import { abilityRemovalConfirmation } from '../lib/abilityRemoval'
 import { AbilityRemovalDialog } from './AbilityRemovalDialog'
 import {
   attributeRating,
-  creationRemaining,
   hasSpecialArmor,
   healingMinimum,
   loadLimits,
@@ -53,21 +50,7 @@ export function RatingsPanel({ sheet = false }: { sheet?: boolean }) {
               name={item.ja}
               en={item.name}
               value={character.ratings[item.id]}
-              max={sheet || character.creationComplete ? RATING_MAX : CREATION_RATING_MAX}
-              editableMax={
-                character.creationComplete
-                  ? RATING_MAX
-                  : Math.min(
-                      CREATION_RATING_MAX,
-                      character.ratings[item.id] + Math.max(0, creationRemaining(character)),
-                    )
-              }
-              fixedValue={
-                !sheet && !character.creationComplete
-                  ? (PLAYBOOKS[character.playbookId].initialRatings[item.id] ?? 0)
-                  : 0
-              }
-              creating={!sheet && !character.creationComplete}
+              fixedValue={sheet ? 0 : (PLAYBOOKS[character.playbookId].initialRatings[item.id] ?? 0)}
               onChange={
                 sheet ? undefined : (value) => dispatch({ type: 'rating', id: item.id, value })
               }
@@ -448,14 +431,5 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
     </>
-  )
-}
-export function CreationProgress() {
-  const { character } = useCharacter()
-  if (character.creationComplete) return null
-  return (
-    <p role="status" className="creation-progress">
-      {CREATION_LABELS.remaining(creationRemaining(character))}
-    </p>
   )
 }

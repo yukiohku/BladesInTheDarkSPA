@@ -101,18 +101,14 @@ export function RatingDots({
   en,
   value,
   max = RATING_MAX,
-  editableMax = max,
   fixedValue = 0,
-  creating = false,
   onChange,
 }: {
   name: string
   en?: string
   value: number
   max?: number
-  editableMax?: number
   fixedValue?: number
-  creating?: boolean
   onChange?: (value: number) => void
 }) {
   return (
@@ -137,14 +133,9 @@ export function RatingDots({
               key={index}
               type="button"
               className={`os-rating__dot os-rating__dot--editable${index < value ? ' os-rating__dot--selected' : ''}`}
-              disabled={index >= editableMax}
               aria-pressed={index < value}
               aria-label={`${en ?? name} ${index + 1}`}
-              title={
-                index >= editableMax
-                  ? '追加点が残っていません。選択済みの点を解除すると配分できます。'
-                  : `${creating ? 'PLの追加点：' : ''}${index < value ? 'クリックで減らす' : 'クリックで増やす'}`
-              }
+              title={index < value ? 'クリックで減らす' : 'クリックで増やす'}
               onClick={() => onChange(index === value - 1 ? index : index + 1)}
             />
           ) : (

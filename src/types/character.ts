@@ -75,7 +75,6 @@ export interface Crew {
 }
 export interface SheetState {
   playbookId: PlaybookId
-  creationComplete: boolean
   identity: {
     name: string
     look: string

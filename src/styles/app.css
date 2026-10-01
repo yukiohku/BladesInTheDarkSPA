@@ -298,6 +298,13 @@ body {
   margin: 0;
 }
 
+.field__description {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--text-dim);
+}
+
 .field__error {
   margin: 0;
   font-size: 0.875rem;

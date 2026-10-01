@@ -10,6 +10,7 @@
 | --- | --- |
 | [playbooks.md](playbooks.md) | 基本7種類の初期アクション、XP条件、特徴。特殊3種類と白紙シートの位置づけ |
 | [srd-characters.md](srd-characters.md) | 作成、判定、ストレス、傷、回復、成長、悪癖、資産の要点と出典 |
+| [heritages.md](heritages.md) | 出自6地域の特徴、入力欄の意味、アプリの注釈と出典 |
 | [app-comparison.md](app-comparison.md) | 原典と実装の対応、相違点、改善候補 |
 | [sources.json](sources.json) | 全30資料のURL、取得日、保存先、SHA-256、サイズ、PDFページ数 |
 | `originals/playbooks/` | 公式配布のキャラクターシートPDF 11件 |

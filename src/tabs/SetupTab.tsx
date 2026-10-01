@@ -10,10 +10,12 @@ import { useCharacter } from '../state/characterContext'
 import { Grid, Section, SelectInput, TextArea, TextInput } from '../components/ui'
 import { CreationProgress, RatingsPanel } from '../components/SheetPanels'
 import { creationProblems } from '../lib/rules'
+import { CREATION_LABELS } from '../constants/labels'
 export function SetupTab() {
   const { character, dispatch } = useCharacter()
   const problems = creationProblems(character)
   const identity = character.identity
+  const heritage = HERITAGES.find((item) => item.id === identity.heritageId)
   const patch = (field: keyof typeof identity, value: string) =>
     dispatch({ type: 'identity', patch: { [field]: value } })
   return (
@@ -40,38 +42,40 @@ export function SetupTab() {
         </a>
       </Section>
       <Section title="基本情報">
-        <TextInput
-          label="名前"
-          value={identity.name}
-          onChange={(value) => patch('name', value)}
-        />
-        <TextInput
-          label="所属クルー名"
-          value={character.crew.name}
-          onChange={(name) => dispatch({ type: 'crew.name', name })}
-        />
+        <Grid>
+          <TextInput
+            label="名前"
+            value={identity.name}
+            onChange={(value) => patch('name', value)}
+          />
+          <TextInput
+            label="所属クルー名"
+            value={character.crew.name}
+            onChange={(name) => dispatch({ type: 'crew.name', name })}
+          />
+        </Grid>
         <TextArea label="外見" value={identity.look} onChange={(value) => patch('look', value)} />
       </Section>
       <Section title="出自・経歴・悪癖">
-        <Grid>
-          <SelectInput
-            label="出自"
-            value={identity.heritageId}
-            options={HERITAGES}
-            onChange={(value) => patch('heritageId', value)}
-          />
-          <SelectInput
-            label="経歴"
-            value={identity.backgroundId}
-            options={BACKGROUNDS}
-            onChange={(value) => patch('backgroundId', value)}
-          />
-        </Grid>
+        <SelectInput
+          label="出自"
+          value={identity.heritageId}
+          options={HERITAGES.map((item) => ({ id: item.id, name: `${item.name}：${item.summary}` }))}
+          hint={heritage?.description}
+          onChange={(value) => patch('heritageId', value)}
+        />
         <TextArea
           label="出自の詳細"
           value={identity.heritageDetail}
           rows={2}
+          placeholder={CREATION_LABELS.heritageDetailPlaceholder}
           onChange={(value) => patch('heritageDetail', value)}
+        />
+        <SelectInput
+          label="経歴"
+          value={identity.backgroundId}
+          options={BACKGROUNDS}
+          onChange={(value) => patch('backgroundId', value)}
         />
         <TextArea
           label="経歴の詳細"
@@ -99,12 +103,16 @@ export function SetupTab() {
       </Section>
       <Section
         title="アクションとキャラクター作成"
-        hint="初期値の3点に追加4点。作成中は各アクション最大2です。成長後は通常3、Masteryなどの裁定で4まで記録できます。"
+        hint={character.creationComplete ? CREATION_LABELS.growthHint : CREATION_LABELS.allocationHint}
       >
         <CreationProgress />
         <RatingsPanel />
         {!character.creationComplete ? (
           <>
+            <details>
+              <summary>{CREATION_LABELS.allocationDetails}</summary>
+              <p>{CREATION_LABELS.allocationExplanation}</p>
+            </details>
             <ul>
               {problems.map((problem) => (
                 <li key={problem}>{problem}</li>

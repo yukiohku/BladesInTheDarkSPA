@@ -92,13 +92,42 @@ export const ACTION_GROUPS: {
   },
 ]
 export const ACTIONS = ACTION_GROUPS.flatMap((group) => group.items)
-export const HERITAGES: NamedItem[] = [
-  { id: 'akoros', name: 'Akoros' },
-  { id: 'dagger-isles', name: 'The Dagger Isles' },
-  { id: 'iruvia', name: 'Iruvia' },
-  { id: 'severos', name: 'Severos' },
-  { id: 'skovlan', name: 'Skovlan' },
-  { id: 'tycheros', name: 'Tycheros' },
+export interface HeritageOption extends NamedItem {
+  summary: string
+  description: string
+}
+// 公式 Player's Kit v8.2、PDF 25ページ「The Shattered Isles」の参考訳・要約。
+export const HERITAGES: HeritageOption[] = [
+  {
+    id: 'akoros', name: 'Akoros',
+    summary: '帝国発祥の地。捕鯨・鉱業で栄える港湾都市',
+    description: '帝国発祥の地で、ドスコヴォルもこの地域にあります。石化した暗い森と岩がちな丘が広がり、沿岸都市は巨獣リヴァイアサンの狩猟と内陸の鉱山で富を得ています。',
+  },
+  {
+    id: 'dagger-isles', name: 'The Dagger Isles',
+    summary: '大災厄で変貌した密林に覆われる熱帯の島々',
+    description: '熱帯の島々を覆う密林は、大災厄の魔法で暗く歪んだ姿になりました。幽霊から集落を守る電撃障壁なしで暮らしているとも噂されますが、その方法は謎です。',
+  },
+  {
+    id: 'iruvia', name: 'Iruvia',
+    summary: '黒い砂漠と火山の地。悪魔が権力を握るとの噂',
+    description: '黒い砂漠、黒曜石の山々、激しく噴火する火山のある地域です。悪魔が公然と権力の座についているとも噂されています。',
+  },
+  {
+    id: 'severos', name: 'Severos',
+    summary: '風吹く平原。馬と暮らす自由な部族もいる',
+    description: '暗い低木や棘のある植物が広がる、風の強い平原です。沿岸の帝国都市の外では、幽霊を狩る馬とともに死の荒野で物資を探す、自由な部族も暮らしています。',
+  },
+  {
+    id: 'skovlan', name: 'Skovlan',
+    summary: '寒冷な山とツンドラ。帝国支配に最後まで抵抗',
+    description: '寒冷な山々と荒れたツンドラのある地域です。帝国の支配に最後まで抵抗した土地として知られています。',
+  },
+  {
+    id: 'tycheros', name: 'Tycheros',
+    summary: '帝国から隔絶した遠い地。悪魔の血筋との噂',
+    description: '帝国から隔絶した遠い土地です。その人々の家系には悪魔の血が流れていると噂されています。',
+  },
 ]
 export const BACKGROUNDS: NamedItem[] = [
   { id: 'academic', name: '学者' },

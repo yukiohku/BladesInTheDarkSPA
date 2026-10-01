@@ -9,7 +9,7 @@ import {
   RATING_MAX,
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
-import { ABILITY_LABELS } from '../constants/labels'
+import { ABILITY_LABELS, CREATION_LABELS } from '../constants/labels'
 import { abilityRemovalConfirmation } from '../lib/abilityRemoval'
 import { AbilityRemovalDialog } from './AbilityRemovalDialog'
 import {
@@ -455,8 +455,7 @@ export function CreationProgress() {
   if (character.creationComplete) return null
   return (
     <p role="status" className="creation-progress">
-      PLの追加点：{4 - creationRemaining(character)} / 4点（残り {creationRemaining(character)}点）
-      。出自・経歴に対応する各1点と自由な2点を配分します。
+      {CREATION_LABELS.remaining(creationRemaining(character))}
     </p>
   )
 }

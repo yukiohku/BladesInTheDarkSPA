@@ -20,6 +20,15 @@ export const MESSAGE = {
     '新しいキャラクターを作成します。現在のシートはバックアップに保存します。よろしいですか？',
   resetDone: '新しいキャラクターを作成しました。',
 }
+export const CREATION_LABELS = {
+  heritageDetailPlaceholder: '例：港で荷運びをする一家。祖父母が移住し、自分はドスコヴォルで育った。',
+  allocationHint: '技能ポイントを4点割り振ってください（各技能は最大2）',
+  growthHint: '成長後は通常3、Masteryなどの裁定で4まで記録できます。',
+  allocationDetails: 'ポイントの割り振りについて',
+  allocationExplanation:
+    'プレイブックの初期3点に、4点を追加します。出自を表す技能に1点、経歴を表す技能に1点、残り2点は自由に割り振ります。出自・経歴に合う技能は、人物像に合わせて選んでください。',
+  remaining: (points: number) => `残り：${points}点`,
+}
 export const ABILITY_LABELS = {
   remove: '取得を取り消す',
   confirmRemoval: '取り消しを確定',

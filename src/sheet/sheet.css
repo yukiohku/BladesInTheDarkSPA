@@ -169,6 +169,11 @@
   white-space: pre-wrap;
 }
 
+.os-idrow__value--empty {
+  min-height: 1.4em;
+  border-bottom: 1px dashed var(--os-band);
+}
+
 /* 英字の見出しは縦長ゴシック + tracking で少しだけ格好をつける */
 .os-panel__title,
 .os-track__title,

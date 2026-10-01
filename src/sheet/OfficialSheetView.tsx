@@ -23,12 +23,25 @@ import { abilityDefinitions, loadLimits, stressMax } from '../lib/rules'
 import { characterStatus } from '../lib/status'
 import logoUrl from '../assets/blades-logo.png'
 
-function IdentityRow({ label, value }: { label: string; value: string }) {
-  if (!value) return null
+function IdentityRow({
+  label,
+  value,
+  showEmpty = false,
+}: {
+  label: string
+  value: string
+  showEmpty?: boolean
+}) {
+  if (!value && !showEmpty) return null
   return (
     <div className="os-idrow">
       <span className="os-idrow__label">{label}</span>
-      <span className="os-idrow__value">{value}</span>
+      <span
+        className={`os-idrow__value${value ? '' : ' os-idrow__value--empty'}`}
+        aria-label={value || `${label} 未入力`}
+      >
+        {value || '\u00a0'}
+      </span>
     </div>
   )
 }
@@ -59,20 +72,23 @@ export function OfficialSheetView() {
           <IdentityRow label="クルー" value={character.crew.name} />
           <IdentityRow
             label="出自"
+            showEmpty
             value={
               HERITAGES.find((item) => item.id === identity.heritageId)?.name ?? identity.heritageId
             }
           />
           <IdentityRow
             label="経歴"
+            showEmpty
             value={
               BACKGROUNDS.find((item) => item.id === identity.backgroundId)?.name ??
               identity.backgroundId
             }
           />
-          <IdentityRow label="外見" value={identity.look} />
+          <IdentityRow label="外見" value={identity.look} showEmpty />
           <IdentityRow
             label="悪癖"
+            showEmpty
             value={[
               VICES.find((item) => item.id === identity.viceId)?.name ?? identity.viceId,
               identity.viceDetail,

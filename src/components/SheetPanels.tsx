@@ -165,7 +165,7 @@ export function EquipmentPanel() {
       >
         <div className="equipment-heading">
           <span>
-            <Bilingual name={item.name} ja={item.ja} />
+            <span className="equipment-name">{item.ja ?? item.name}</span>
             <small>
               Load {item.load}
               {item.load === 0 ? '（数えない）' : ''}

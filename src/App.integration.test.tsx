@@ -6,6 +6,7 @@ import { CharacterProvider } from './state/CharacterProvider'
 import { createDefaultCharacter } from './constants/defaults'
 import { ACTIONS, PLAYBOOK_LIST } from './constants/playbooks'
 import { readStoredCharacter, STORAGE_KEY } from './lib/storage'
+import { characterReducer } from './state/characterReducer'
 function renderApp() {
   return render(
     <CharacterProvider>
@@ -26,10 +27,20 @@ async function chooseBook(user: ReturnType<typeof userEvent.setup>, book: string
 beforeEach(() => {
   window.localStorage.clear()
   vi.spyOn(window, 'confirm').mockReturnValue(true)
+  // jsdomにはdialogの開閉APIがないため、open属性と初期フォーカスを再現する。
+  HTMLDialogElement.prototype.showModal = function () {
+    this.open = true
+    this.querySelector<HTMLButtonElement>('button[autofocus]')?.focus()
+  }
+  HTMLDialogElement.prototype.close = function () {
+    this.open = false
+  }
 })
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
+  Reflect.deleteProperty(HTMLDialogElement.prototype, 'showModal')
+  Reflect.deleteProperty(HTMLDialogElement.prototype, 'close')
 })
 describe('基本7種の操作', () => {
   it('固定点を操作対象から外し、追加点の選択・解除と残り点数を表示する', async () => {
@@ -239,6 +250,92 @@ describe('基本7種の操作', () => {
     expect(screen.getByText('Veteran')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'ストレス 10' })).toBeTruthy()
     expect(screen.getByRole('option', { name: '重 8' })).toBeTruthy()
+  })
+  it('能力の取り消しをキャンセルでき、取り消し後は再取得・保存できる', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await tab(user, '特殊能力')
+    await user.click(screen.getByRole('button', { name: '取得：Mule' }))
+    await user.type(screen.getByLabelText('Mule：メモ'), '訂正前のメモ')
+    expect(screen.getByRole('button', { name: '取得済み：Mule' }).hasAttribute('disabled')).toBe(true)
+    await user.click(screen.getByRole('button', { name: 'Mule 1の取得を取り消す' }))
+    const dialog = screen.getByRole('dialog', { name: 'Muleの取得を取り消す' })
+    expect(dialog.textContent).toContain('Load上限（軽／中／重）：5／7／8 → 3／5／6')
+    await user.click(within(dialog).getByRole('button', { name: 'キャンセル' }))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Mule 1の取得を取り消す' }))
+    expect((screen.getByLabelText('Mule：メモ') as HTMLTextAreaElement).value).toBe('訂正前のメモ')
+    await user.click(screen.getByRole('button', { name: 'Mule 1の取得を取り消す' }))
+    act(() => screen.getByRole('dialog').dispatchEvent(new Event('cancel', { cancelable: true })))
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(screen.getByRole('region', { name: 'Mule 1' })).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'Mule 1の取得を取り消す' }))
+    await user.click(screen.getByRole('button', { name: '取り消しを確定' }))
+    expect(screen.queryByRole('region', { name: 'Mule 1' })).toBeNull()
+    expect(screen.getByRole('button', { name: '取得：Mule' }).hasAttribute('disabled')).toBe(false)
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect(screen.queryByText('Mule')).toBeNull()
+    expect(screen.getByRole('option', { name: '重 6' })).toBeTruthy()
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    expect(readStoredCharacter().character?.abilities).toEqual([])
+    cleanup()
+    renderApp()
+    await tab(user, '特殊能力')
+    expect(screen.queryByRole('region', { name: 'Mule 1' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: '取得：Mule' }))
+    expect((screen.getByLabelText('Mule：メモ') as HTMLTextAreaElement).value).toBe('')
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    expect(readStoredCharacter().character?.abilities).toHaveLength(1)
+  })
+  it('Veteranの取り消しでストレスを補正し、他の能力とXPを保持する', async () => {
+    const user = userEvent.setup()
+    let character = characterReducer(createDefaultCharacter(), { type: 'ability.add', definitionId: 'cutter:mule' })
+    character = characterReducer(character, { type: 'ability.add', definitionId: 'hound:survivor' })
+    character = characterReducer(character, { type: 'resource', resource: 'stress', value: 10 })
+    character = characterReducer(character, { type: 'resource', resource: 'playbook', value: 4 })
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
+    renderApp()
+    await tab(user, '特殊能力')
+    await user.click(screen.getByRole('button', { name: 'Survivor 2の取得を取り消す' }))
+    expect(screen.getByRole('dialog', { name: 'Survivorの取得を取り消す' }).textContent).toContain('現在のストレス：10 → 9')
+    await user.click(screen.getByRole('button', { name: '取り消しを確定' }))
+    expect(screen.getByRole('region', { name: 'Mule 1' })).toBeTruthy()
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect(screen.queryByText('Survivor')).toBeNull()
+    expect(screen.queryByRole('button', { name: /取得を取り消す/ })).toBeNull()
+    expect(screen.getByRole('button', { name: 'ストレス 9' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.queryByRole('button', { name: 'ストレス 10' })).toBeNull()
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    expect(readStoredCharacter().character?.xp.playbook).toBe(4)
+  })
+  it('追加取得した能力を個別に取り消し、自由記入能力も取り消せる', async () => {
+    const user = userEvent.setup()
+    renderApp()
+    await tab(user, '特殊能力')
+    await user.selectOptions(screen.getByLabelText('能力の取得元'), 'hound')
+    await user.click(screen.getByRole('button', { name: '取得：Ghost Hunter' }))
+    await user.click(screen.getByRole('button', { name: '追加取得：Ghost Hunter' }))
+    const first = screen.getByRole('region', { name: 'Ghost Hunter 1' })
+    const second = screen.getByRole('region', { name: 'Ghost Hunter 2' })
+    await user.selectOptions(within(first).getByLabelText('Ghost Hunter の選択内容'), 'ghost-form')
+    await user.selectOptions(within(second).getByLabelText('Ghost Hunter の選択内容'), 'mind-link')
+    await user.type(within(second).getByLabelText('Ghost Hunter：狩猟動物の名前・特徴'), '残す動物')
+    await user.click(within(first).getByRole('button', { name: 'Ghost Hunter 1の取得を取り消す' }))
+    await user.click(screen.getByRole('button', { name: '取り消しを確定' }))
+    expect(screen.getAllByRole('region', { name: /Ghost Hunter/ })).toHaveLength(1)
+    expect((screen.getByLabelText('Ghost Hunter の選択内容') as HTMLSelectElement).value).toBe('mind-link')
+    expect((screen.getByLabelText('Ghost Hunter：狩猟動物の名前・特徴') as HTMLTextAreaElement).value).toBe('残す動物')
+    await user.click(screen.getByRole('button', { name: '自由記入の能力を追加' }))
+    await user.type(screen.getByLabelText('能力名'), '仮の能力')
+    await user.type(screen.getByLabelText('能力の効果'), '仮の効果')
+    await user.click(screen.getByRole('button', { name: '仮の能力 2の取得を取り消す' }))
+    await user.click(screen.getByRole('button', { name: '取り消しを確定' }))
+    expect(screen.queryByRole('textbox', { name: '能力名' })).toBeNull()
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    const saved = readStoredCharacter().character
+    expect(saved?.abilities).toHaveLength(1)
+    expect(saved?.abilities[0].choice).toBe('mind-link')
+    expect(saved?.abilities[0].notes).toBe('残す動物')
   })
   it('Leechの薬品枠とLoad超過を扱う', async () => {
     const user = userEvent.setup()

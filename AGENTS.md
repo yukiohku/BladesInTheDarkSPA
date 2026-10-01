@@ -37,6 +37,7 @@
 | `src/constants/defaults.ts` | 新規キャラクターと公式シートの初期値 |
 | `src/state/` | Context / Provider、キャラクター更新用 reducer、自動保存 |
 | `src/lib/rules.ts` | 能力補正、数値上限、Load集計、属性値、作成条件 |
+| `src/lib/abilityRemoval.ts` | 特殊能力の取得取り消し前に表示する影響の確認文 |
 | `src/lib/serialize.ts` | JSON 検証、正規化、書き出し |
 | `src/lib/storage.ts` | `localStorage` の保存・読み込みと取り込み前のバックアップ |
 | `src/components/` | 共通 UI、数値増減フォーム、SheetPanelsの能力・装備・傷・アクション |

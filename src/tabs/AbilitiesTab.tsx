@@ -4,6 +4,7 @@ import type { PlaybookId } from '../types/character'
 import { useCharacter } from '../state/characterContext'
 import { Section, SelectInput } from '../components/ui'
 import { AbilityCards } from '../components/SheetPanels'
+import { ABILITY_LABELS } from '../constants/labels'
 export function AbilitiesTab() {
   const { character, dispatch } = useCharacter()
   const [source, setSource] = useState<PlaybookId>(character.playbookId)
@@ -11,7 +12,7 @@ export function AbilitiesTab() {
     <>
       <Section
         title="取得済みの特殊能力"
-        hint="作成時に1つ、成長時に追加します。取得数はTierと連動しません。効果は参考訳・要約です。"
+        hint={`作成時に1つ、成長時に追加します。取得数はTierと連動しません。効果は参考訳・要約です。${ABILITY_LABELS.editHint}`}
       >
         <AbilityCards editing />
       </Section>
@@ -28,25 +29,28 @@ export function AbilitiesTab() {
           }}
         />
         <div className="stack">
-          {PLAYBOOKS[source].abilities.map((ability) => (
-            <div className="ability-option" key={ability.id}>
-              <h3>
-                {ability.ja} / {ability.name}
-              </h3>
-              <p>{ability.effect}</p>
-              <button
-                className="button"
-                type="button"
-                disabled={
-                  !ability.repeatable &&
-                  character.abilities.some((item) => item.definitionId === ability.id)
-                }
-                onClick={() => dispatch({ type: 'ability.add', definitionId: ability.id })}
-              >
-                取得：{ability.name}
-              </button>
-            </div>
-          ))}
+          {PLAYBOOKS[source].abilities.map((ability) => {
+            const acquired = character.abilities.some((item) => item.definitionId === ability.id)
+            const label = acquired
+              ? (ability.repeatable ? ABILITY_LABELS.acquireAgain : ABILITY_LABELS.acquired)
+              : ABILITY_LABELS.acquire
+            return (
+              <div className="ability-option" key={ability.id}>
+                <h3>
+                  {ability.ja} / {ability.name}
+                </h3>
+                <p>{ability.effect}</p>
+                <button
+                  className="button"
+                  type="button"
+                  disabled={!ability.repeatable && acquired}
+                  onClick={() => dispatch({ type: 'ability.add', definitionId: ability.id })}
+                >
+                  {label}：{ability.name}
+                </button>
+              </div>
+            )
+          })}
         </div>
         <button
           type="button"

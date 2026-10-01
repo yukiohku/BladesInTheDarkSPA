@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react'
 import {
   ACTION_GROUPS,
   ALCHEMICALS,
@@ -8,6 +9,9 @@ import {
   RATING_MAX,
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
+import { ABILITY_LABELS } from '../constants/labels'
+import { abilityRemovalConfirmation } from '../lib/abilityRemoval'
+import { AbilityRemovalDialog } from './AbilityRemovalDialog'
 import {
   attributeRating,
   creationRemaining,
@@ -76,22 +80,58 @@ export function RatingsPanel({ sheet = false }: { sheet?: boolean }) {
 }
 export function AbilityCards({ editing = false }: { editing?: boolean }) {
   const { character, dispatch } = useCharacter()
+  const [removingId, setRemovingId] = useState<string | null>(null)
+  const removeTrigger = useRef<HTMLButtonElement | null>(null)
+  const cardsRef = useRef<HTMLDivElement>(null)
   return (
-    <div className="stack">
+    <div className="stack" ref={cardsRef} tabIndex={editing ? -1 : undefined}>
       {character.abilities.length === 0 && (
         <p className="empty">未取得（編集の特殊能力から取得できます）</p>
       )}
       {character.abilities.map((item, index) => {
         const option = findAbility(item.definitionId)
         const name = option?.name ?? (item.name || '自由記入の能力')
+        const heading = (
+          <h3>
+            <Bilingual name={name} ja={option?.ja} />{' '}
+            {option && !item.definitionId.startsWith(`${character.playbookId}:`) && (
+              <small>Veteran</small>
+            )}
+          </h3>
+        )
         return (
           <section className="ability-card" key={item.id} aria-label={`${name} ${index + 1}`}>
-            <h3>
-              <Bilingual name={name} ja={option?.ja} />{' '}
-              {option && !item.definitionId.startsWith(`${character.playbookId}:`) && (
-                <small>Veteran</small>
-              )}
-            </h3>
+            {editing ? (
+              <div className="ability-card__header">
+                {heading}
+                <button
+                  className="button button--danger-ghost ability-card__remove"
+                  type="button"
+                  aria-label={`${name} ${index + 1}の${ABILITY_LABELS.remove}`}
+                  onClick={(event) => {
+                    removeTrigger.current = event.currentTarget
+                    setRemovingId(item.id)
+                  }}
+                >
+                  {ABILITY_LABELS.remove}
+                </button>
+              </div>
+            ) : heading}
+            {editing && removingId === item.id && (
+              <AbilityRemovalDialog
+                name={name}
+                message={abilityRemovalConfirmation(character, item.id, name)}
+                onCancel={() => {
+                  setRemovingId(null)
+                  removeTrigger.current?.focus()
+                }}
+                onConfirm={() => {
+                  dispatch({ type: 'ability.remove', id: item.id })
+                  setRemovingId(null)
+                  cardsRef.current?.focus()
+                }}
+              />
+            )}
             <p>{option?.effect ?? item.effect}</p>
             {editing && !option && (
               <>
@@ -142,22 +182,6 @@ export function AbilityCards({ editing = false }: { editing?: boolean }) {
                   dispatch({ type: 'ability.patch', id: item.id, patch: { used } })
                 }
               />
-            )}
-            {editing && (
-              <button
-                className="button button--danger-ghost"
-                type="button"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `${name}を削除します。上限補正とストレスにも影響します。入力訂正として削除しますか？`,
-                    )
-                  )
-                    dispatch({ type: 'ability.remove', id: item.id })
-                }}
-              >
-                削除：{name}
-              </button>
             )}
           </section>
         )

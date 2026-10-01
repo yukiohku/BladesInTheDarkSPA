@@ -1,6 +1,4 @@
 import { useState } from 'react'
-import { PLAYBOOKS } from './constants/playbooks'
-import { stressMax } from './lib/rules'
 import { useCharacter } from './state/characterContext'
 import { OfficialSheetView } from './sheet/OfficialSheetView'
 import { AbilitiesTab } from './tabs/AbilitiesTab'
@@ -22,39 +20,25 @@ const TABS = [
   { id: 'data', label: 'データ', Component: DataTab },
 ] as const
 export default function App() {
-  const { character, storageError } = useCharacter()
+  const { storageError } = useCharacter()
   const [mode, setMode] = useState<'sheet' | 'edit'>('sheet')
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('setup')
   const Panel = (TABS.find((candidate) => candidate.id === tab) ?? TABS[0]).Component
   return (
     <div className={`app${mode === 'sheet' ? ' app--sheet' : ''}`}>
       <header className="topbar">
-        <div className="topbar__left">
-          <span className="topbar__name">
-            {character.identity.name || '未設定'} / {PLAYBOOKS[character.playbookId].title}
-          </span>
-        </div>
-        <div className="topbar__right">
-          <p className="status" role="group" aria-label="主要数値">
-            <span>
-              ストレス{character.stress}/{stressMax(character)}
-            </span>
-            <span>トラウマ{character.traumas.length}</span>
-            <span>コイン{character.coin}</span>
-          </p>
-          <div className="modes" role="group" aria-label="表示モード">
-            {(['sheet', 'edit'] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                className={`mode${mode === value ? ' mode--on' : ''}`}
-                aria-pressed={mode === value}
-                onClick={() => setMode(value)}
-              >
-                {value === 'sheet' ? 'シート' : '編集'}
-              </button>
-            ))}
-          </div>
+        <div className="modes" role="group" aria-label="表示モード">
+          {(['sheet', 'edit'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              className={`mode${mode === value ? ' mode--on' : ''}`}
+              aria-pressed={mode === value}
+              onClick={() => setMode(value)}
+            >
+              {value === 'sheet' ? 'シート' : '編集'}
+            </button>
+          ))}
         </div>
       </header>
       {storageError && (

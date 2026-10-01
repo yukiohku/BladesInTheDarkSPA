@@ -182,11 +182,14 @@ describe('基本7種の操作', () => {
     await user.type(screen.getByLabelText('理由'), '抵抗した')
     await user.click(screen.getByRole('button', { name: '数量を1増やす' }))
     await user.click(screen.getByRole('button', { name: '変動を記録' }))
-    expect(screen.getByRole('group', { name: '主要数値' }).textContent).toContain('ストレス2/9')
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect(screen.getByRole('button', { name: 'ストレス 2' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: 'ストレス 3' }).getAttribute('aria-pressed')).toBe('false')
     await tab(user, '履歴')
     expect(screen.getByText('抵抗した')).toBeTruthy()
     await user.click(screen.getByRole('button', { name: '取り消す' }))
-    expect(screen.getByRole('group', { name: '主要数値' }).textContent).toContain('ストレス0/9')
+    await user.click(screen.getByRole('button', { name: 'シート' }))
+    expect(screen.getByRole('button', { name: 'ストレス 1' }).getAttribute('aria-pressed')).toBe('false')
   })
   it('LurkのExpertiseの対象とWhisperの儀式メモを入力する', async () => {
     const user = userEvent.setup()
@@ -204,14 +207,22 @@ describe('基本7種の操作', () => {
       (screen.getByLabelText('Ritual：習得した儀式・手順・代償') as HTMLTextAreaElement).value,
     ).toBe('霊を呼ぶ儀式')
   })
-  it('保存した別プレイブックを再描画し、独自の属性・エッジを表示しない', () => {
+  it('保存人物をシート内に表示し、上部は表示切り替えだけにする', async () => {
+    const user = userEvent.setup()
     const character = createDefaultCharacter('spider')
     character.identity.name = '保存人物'
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
     renderApp()
     expect(screen.getByRole('heading', { name: 'SPIDER' })).toBeTruthy()
-    expect(screen.getByRole('group', { name: '主要数値' }).textContent).not.toContain('エッジ')
+    expect(screen.getByText('保存人物')).toBeTruthy()
+    expect(screen.getByRole('banner').textContent).toBe('シート編集')
+    expect(within(screen.getByRole('banner')).getAllByRole('button')).toHaveLength(2)
+    expect(screen.queryByText('エッジ')).toBeNull()
     expect(screen.queryByRole('button', { name: 'エッジ 2' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: '編集' }))
+    expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('保存人物')
+    expect(screen.getByRole('banner').textContent).toBe('シート編集')
+    expect(screen.getByRole('button', { name: '編集' }).getAttribute('aria-pressed')).toBe('true')
   })
   it('壊れたJSONの取り込みで現在のキャラクターを維持する', async () => {
     const user = userEvent.setup()

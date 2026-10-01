@@ -168,7 +168,6 @@ export function EquipmentPanel() {
             <span className="equipment-name">{item.ja ?? item.name}</span>
             <small>
               Load {item.load}
-              {item.load === 0 ? '（数えない）' : ''}
             </small>
           </span>
           <span className="equipment-checks">

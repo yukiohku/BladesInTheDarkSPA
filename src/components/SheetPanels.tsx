@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { equipmentDescriptionText } from '../constants/equipmentDescriptions'
 import {
   ACTION_GROUPS,
   ALCHEMICALS,
@@ -210,7 +211,7 @@ export function EquipmentPanel() {
       >
         <div className="equipment-heading">
           <span>
-            <span className="equipment-name">{item.ja ?? item.name}</span>
+            <span className="equipment-name" title={equipmentDescriptionText(item)}>{item.ja ?? item.name}</span>
             <small>
               Load {item.load}
             </small>
@@ -291,7 +292,8 @@ export function EquipmentPanel() {
       {character.customItems.map((item) => (
         <div className="equipment-heading" key={item.id}>
           <span>
-            {item.name || '未設定'} <small>Load {item.load}</small>
+            <span className="equipment-name" title={item.notes.trim() || undefined}>{item.name || '未設定'}</span>{' '}
+            <small>Load {item.load}</small>
           </span>
           <Box
             label={item.name || '自由記入装備'}

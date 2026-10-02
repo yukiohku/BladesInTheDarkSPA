@@ -4,10 +4,17 @@ import type { PlaybookId } from '../types/character'
 import { useCharacter } from '../state/characterContext'
 import { Section, SelectInput } from '../components/ui'
 import { AbilityCards } from '../components/SheetPanels'
-import { ABILITY_LABELS } from '../constants/labels'
+import { ABILITY_LABELS, PLAYBOOK_LABELS } from '../constants/labels'
 export function AbilitiesTab() {
   const { character, dispatch } = useCharacter()
-  const [source, setSource] = useState<PlaybookId>(character.playbookId)
+  const [source, setSource] = useState<PlaybookId | null>(character.playbookId)
+  if (character.playbookId === null) {
+    return (
+      <Section title="特殊能力" hint={PLAYBOOK_LABELS.selectFirst}>
+        <AbilityCards editing />
+      </Section>
+    )
+  }
   return (
     <>
       <Section
@@ -22,14 +29,14 @@ export function AbilitiesTab() {
       >
         <SelectInput
           label="能力の取得元"
-          value={source}
+          value={source ?? ''}
           options={PLAYBOOK_LIST.map((book) => ({ id: book.id, name: book.title }))}
           onChange={(value) => {
             if (isPlaybookId(value)) setSource(value)
           }}
         />
         <div className="stack">
-          {PLAYBOOKS[source].abilities.map((ability) => {
+          {(source ? PLAYBOOKS[source].abilities : []).map((ability) => {
             const acquired = character.abilities.some((item) => item.definitionId === ability.id)
             const label = acquired
               ? (ability.repeatable ? ABILITY_LABELS.acquireAgain : ABILITY_LABELS.acquired)

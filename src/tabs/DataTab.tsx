@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { MESSAGE } from '../constants/labels'
+import { MESSAGE, PLAYBOOK_LABELS } from '../constants/labels'
 import { parseCharacterFile, serializeCharacter, suggestedFileName } from '../lib/serialize'
 import { hasBackup, loadBackup, saveBackup } from '../lib/storage'
 import { useCharacter } from '../state/characterContext'
@@ -19,7 +19,7 @@ export function DataTab() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [preview, setPreview] = useState(false)
-  const [newPlaybook, setNewPlaybook] = useState<PlaybookId>('cutter')
+  const [newPlaybook, setNewPlaybook] = useState<PlaybookId | null>(null)
 
   const json = serializeCharacter(character)
   const canRestore = hasBackup()
@@ -175,10 +175,12 @@ export function DataTab() {
         </p>
         <SelectInput
           label="新しいキャラクターのプレイブック"
-          value={newPlaybook}
+          value={newPlaybook ?? ''}
+          emptyLabel={PLAYBOOK_LABELS.unselected}
           options={PLAYBOOK_LIST.map((book) => ({ id: book.id, name: book.title }))}
           onChange={(value) => {
-            if (isPlaybookId(value)) setNewPlaybook(value)
+            if (value === '') setNewPlaybook(null)
+            else if (isPlaybookId(value)) setNewPlaybook(value)
           }}
         />
         <button type="button" className="button button--danger" onClick={reset}>

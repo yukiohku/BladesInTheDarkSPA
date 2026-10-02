@@ -9,10 +9,11 @@ import {
 import { useCharacter } from '../state/characterContext'
 import { Grid, Section, SelectInput, TextArea, TextInput } from '../components/ui'
 import { ActionAllocationPanel } from '../components/ActionAllocationPanel'
-import { SETUP_LABELS } from '../constants/labels'
+import { PLAYBOOK_LABELS, SETUP_LABELS } from '../constants/labels'
 export function SetupTab() {
   const { character, dispatch } = useCharacter()
   const identity = character.identity
+  const book = character.playbookId ? PLAYBOOKS[character.playbookId] : null
   const heritage = HERITAGES.find((item) => item.id === identity.heritageId)
   const patch = (field: keyof typeof identity, value: string) =>
     dispatch({ type: 'identity', patch: { [field]: value } })
@@ -24,20 +25,20 @@ export function SetupTab() {
       >
         <SelectInput
           label="プレイブック"
-          value={character.playbookId}
+          value={character.playbookId ?? ''}
+          emptyLabel={PLAYBOOK_LABELS.unselected}
           options={PLAYBOOK_LIST.map((book) => ({
             id: book.id,
             name: `${book.title} — ${book.descriptor}`,
           }))}
           onChange={(value) => {
-            if (isPlaybookId(value) && value !== character.playbookId) {
-              dispatch({ type: 'playbook.change', playbookId: value, resetRatings: true })
+            if (value === '' || isPlaybookId(value)) {
+              const playbookId = value === '' ? null : value
+              if (playbookId !== character.playbookId)
+                dispatch({ type: 'playbook.change', playbookId, resetRatings: true })
             }
           }}
         />
-        <a href={PLAYBOOKS[character.playbookId].source} target="_blank" rel="noreferrer">
-          このプレイブックの公式原本
-        </a>
       </Section>
       <Section title="基本情報">
         <Grid>
@@ -103,8 +104,8 @@ export function SetupTab() {
         <ActionAllocationPanel key={character.playbookId} />
       </Section>
       <Section
-        title={PLAYBOOKS[character.playbookId].friendsTitle}
-        hint="親しい人物1人と別のライバル1人を選びます。名前は編集できます。"
+        title={book?.friendsTitle ?? PLAYBOOK_LABELS.friends}
+        hint={book ? '親しい人物1人と別のライバル1人を選びます。名前は編集できます。' : PLAYBOOK_LABELS.friendsHint}
       >
         {character.friends.map((friend) => (
           <div className="friend-editor" key={friend.id}>
@@ -138,7 +139,7 @@ export function SetupTab() {
             </button>
           </div>
         ))}
-        <button className="button" type="button" onClick={() => dispatch({ type: 'friend.add' })}>
+        <button className="button" type="button" disabled={!book} onClick={() => dispatch({ type: 'friend.add' })}>
           知人を追加
         </button>
       </Section>

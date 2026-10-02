@@ -23,8 +23,8 @@ export function defaultCrew(): Crew {
     notes: '',
   }
 }
-export function defaultSheet(playbookId: PlaybookId = 'cutter'): SheetState {
-  const book = PLAYBOOKS[playbookId]
+export function defaultSheet(playbookId: PlaybookId | null = 'cutter'): SheetState {
+  const book = playbookId ? PLAYBOOKS[playbookId] : null
   const ratings: SheetState['ratings'] = {
     hunt: 0,
     study: 0,
@@ -39,7 +39,7 @@ export function defaultSheet(playbookId: PlaybookId = 'cutter'): SheetState {
     consort: 0,
     sway: 0,
   }
-  for (const action of ACTIONS) ratings[action.id] = book.initialRatings[action.id] ?? 0
+  for (const action of ACTIONS) ratings[action.id] = book?.initialRatings[action.id] ?? 0
   return {
     playbookId,
     identity: {
@@ -57,7 +57,7 @@ export function defaultSheet(playbookId: PlaybookId = 'cutter'): SheetState {
     initialActionRatings: null,
     xp: { playbook: 0, insight: 0, prowess: 0, resolve: 0 },
     abilities: [],
-    friends: book.friends.map((friend) => ({ ...friend, relation: 'neutral' })),
+    friends: book?.friends.map((friend) => ({ ...friend, relation: 'neutral' as const })) ?? [],
     equipment: Object.fromEntries(equipmentFor(playbookId).map((item) => [item.id, 0])),
     itemUses: Object.fromEntries(
       equipmentFor(playbookId)
@@ -80,7 +80,7 @@ export function defaultSheet(playbookId: PlaybookId = 'cutter'): SheetState {
     crew: defaultCrew(),
   }
 }
-export function createDefaultCharacter(playbookId: PlaybookId = 'cutter'): Character {
+export function createDefaultCharacter(playbookId: PlaybookId | null = 'cutter'): Character {
   const at = nowIso()
   return {
     ...defaultSheet(playbookId),

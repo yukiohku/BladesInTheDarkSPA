@@ -8,7 +8,7 @@ import {
   RATING_MAX,
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
-import { ABILITY_LABELS, EQUIPMENT_LABELS } from '../constants/labels'
+import { ABILITY_LABELS, EQUIPMENT_LABELS, PLAYBOOK_LABELS } from '../constants/labels'
 import { abilityRemovalConfirmation } from '../lib/abilityRemoval'
 import { AbilityRemovalDialog } from './AbilityRemovalDialog'
 import {
@@ -30,6 +30,7 @@ export function RatingsPanel({ sheet = false, initialDraft, onInitialChange }: {
   onInitialChange?: (ratings: SheetState['ratings']) => void
 }) {
   const { character, dispatch } = useCharacter()
+  const book = character.playbookId ? PLAYBOOKS[character.playbookId] : null
   const allocating = !sheet && (character.initialActionRatings === null || initialDraft !== undefined)
   const ratings = initialDraft ?? character.ratings
   return (
@@ -59,16 +60,16 @@ export function RatingsPanel({ sheet = false, initialDraft, onInitialChange }: {
               name={item.ja}
               en={item.name}
               value={ratings[item.id]}
-              fixedValue={sheet ? 0 : (PLAYBOOKS[character.playbookId].initialRatings[item.id] ?? 0)}
+              fixedValue={sheet ? 0 : (book?.initialRatings[item.id] ?? 0)}
               initialValue={allocating || sheet ? 0 : character.initialActionRatings?.[item.id]}
               growth={!sheet && !allocating}
               editableMax={allocating ? initialAllocationMax(character, ratings, item.id) : RATING_MAX}
               onChange={
-                sheet ? undefined : (value) => {
+                sheet || !book ? undefined : (value) => {
                   if (initialDraft && onInitialChange) {
                     onInitialChange({
                       ...initialDraft,
-                      [item.id]: clamp(value, PLAYBOOKS[character.playbookId].initialRatings[item.id] ?? 0, initialAllocationMax(character, initialDraft, item.id)),
+                      [item.id]: clamp(value, book.initialRatings[item.id] ?? 0, initialAllocationMax(character, initialDraft, item.id)),
                     })
                   } else dispatch({ type: 'rating', id: item.id, value })
                 }
@@ -88,7 +89,7 @@ export function AbilityCards({ editing = false }: { editing?: boolean }) {
   return (
     <div className="stack" ref={cardsRef} tabIndex={editing ? -1 : undefined}>
       {character.abilities.length === 0 && (
-        <p className="empty">未取得（編集の特殊能力から取得できます）</p>
+        <p className="empty">{character.playbookId ? '未取得（編集の特殊能力から取得できます）' : PLAYBOOK_LABELS.abilitiesHint}</p>
       )}
       {character.abilities.map((item, index) => {
         const option = findAbility(item.definitionId)
@@ -193,6 +194,7 @@ export function AbilityCards({ editing = false }: { editing?: boolean }) {
 }
 export function EquipmentPanel() {
   const { character, dispatch } = useCharacter()
+  const book = character.playbookId ? PLAYBOOKS[character.playbookId] : null
   const limits = loadLimits(character)
   const load = usedLoad(character)
   const max = limits[character.score.load]
@@ -274,8 +276,12 @@ export function EquipmentPanel() {
           </p>
         )}
       </div>
-      <h4>{PLAYBOOKS[character.playbookId].title} 固有装備</h4>
-      <div className="equipment-list">{PLAYBOOKS[character.playbookId].items.map(renderItem)}</div>
+      <h4>{book ? `${book.title} 固有装備` : PLAYBOOK_LABELS.items}</h4>
+      {book ? (
+        <div className="equipment-list">{book.items.map(renderItem)}</div>
+      ) : (
+        <p className="field__hint">{PLAYBOOK_LABELS.itemsHint}</p>
+      )}
       <h4>共通装備</h4>
       <div className="equipment-list">{GENERAL_ITEMS.map(renderItem)}</div>
       {character.customItems.length > 0 && <h4>自由記入装備</h4>}

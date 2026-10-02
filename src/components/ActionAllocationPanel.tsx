@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ACTION_ALLOCATION_LABELS as LABELS } from '../constants/labels'
+import { ACTION_ALLOCATION_LABELS as LABELS, PLAYBOOK_LABELS } from '../constants/labels'
 import { INITIAL_ALLOCATION_POINTS } from '../constants/playbooks'
 import { canConfirmInitialAllocation, initialAllocationCount, totalActionGrowth } from '../lib/actionAllocation'
 import { useCharacter } from '../state/characterContext'
@@ -13,6 +13,16 @@ export function ActionAllocationPanel() {
   const initial = draft ?? character.initialActionRatings ?? character.ratings
   const count = initialAllocationCount(character, initial)
   const growth = totalActionGrowth(character)
+  if (character.playbookId === null) {
+    return (
+      <div className="action-editor">
+        <RatingsPanel />
+        <aside className="action-allocation" aria-label={LABELS.region}>
+          <p className="field__hint">{PLAYBOOK_LABELS.allocationHint}</p>
+        </aside>
+      </div>
+    )
+  }
   return (
     <div className="action-editor">
       <RatingsPanel initialDraft={draft ?? undefined} onInitialChange={setDraft} />

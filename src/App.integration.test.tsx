@@ -25,6 +25,7 @@ async function chooseBook(user: ReturnType<typeof userEvent.setup>, book: string
 }
 beforeEach(() => {
   window.localStorage.clear()
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(createDefaultCharacter('cutter')))
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   // jsdomにはdialogの開閉APIがないため、open属性と初期フォーカスを再現する。
   HTMLDialogElement.prototype.showModal = function () {

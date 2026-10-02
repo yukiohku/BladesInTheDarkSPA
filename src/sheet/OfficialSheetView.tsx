@@ -22,6 +22,7 @@ import { TraumaPanel } from '../tabs/StatusTab'
 import { BookmarkTrack, CoinTrack, StressBoxes } from './parts'
 import { abilityDefinitions, loadLimits, stressMax } from '../lib/rules'
 import { characterStatus } from '../lib/status'
+import { PLAYBOOK_LABELS } from '../constants/labels'
 import logoUrl from '../assets/blades-logo.png'
 
 function IdentityRow({
@@ -49,7 +50,7 @@ function IdentityRow({
 
 export function OfficialSheetView() {
   const { character, dispatch } = useCharacter()
-  const book = PLAYBOOKS[character.playbookId]
+  const book = character.playbookId ? PLAYBOOKS[character.playbookId] : null
   const identity = character.identity
   const limits = loadLimits(character)
   return (
@@ -57,8 +58,8 @@ export function OfficialSheetView() {
       <div className="os__banner">
         <img className="os__logo" src={logoUrl} alt="Blades in the Dark" />
         <div className="os__playbook">
-          <h2 className="os__title">{book.title}</h2>
-          <p className="os__descriptor">{book.descriptor}</p>
+          <h2 className="os__title">{book?.title ?? PLAYBOOK_LABELS.sheetTitle}</h2>
+          <p className="os__descriptor">{book?.descriptor ?? PLAYBOOK_LABELS.sheetHint}</p>
         </div>
       </div>
       <div className="os__col os__col--left">
@@ -136,9 +137,13 @@ export function OfficialSheetView() {
         </section>
         <details className="os-gather">
           <summary>情報収集の質問例</summary>
-          <ul>
-            {book.gatherInfo.map((question) => <li key={question}>{question}</li>)}
-          </ul>
+          {book ? (
+            <ul>
+              {book.gatherInfo.map((question) => <li key={question}>{question}</li>)}
+            </ul>
+          ) : (
+            <p>{PLAYBOOK_LABELS.gatherHint}</p>
+          )}
         </details>
       </div>
       <div className="os__col os__col--center">
@@ -150,8 +155,22 @@ export function OfficialSheetView() {
         </section>
         <section className="os-panel os-friends">
           <h3 className="os-panel__title">
-            FRIENDS <small>{book.friendsTitle}</small>
+            FRIENDS <small>{book?.friendsTitle ?? PLAYBOOK_LABELS.friends}</small>
           </h3>
+          {!book && character.friends.length === 0 && (
+            <>
+              {Array.from({ length: 5 }, (_, index) => (
+                <div className="os-friend" key={index} aria-hidden="true">
+                  <span className="os-friend__relation">
+                    <span className="os-friend__mark">△</span>
+                    <span className="os-friend__mark">▽</span>
+                  </span>
+                  <span className="os-friend__readout">{'\u00a0'}</span>
+                </div>
+              ))}
+              <p className="os-friendlegend">{PLAYBOOK_LABELS.friendsHint}</p>
+            </>
+          )}
           {character.friends.map((friend) => (
             <div className="os-friend" key={friend.id}>
               <span
@@ -236,7 +255,7 @@ export function OfficialSheetView() {
           <p>Desperateのアクション判定ごとに対応属性へXP1。</p>
           <ul>
             {[
-              book.xpTrigger,
+              ...(book ? [book.xpTrigger] : []),
               ...COMMON_XP_TRIGGERS,
               ...abilityDefinitions(character).flatMap((option) =>
                 option.xpTrigger ? [option.xpTrigger] : [],

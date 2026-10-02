@@ -23,6 +23,19 @@ export const MESSAGE = {
 export const SETUP_LABELS = {
   heritageDetailPlaceholder: '例：港で荷運びをする一家。祖父母が移住し、自分はドスコヴォルで育った。',
 }
+export const PLAYBOOK_LABELS = {
+  unselected: '未選択',
+  sheetTitle: 'PLAYBOOK',
+  sheetHint: 'プレイブック未選択。「編集」→「初期設定」で選びます。',
+  selectFirst: '「初期設定」でプレイブックを選んでください。',
+  friends: '知人',
+  friendsHint: 'プレイブックを選ぶと知人が表示されます。',
+  items: '固有装備',
+  itemsHint: 'プレイブックを選ぶと固有装備が表示されます。',
+  abilitiesHint: 'プレイブックを選ぶと特殊能力を取得できます。',
+  allocationHint: 'プレイブックを選ぶと固定点が入り、追加4点を配分できます。',
+  gatherHint: 'プレイブックを選ぶと質問例が表示されます。',
+}
 export const EQUIPMENT_LABELS = {
   loadExceeded: '選択した上限を超えています。卓の裁定を確認してください。',
 }

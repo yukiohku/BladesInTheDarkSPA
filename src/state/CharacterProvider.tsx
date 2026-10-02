@@ -10,7 +10,7 @@ export function CharacterProvider({ children }: { children: ReactNode }) {
   const [character, reduce] = useReducer(
     characterReducer,
     initial.character,
-    (saved) => saved ?? createDefaultCharacter(),
+    (saved) => saved ?? createDefaultCharacter(null),
   )
   const [blocked, setBlocked] = useState(initial.error)
   const [saveError, setSaveError] = useState('')

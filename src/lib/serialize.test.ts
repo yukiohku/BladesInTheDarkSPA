@@ -36,6 +36,30 @@ const oldSheet = {
   log: [{ id: 'log', resource: 'edges', before: 0, after: 4 }],
 }
 describe('保存と移行', () => {
+  it('プレイブック未選択のJSONを再読込して共通値と未選択状態を保持する', () => {
+    let original = createDefaultCharacter(null)
+    original = characterReducer(original, { type: 'identity', patch: { name: '作成途中' } })
+    original = characterReducer(original, { type: 'equipment', id: 'armor', quantity: 1 })
+    original = characterReducer(original, { type: 'score.start' })
+    const result = parseCharacterFile(serializeCharacter(original))
+    if (!result.ok) throw new Error(result.error)
+    expect(result.character).toEqual(original)
+    expect(result.character.playbookId).toBeNull()
+    expect(result.character.initialActionRatings).toBeNull()
+  })
+  it('未選択の外部入力に技能点があっても配分を開始済みにしない', () => {
+    const result = parseCharacterFile(JSON.stringify({
+      ...createDefaultCharacter(null),
+      ratings: { hunt: 4, skirmish: 2 },
+      initialActionRatings: { hunt: 2 },
+    }))
+    if (!result.ok) throw new Error(result.error)
+    expect(Object.values(result.character.ratings)).toEqual(Array(12).fill(0))
+    expect(result.character.initialActionRatings).toBeNull()
+  })
+  it.each([undefined, '', false, 'vampire'])('null以外の不正なプレイブック %s は未選択と扱わず拒否する', (playbookId) => {
+    expect(parseCharacterFile(JSON.stringify({ schemaVersion: 2, identity: {}, playbookId })).ok).toBe(false)
+  })
   it('未確定の初期配分を再読込して、配分途中から再開できる', () => {
     const original = characterReducer(createDefaultCharacter(), { type: 'rating', id: 'hunt', value: 1 })
     const result = parseCharacterFile(serializeCharacter(original))

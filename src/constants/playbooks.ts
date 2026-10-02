@@ -885,6 +885,6 @@ export function isPlaybookId(value: unknown): value is PlaybookId {
 export function findAbility(id: string) {
   return ALL_ABILITIES.find((option) => option.id === id)
 }
-export function equipmentFor(book: PlaybookId) {
-  return [...PLAYBOOKS[book].items, ...GENERAL_ITEMS]
+export function equipmentFor(book: PlaybookId | null) {
+  return [...(book ? PLAYBOOKS[book].items : []), ...GENERAL_ITEMS]
 }

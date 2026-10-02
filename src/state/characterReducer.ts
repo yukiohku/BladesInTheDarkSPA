@@ -30,10 +30,10 @@ import { createId, nowIso } from '../lib/id'
 import { actionGrowth, canConfirmInitialAllocation, initialAllocationMax } from '../lib/actionAllocation'
 export type Action =
   | { type: 'replace'; character: Character }
-  | { type: 'reset'; playbookId?: PlaybookId }
+  | { type: 'reset'; playbookId?: PlaybookId | null }
   | { type: 'identity'; patch: Partial<SheetState['identity']> }
   | { type: 'note'; value: string }
-  | { type: 'playbook.change'; playbookId: PlaybookId; resetRatings: boolean }
+  | { type: 'playbook.change'; playbookId: PlaybookId | null; resetRatings: boolean }
   | { type: 'rating'; id: ActionId; value: number }
   | { type: 'ratings.confirmInitial'; ratings: SheetState['ratings'] }
   | { type: 'resource'; resource: ResourceKey; value: number }
@@ -80,7 +80,7 @@ export function characterReducer(character: Character, action: Action): Characte
     case 'replace':
       return action.character
     case 'reset':
-      return createDefaultCharacter(action.playbookId)
+      return createDefaultCharacter(action.playbookId ?? null)
     case 'identity':
       return touch({ ...character, identity: { ...character.identity, ...action.patch } })
     case 'note':
@@ -88,6 +88,7 @@ export function characterReducer(character: Character, action: Action): Characte
     case 'playbook.change': {
       if (action.playbookId === character.playbookId) return character
       const base = defaultSheet(action.playbookId)
+      const resetRatings = action.resetRatings || action.playbookId === null || character.playbookId === null
       const cleared: Character = {
         ...character,
         playbookId: action.playbookId,
@@ -103,8 +104,8 @@ export function characterReducer(character: Character, action: Action): Characte
         itemUses: base.itemUses,
         gatherNotes: {},
         abilities: [],
-        ratings: action.resetRatings ? base.ratings : character.ratings,
-        initialActionRatings: action.resetRatings ? null : character.initialActionRatings,
+        ratings: resetRatings ? base.ratings : character.ratings,
+        initialActionRatings: resetRatings ? null : character.initialActionRatings,
       }
       const next = {
         ...cleared,
@@ -115,7 +116,7 @@ export function characterReducer(character: Character, action: Action): Characte
         },
         legacy: [
           ...character.legacy,
-          {
+          ...(character.playbookId === null ? [] : [{
             title: `${PLAYBOOKS[character.playbookId].title} 変更前の固有データ`,
             at: nowIso(),
             data: {
@@ -127,12 +128,13 @@ export function characterReducer(character: Character, action: Action): Characte
               initialActionRatings: character.initialActionRatings,
               abilities: character.abilities,
             },
-          },
+          }]),
         ],
       }
       return touch(next)
     }
     case 'rating':
+      if (character.playbookId === null) return character
       return touch({
         ...character,
         ratings: {
@@ -159,6 +161,7 @@ export function characterReducer(character: Character, action: Action): Characte
       return next === character ? character : touch(next)
     }
     case 'ability.add': {
+      if (character.playbookId === null) return character
       const option = findAbility(action.definitionId)
       if (
         !option ||
@@ -183,6 +186,7 @@ export function characterReducer(character: Character, action: Action): Characte
       return touch({ ...next, healing: Math.max(next.healing, healingMinimum(next)) })
     }
     case 'ability.custom':
+      if (character.playbookId === null) return character
       return touch({
         ...character,
         abilities: [

@@ -9,6 +9,44 @@ import { initialAllocationCount, totalActionGrowth } from '../lib/actionAllocati
 const run = (actions: Action[], base = createDefaultCharacter()) =>
   actions.reduce(characterReducer, base)
 describe('基本7種の定義と新規作成', () => {
+  it('未選択では固有データや固定点を持たず、配分と能力取得を開始しない', () => {
+    const blank = createDefaultCharacter(null)
+    expect(blank.playbookId).toBeNull()
+    expect(Object.values(blank.ratings)).toEqual(Array(12).fill(0))
+    expect(blank.friends).toEqual([])
+    expect(blank.equipment).not.toHaveProperty('cutter:hand-weapon')
+    expect(blank.initialActionRatings).toBeNull()
+    expect(characterReducer(blank, { type: 'rating', id: 'hunt', value: 2 })).toBe(blank)
+    expect(characterReducer(blank, { type: 'ratings.confirmInitial', ratings: { ...blank.ratings, hunt: 2, study: 2 } })).toBe(blank)
+    expect(characterReducer(blank, { type: 'ability.add', definitionId: 'cutter:mule' })).toBe(blank)
+    expect(characterReducer(blank, { type: 'ability.custom' })).toBe(blank)
+    const reset = characterReducer(createDefaultCharacter('hound'), { type: 'reset' })
+    expect(reset.playbookId).toBeNull()
+  })
+  it.each(PLAYBOOK_LIST)('未選択から$titleを選ぶと固定点を入れ、共通値を保つ', (book) => {
+    const blank = run([
+      { type: 'identity', patch: { name: '作成途中', heritageDetail: '港で育った' } },
+      { type: 'note', value: '人物メモ' },
+      { type: 'resource', resource: 'stress', value: 2 },
+      { type: 'resource', resource: 'playbook', value: 1 },
+      { type: 'harm', field: 'level1', index: 0, value: '打撲' },
+      { type: 'equipment', id: 'armor', quantity: 1 },
+      { type: 'armor', kind: 'armor' },
+    ], createDefaultCharacter(null))
+    const selected = characterReducer(blank, { type: 'playbook.change', playbookId: book.id, resetRatings: false })
+    expect(selected.ratings).toEqual(createDefaultCharacter(book.id).ratings)
+    expect(selected.initialActionRatings).toBeNull()
+    expect(selected.friends).toEqual(createDefaultCharacter(book.id).friends)
+    expect(selected.identity).toEqual(blank.identity)
+    expect(selected.notes).toBe(blank.notes)
+    expect(selected.stress).toBe(2)
+    expect(selected.xp.playbook).toBe(1)
+    expect(selected.harm.level1[0]).toBe('打撲')
+    expect(selected.equipment.armor).toBe(1)
+    expect(selected.armorUses.armor).toBe(true)
+    expect(selected.legacy).toHaveLength(0)
+    expect(characterReducer(selected, { type: 'playbook.change', playbookId: book.id, resetRatings: true })).toBe(selected)
+  })
   it.each([
     ['cutter', 'skirmish', 'command'],
     ['hound', 'hunt', 'survey'],
@@ -43,6 +81,49 @@ describe('基本7種の定義と新規作成', () => {
   })
 })
 describe('characterReducer', () => {
+  it('選択済みから未選択へ戻すと固有データを保管し、共通値と能力補正を処理する', () => {
+    const allocated = run([{ type: 'rating', id: 'hunt', value: 2 }, { type: 'rating', id: 'study', value: 2 }])
+    const confirmed = characterReducer(allocated, { type: 'ratings.confirmInitial', ratings: allocated.ratings })
+    const original = run([
+      { type: 'identity', patch: { name: '残す名前' } },
+      { type: 'note', value: '残すメモ' },
+      { type: 'resource', resource: 'playbook', value: 3 },
+      { type: 'rating', id: 'hunt', value: 4 },
+      { type: 'ability.add', definitionId: 'hound:survivor' },
+      { type: 'ability.add', definitionId: 'cutter:battleborn' },
+      { type: 'resource', resource: 'stress', value: 10 },
+      { type: 'equipment', id: 'armor', quantity: 1 },
+      { type: 'equipment', id: 'cutter:hand-weapon', quantity: 1 },
+      { type: 'armor', kind: 'armor' },
+      { type: 'armor', kind: 'special' },
+      { type: 'gather', key: 'cutter:0', value: '保管するメモ' },
+    ], confirmed)
+    const next = characterReducer(original, { type: 'playbook.change', playbookId: null, resetRatings: false })
+    expect(next.playbookId).toBeNull()
+    expect(Object.values(next.ratings)).toEqual(Array(12).fill(0))
+    expect(next.initialActionRatings).toBeNull()
+    expect(next.friends).toEqual([])
+    expect(next.abilities).toEqual([])
+    expect(next.gatherNotes).toEqual({})
+    expect(next.equipment).not.toHaveProperty('cutter:hand-weapon')
+    expect(next.equipment.armor).toBe(1)
+    expect(next.identity).toEqual(original.identity)
+    expect(next.notes).toBe(original.notes)
+    expect(next.xp.playbook).toBe(3)
+    expect(next.stress).toBe(9)
+    expect(next.armorUses).toEqual({ armor: true, heavy: false, special: false })
+    expect(next.legacy[0]).toMatchObject({
+      title: 'CUTTER 変更前の固有データ',
+      data: { ratings: original.ratings, initialActionRatings: original.initialActionRatings,
+        friends: original.friends, abilities: original.abilities, equipment: original.equipment,
+        gatherNotes: original.gatherNotes },
+    })
+    const selected = characterReducer(next, { type: 'playbook.change', playbookId: 'cutter', resetRatings: false })
+    expect(selected.ratings).toEqual(createDefaultCharacter('cutter').ratings)
+    expect(selected.abilities).toEqual([])
+    expect(selected.legacy).toEqual(next.legacy)
+    expect(characterReducer(next, { type: 'playbook.change', playbookId: null, resetRatings: true })).toBe(next)
+  })
   it('初期配分は固定点を維持し、追加4点と各上限2を守る', () => {
     const character = run([
       { type: 'rating', id: 'skirmish', value: 0 },

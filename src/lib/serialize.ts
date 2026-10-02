@@ -135,7 +135,7 @@ function abilities(value: unknown): AcquiredAbility[] {
 }
 export function normalizeSheet(value: unknown): SheetState {
   const source = record(value)
-  const playbookId = isPlaybookId(source.playbookId) ? source.playbookId : 'cutter'
+  const playbookId = source.playbookId === null ? null : isPlaybookId(source.playbookId) ? source.playbookId : 'cutter'
   const base = defaultSheet(playbookId)
   const identity = record(source.identity)
   const ratingSource = record(source.ratings)
@@ -229,7 +229,10 @@ export function normalizeSheet(value: unknown): SheetState {
       base.ratings[item.id],
       RATING_MAX,
     )
-  if (source.initialActionRatings === null) {
+  if (playbookId === null) {
+    next.ratings = base.ratings
+    next.initialActionRatings = null
+  } else if (source.initialActionRatings === null) {
     const initial = { ...base.ratings }
     let remaining = INITIAL_ALLOCATION_POINTS
     for (const item of ACTIONS) {
@@ -406,7 +409,7 @@ export function parseCharacterFile(raw: string): ParseResult {
     return { ok: false, error: '保存形式のバージョンが不正です。' }
   if (version > SCHEMA_VERSION)
     return { ok: false, error: '新しいバージョンのファイルです。アプリを更新してください。' }
-  if (version === 2 && (!isRecord(value.identity) || !isPlaybookId(value.playbookId)))
+  if (version === 2 && (!isRecord(value.identity) || (value.playbookId !== null && !isPlaybookId(value.playbookId))))
     return { ok: false, error: 'キャラクターシートの身元またはプレイブックが不正です。' }
   if (version === 1 && !isRecord(value.basics) && !isRecord(value.attributes))
     return { ok: false, error: 'キャラクターシートの構造ではありません。' }

@@ -74,7 +74,7 @@ export interface Crew {
   notes: string
 }
 export interface SheetState {
-  playbookId: PlaybookId
+  playbookId: PlaybookId | null
   identity: {
     name: string
     look: string

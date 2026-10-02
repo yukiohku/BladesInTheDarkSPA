@@ -1,4 +1,4 @@
-# 刃物 in the Dark — キャラクターシート
+# Blades in the Dark キャラクターシート
 
 Blades in the Dark のキャラクターシートを日本語で管理する非公式のSPAです。
 React / TypeScript / Viteで動作し、サーバーやデータベースは使いません。

@@ -23,6 +23,9 @@ export const MESSAGE = {
 export const SETUP_LABELS = {
   heritageDetailPlaceholder: '例：港で荷運びをする一家。祖父母が移住し、自分はドスコヴォルで育った。',
 }
+export const EQUIPMENT_LABELS = {
+  loadExceeded: '選択した上限を超えています。卓の裁定を確認してください。',
+}
 export const ACTION_ALLOCATION_LABELS = {
   region: 'アクションの配分',
   initial: '初期配分',

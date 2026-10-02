@@ -1076,25 +1076,33 @@ button.os-rating__dot {
   column-gap: 0.5rem;
 }
 .os-equipment > .os-panel__title,
+.os-equipment > .equipment-load,
 .os-equipment > h4,
 .os-equipment > .equipment-list,
 .os-equipment > .equipment-heading,
 .os-equipment > .stepper {
   grid-column: 1 / -1;
 }
-.os-equipment > .field {
+.os-equipment .equipment-load__controls > .field {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
+  flex: 0 0 auto;
 }
-.os-equipment > .field .field__input {
+.os-equipment .equipment-load__controls .field__label {
+  white-space: nowrap;
+}
+.os-equipment .equipment-load__controls .field__input {
   width: auto;
 }
 .os .load-total {
   font-size: 0.75rem;
   align-self: center;
   font-weight: 700;
+}
+.os .equipment-load__warning {
+  background: rgb(146 40 25 / 6%);
 }
 .os .equipment-list {
   display: grid;

@@ -745,6 +745,29 @@ body {
 .ability-option p {
   overflow-wrap: anywhere;
 }
+.equipment-load__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+.equipment-load__controls > .field {
+  flex: 1 1 auto;
+}
+.load-total {
+  margin: 0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.equipment-load__warning {
+  margin: 0.4rem 0 0;
+  padding: 0.35rem 0.5rem;
+  border-left: 3px solid currentColor;
+  background: rgb(230 93 93 / 8%);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
 .equipment-row {
   border-bottom: 1px solid var(--line-strong);
   padding: 0.4rem 0;

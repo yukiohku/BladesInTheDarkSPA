@@ -8,7 +8,7 @@ import {
   RATING_MAX,
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
-import { ABILITY_LABELS } from '../constants/labels'
+import { ABILITY_LABELS, EQUIPMENT_LABELS } from '../constants/labels'
 import { abilityRemovalConfirmation } from '../lib/abilityRemoval'
 import { AbilityRemovalDialog } from './AbilityRemovalDialog'
 import {
@@ -249,23 +249,31 @@ export function EquipmentPanel() {
   }
   return (
     <>
-      <SelectInput
-        label="仕事のLoad"
-        value={character.score.load}
-        options={[
-          { id: 'light', name: `軽 ${limits.light}` },
-          { id: 'normal', name: `標準 ${limits.normal}` },
-          { id: 'heavy', name: `重 ${limits.heavy}` },
-        ]}
-        onChange={(load) => {
-          if (load === 'light' || load === 'normal' || load === 'heavy')
-            dispatch({ type: 'score.patch', patch: { load } })
-        }}
-      />
-      <p className={load > max ? 'field__error' : 'load-total'} role="status">
-        使用Load {load} / {max}
-        {load > max ? ' — 選択した上限を超えています。卓の裁定を確認してください。' : ''}
-      </p>
+      <div className="equipment-load">
+        <div className="equipment-load__controls">
+          <SelectInput
+            label="仕事のLoad"
+            value={character.score.load}
+            options={[
+              { id: 'light', name: `軽 ${limits.light}` },
+              { id: 'normal', name: `標準 ${limits.normal}` },
+              { id: 'heavy', name: `重 ${limits.heavy}` },
+            ]}
+            onChange={(load) => {
+              if (load === 'light' || load === 'normal' || load === 'heavy')
+                dispatch({ type: 'score.patch', patch: { load } })
+            }}
+          />
+          <p className={`load-total${load > max ? ' field__error' : ''}`} role="status">
+            使用Load {load} / {max}
+          </p>
+        </div>
+        {load > max && (
+          <p className="equipment-load__warning field__error" role="status">
+            {EQUIPMENT_LABELS.loadExceeded}
+          </p>
+        )}
+      </div>
       <h4>{PLAYBOOKS[character.playbookId].title} 固有装備</h4>
       <div className="equipment-list">{PLAYBOOKS[character.playbookId].items.map(renderItem)}</div>
       <h4>共通装備</h4>

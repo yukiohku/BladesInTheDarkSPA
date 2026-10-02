@@ -41,7 +41,7 @@ export function SelectInput({
   value: string
   onChange: (value: string) => void
   options: readonly { id: string; name: string }[]
-  emptyLabel?: string
+  emptyLabel?: string | null
   hint?: string
 }) {
   const id = useId()
@@ -57,7 +57,7 @@ export function SelectInput({
         aria-describedby={hint ? `${id}-hint` : undefined}
         onChange={(event) => onChange(event.target.value)}
       >
-        <option value="">{emptyLabel}</option>
+        {emptyLabel !== null && <option value="">{emptyLabel}</option>}
         {value && !options.some((option) => option.id === value) && (
           <option value={value}>{value}（取り込み値）</option>
         )}

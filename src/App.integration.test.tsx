@@ -305,6 +305,12 @@ describe('基本7種の操作', () => {
     const [first, second] = PLAYBOOK_LIST[0].friends
     expect(screen.getByRole('img', { name: `${first.name}：未選択` })).toBeTruthy()
     await tab(user, '初期設定')
+    for (const relation of screen.getAllByRole('combobox', { name: /との関係$/ })) {
+      expect(within(relation).getAllByRole('option').map((option) => option.textContent)).toEqual([
+        '未選択', '親しい人物', 'ライバル',
+      ])
+      expect((relation as HTMLSelectElement).value).toBe('neutral')
+    }
     await user.selectOptions(screen.getByLabelText(`${first.name}との関係`), 'friend')
     await user.selectOptions(screen.getByLabelText(`${second.name}との関係`), 'friend')
     expect((screen.getByLabelText(`${first.name}との関係`) as HTMLSelectElement).value).toBe(

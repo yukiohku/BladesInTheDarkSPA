@@ -119,6 +119,7 @@ export function SetupTab() {
             <SelectInput
               label={`${friend.name || '知人'}との関係`}
               value={friend.relation}
+              emptyLabel={null}
               options={[
                 { id: 'neutral', name: '未選択' },
                 { id: 'friend', name: '親しい人物' },

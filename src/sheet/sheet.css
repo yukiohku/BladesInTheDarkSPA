@@ -937,9 +937,16 @@ button.os-rating__dot {
   margin-right: 0.4rem;
 }
 .os input:disabled,
-.os button:disabled {
-  opacity: 0.4;
+.os button:disabled,
+.os .equipment-checks button:disabled {
+  opacity: 0.5;
+  color: var(--os-dim);
+  border-color: var(--os-band);
+  border-style: dashed;
   cursor: default;
+}
+.os button:disabled:not([aria-pressed='true']) {
+  background: transparent;
 }
 .os .trauma-extra,
 .os .os-xp-rules details {
@@ -1168,13 +1175,6 @@ button.os-rating__dot {
   border-radius: 0;
   height: 1.6rem;
   min-width: 1.6rem;
-}
-
-.os .stepper__button:disabled {
-  opacity: 0.5;
-  color: var(--os-dim);
-  border-color: var(--os-band);
-  border-style: dashed;
 }
 
 .os .stepper__value {

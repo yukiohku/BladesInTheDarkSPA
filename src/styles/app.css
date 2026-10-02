@@ -389,14 +389,6 @@ body {
   cursor: pointer;
 }
 
-.stepper__button:disabled {
-  opacity: 0.4;
-  color: var(--text-faint);
-  background: transparent;
-  border-color: var(--line);
-  cursor: not-allowed;
-}
-
 .stepper__value {
   width: 3.5rem;
   padding: 0.4rem;
@@ -468,11 +460,6 @@ body {
 
 .button--danger-ghost:hover {
   border-color: var(--danger);
-}
-
-.button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
 }
 
 /* ---------- チップ ---------- */
@@ -793,10 +780,6 @@ body {
 .equipment-checks .os-box--on {
   background: var(--accent);
 }
-.equipment-checks button:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
 .ratings-panel h3 {
   font-size: 1rem;
   margin: 0.7rem 0;
@@ -911,10 +894,6 @@ summary:focus-visible {
   border-color: #65b4da;
   background: #65b4da;
 }
-.ratings-panel--editing .os-rating__dot--editable:disabled {
-  opacity: 0.3;
-  cursor: default;
-}
 .action-editor {
   display: grid;
   grid-template-columns: minmax(18rem, 1fr) minmax(14rem, 0.8fr);
@@ -970,6 +949,27 @@ summary:focus-visible {
 .action-allocation .button {
   margin-top: 0.5rem;
 }
+
+/* 携帯コインのステッパーと同じ弱い色で、操作できない欄を示す。 */
+button:disabled,
+input:disabled,
+.stepper__button:disabled,
+.button:disabled,
+.equipment-checks button:disabled,
+.ratings-panel--editing .os-rating__dot--editable:disabled {
+  opacity: 0.4;
+  color: var(--text-faint);
+  border-color: var(--line);
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+button:disabled:not([aria-pressed='true']),
+.button:disabled,
+.stepper__button:disabled {
+  background: transparent;
+}
+
 @media (max-width: 720px) {
   .action-editor {
     grid-template-columns: 1fr;

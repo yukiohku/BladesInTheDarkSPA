@@ -28,6 +28,39 @@
 
 「記録する候補」「便利」「必要」は調査からの実装提案で、原典が特定のUIを要求しているという意味ではありません。
 
+## 特殊能力の説明に使う対訳
+
+能力の説明本文は日本語で書き、アクション名（技能名）を参照するときは〈破壊〉のように〈〉で括ります。普通の動詞や属性名にはこの括弧を付けません。能力名やシート見出しの英日併記、判定のダイス数を表す「＋1d」「−1d」は維持します。
+
+アクションと属性の訳は `src/constants/playbooks.ts` の `ACTIONS` / `ACTION_GROUPS`、貯蓄は `src/constants/labels.ts` の既存ラベルに合わせています。荷重・階級・注目度・窮地・古参は、英語のまま残っていた用語に今回定めた参考訳です。いずれもこのアプリの用語であり、日本語版の公式訳として扱いません。確認日：2026年10月2日。
+
+| 原語 | 本文での表記 |
+| --- | --- |
+| Hunt | 〈狩り〉 |
+| Study | 〈研究〉 |
+| Survey | 〈観察〉 |
+| Tinker | 〈工作〉 |
+| Finesse | 〈技巧〉 |
+| Prowl | 〈隠密〉 |
+| Skirmish | 〈乱戦〉 |
+| Wreck | 〈破壊〉 |
+| Attune | 〈同調〉 |
+| Command | 〈指揮〉 |
+| Consort | 〈交流〉 |
+| Sway | 〈説得〉 |
+| Insight | 洞察 |
+| Prowess | 身体 |
+| Resolve | 意志 |
+| Load | 荷重 |
+| Stash | 貯蓄 |
+| Tier | 階級 |
+| Heat | 注目度 |
+| Desperate | 窮地 |
+| XP | 経験値 |
+| Veteran | 古参 |
+
+効果の条件と数値は上記の基本プレイブックPDFを参照します。共通の意味は [SRDの能力例](https://bladesinthedark.com/character-playbook)、[クルーと階級](https://bladesinthedark.com/crew)、[注目度](https://bladesinthedark.com/heat)、[判定の状況](https://bladesinthedark.com/action-roll) でも確認できます。たとえば「霊の結界」は、秘術的な物質と方法で場所を〈破壊〉し、霊を遠ざけるか引き寄せるかを選ぶ能力です。
+
 ## 共通部分と差が出る部分
 
 基本7種類のPDFは、身元情報、ストレスとトラウマ、傷、鎧の使用、治療、Coin・Stash、12アクション、XP、装備、チームワーク、計画の欄を共有しています。能力、初期アクション値、NPCの知人一覧、固有装備、XP条件、情報収集の質問がプレイブックごとに異なります。[基本各PDFの保存先](originals/playbooks/)

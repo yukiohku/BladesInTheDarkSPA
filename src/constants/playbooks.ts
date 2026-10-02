@@ -266,9 +266,9 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'leader',
         'Leader',
         '指揮官',
-        '戦闘で指揮する集団は通常なら崩れる状況でも戦い続け、レベル3の傷でも離脱しない。＋1効果と鎧1を得る。',
+        '戦闘で〈指揮〉する集団は通常なら崩れる状況でも戦い続け、レベル3の傷でも離脱しない。＋1効果と鎧1を得る。',
       ),
-      ability('cutter', 'mule', 'Mule', '荷運び', 'Load上限は軽5・標準7・重8になる。', {
+      ability('cutter', 'mule', 'Mule', '荷運び', '荷重の上限は軽5・標準7・重8になる。', {
         loadLimits: { light: 5, normal: 7, heavy: 8 },
       }),
       ability(
@@ -283,7 +283,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'savage',
         'Savage',
         '獰猛',
-        '暴力を振るうと特に恐ろしい。怯えた相手へのCommandに＋1d。',
+        '暴力を振るうと特に恐ろしい。怯えた相手への〈指揮〉の判定に＋1d。',
       ),
       ability(
         'cutter',
@@ -385,7 +385,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'vengeful',
         'Vengeful',
         '復讐心',
-        '自分や大切な相手を傷つけた者への復讐が追加XP条件になる。仲間が協力したならクルーXPも記録する。',
+        '自分や大切な相手を傷つけた者への復讐が追加の経験値条件になる。仲間が協力したならクルーの経験値も記録する。',
         { xpTrigger: '自分や大切な相手を傷つけた者に復讐した。' },
       ),
     ],
@@ -458,21 +458,21 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'ghost-ward',
         'Ghost Ward',
         '霊の結界',
-        '秘術的な物質と方法で場所をWreckし、霊を遠ざけるか引き寄せるか選べる。',
+        '秘術的な物質と方法で場所を〈破壊〉し、霊を遠ざけるか引き寄せるか選べる。',
       ),
       ability(
         'leech',
         'physicker',
         'Physicker',
         '医師',
-        'Tinkerで治療や瀕死の安定化を行い、病気や死体をStudyできる。クルー全員の治療判定に＋1d。',
+        '〈工作〉で傷を治療したり瀕死の者の容体を安定させたりでき、病気や死体を〈研究〉できる。クルー全員の治療判定に＋1d。',
       ),
       ability(
         'leech',
         'saboteur',
         'Saboteur',
         '破壊工作員',
-        'Wreckの作業音を大幅に抑え、破壊の痕跡を通常の観察から隠す。',
+        '〈破壊〉の作業音を大幅に抑え、破壊の痕跡を通常の観察から隠す。',
       ),
       ability(
         'leech',
@@ -521,7 +521,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'infiltrator',
         'Infiltrator',
         '潜入者',
-        '警備を突破するとき、品質やTierの影響を受けない。',
+        '警備を突破するとき、品質や階級の影響を受けない。',
       ),
       ability('lurk', 'ambush', 'Ambush', '待ち伏せ', '隠れた状態からの攻撃や罠の発動に＋1d。'),
       ability(
@@ -529,7 +529,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'daredevil',
         'Daredevil',
         '命知らず',
-        'Desperateの判定に＋1dを得る代わりに、その行動の結果への抵抗判定は−1dになる。',
+        '窮地でのアクション判定に＋1dを得る代わりに、その行動の結果への抵抗判定は−1dになる。',
       ),
       ability(
         'lurk',
@@ -636,14 +636,14 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'something-on-the-side',
         'A Little Something on the Side',
         '副収入',
-        'ダウンタイム終了ごとにStash＋2。',
+        'ダウンタイム終了ごとに貯蓄＋2。',
       ),
       ability(
         'slide',
         'mesmerism',
         'Mesmerism',
         '催眠',
-        'Swayした相手に、次に会うまでそのことを忘れさせられる。',
+        '〈説得〉した相手に、次に会うまでそのことを忘れさせられる。',
       ),
       ability(
         'slide',
@@ -715,7 +715,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'connected',
         'Connected',
         '人脈',
-        'ダウンタイムの資産調達・Heat低下で判定結果が1段階向上する。',
+        'ダウンタイムの資産調達・注目度の低下で判定結果が1段階向上する。',
       ),
       ability(
         'spider',
@@ -737,7 +737,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'jail-bird',
         'Jail Bird',
         '牢の常連',
-        '投獄中は指名手配レベルを1低く、Tierを1高く扱う。助けた勢力への関係値＋1も得る。',
+        '投獄中は指名手配レベルを1低く、階級を1高く扱う。助けた勢力への関係値＋1も得る。',
       ),
       ability(
         'spider',
@@ -752,7 +752,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'weaving-the-web',
         'Weaving the Web',
         '網を張る',
-        '仕事の対象についてConsortで情報収集すると＋1d。その仕事のエンゲージメント判定にも＋1d。',
+        '仕事の対象について〈交流〉で情報収集すると＋1d。その仕事のエンゲージメント判定にも＋1d。',
       ),
     ],
     friendsTitle: '抜け目ない知人',
@@ -793,7 +793,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'compel',
         'Compel',
         '使役',
-        'Attuneで近くの霊を出現させ、命令に従わせる。呼び出した霊への超常の恐怖を受けない。仲間は別。',
+        '〈同調〉で近くの霊を出現させ、命令に従わせる。呼び出した霊への超常の恐怖を受けない。仲間は別。',
       ),
       ability(
         'whisper',
@@ -807,14 +807,14 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'iron-will',
         'Iron Will',
         '鉄の意志',
-        '超常存在を見た恐怖に免疫を持つ。Resolveの抵抗判定に＋1d。',
+        '超常存在を見た恐怖に免疫を持つ。意志の抵抗判定に＋1d。',
       ),
       ability(
         'whisper',
         'occultist',
         'Occultist',
         '秘術家',
-        '古の力・忘れられた神・悪魔とConsortする方法を知る。交流した存在の信奉者へのCommandに＋1d。',
+        '古の力・忘れられた神・悪魔と〈交流〉する方法を知る。交流した存在の信奉者への〈指揮〉の判定に＋1d。',
         { noteLabel: '交流した存在' },
       ),
       ability(
@@ -822,7 +822,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'ritual',
         'Ritual',
         '儀式',
-        'Studyで超常の効果・存在を呼ぶ儀式を習得・創作できる。儀式を1つ習得して始める。',
+        '〈研究〉で超常の効果・存在を呼ぶ儀式を習得・創作できる。儀式を1つ習得して始める。',
         { noteLabel: '習得した儀式・手順・代償' },
       ),
       ability(

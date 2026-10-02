@@ -19,13 +19,13 @@ export function AbilitiesTab() {
     <>
       <Section
         title="取得済みの特殊能力"
-        hint={`作成時に1つ、成長時に追加します。取得数はTierと連動しません。効果は参考訳・要約です。${ABILITY_LABELS.editHint}`}
+        hint={`作成時に1つ、成長時に追加します。取得数は階級と連動しません。効果は参考訳・要約です。${ABILITY_LABELS.editHint}`}
       >
         <AbilityCards editing />
       </Section>
       <Section
         title="能力を取得"
-        hint="他の基本プレイブックの能力はVeteranとして取得できます。追加取得できる能力は複数の選択内容を記録できます。"
+        hint="他の基本プレイブックの能力は「古参」として取得できます。追加取得できる能力は複数の選択内容を記録できます。"
       >
         <SelectInput
           label="能力の取得元"

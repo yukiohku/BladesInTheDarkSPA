@@ -252,7 +252,7 @@ export function OfficialSheetView() {
         </section>
         <section className="os-xp-rules">
           <h3 className="os-minititle">XP条件</h3>
-          <p>Desperateのアクション判定ごとに対応属性へXP1。</p>
+          <p>窮地でのアクション判定ごとに対応属性へ経験値1。</p>
           <ul>
             {[
               ...(book ? [book.xpTrigger] : []),

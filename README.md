@@ -7,6 +7,7 @@ React / TypeScript / Viteで動作し、サーバーやデータベースは使�
 
 基本7種の **Cutter・Hound・Leech・Lurk・Slide・Spider・Whisper** に対応しています。
 英語版公式無料シートv8.2と公式SRDを参照しています。効果文はこのプロジェクトの参考訳・要約です。
+特殊能力の説明は[対訳表](docs/research/playbooks.md#特殊能力の説明に使う対訳)に合わせ、技能名を〈破壊〉のように表記します。
 特殊プレイブック（Ghost・Hull・Vampire）は未対応です。
 
 - プレイブックごとの初期アクション、特殊能力、固有装備、知人、XP条件、情報収集の質問。

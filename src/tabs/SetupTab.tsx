@@ -15,6 +15,7 @@ export function SetupTab() {
   const identity = character.identity
   const book = character.playbookId ? PLAYBOOKS[character.playbookId] : null
   const heritage = HERITAGES.find((item) => item.id === identity.heritageId)
+  const background = BACKGROUNDS.find((item) => item.id === identity.backgroundId)
   const patch = (field: keyof typeof identity, value: string) =>
     dispatch({ type: 'identity', patch: { [field]: value } })
   return (
@@ -59,8 +60,9 @@ export function SetupTab() {
         <SelectInput
           label="出自"
           value={identity.heritageId}
-          options={HERITAGES.map((item) => ({ id: item.id, name: `${item.name}：${item.summary}` }))}
+          options={HERITAGES.map((item) => ({ ...item, name: `${item.name}：${item.summary}` }))}
           hint={heritage?.description}
+          description={heritage?.description}
           onChange={(value) => patch('heritageId', value)}
         />
         <TextArea
@@ -74,6 +76,7 @@ export function SetupTab() {
           label="経歴"
           value={identity.backgroundId}
           options={BACKGROUNDS}
+          description={background?.description}
           onChange={(value) => patch('backgroundId', value)}
         />
         <TextArea

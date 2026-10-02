@@ -29,14 +29,16 @@ function IdentityRow({
   label,
   value,
   showEmpty = false,
+  description,
 }: {
   label: string
   value: string
   showEmpty?: boolean
+  description?: string
 }) {
   if (!value && !showEmpty) return null
   return (
-    <div className="os-idrow">
+    <div className="os-idrow" title={description}>
       <span className="os-idrow__label">{label}</span>
       <span
         className={`os-idrow__value${value ? '' : ' os-idrow__value--empty'}`}
@@ -52,6 +54,8 @@ export function OfficialSheetView() {
   const { character, dispatch } = useCharacter()
   const book = character.playbookId ? PLAYBOOKS[character.playbookId] : null
   const identity = character.identity
+  const heritage = HERITAGES.find((item) => item.id === identity.heritageId)
+  const background = BACKGROUNDS.find((item) => item.id === identity.backgroundId)
   const limits = loadLimits(character)
   return (
     <div className="os">
@@ -72,17 +76,20 @@ export function OfficialSheetView() {
           <IdentityRow
             label="出自"
             showEmpty
-            value={
-              HERITAGES.find((item) => item.id === identity.heritageId)?.name ?? identity.heritageId
-            }
+            value={heritage?.name ?? identity.heritageId}
+            description={[
+              heritage?.description,
+              identity.heritageDetail && `出自の詳細：${identity.heritageDetail}`,
+            ].filter(Boolean).join('\n') || undefined}
           />
           <IdentityRow
             label="経歴"
             showEmpty
-            value={
-              BACKGROUNDS.find((item) => item.id === identity.backgroundId)?.name ??
-              identity.backgroundId
-            }
+            value={background?.name ?? identity.backgroundId}
+            description={[
+              background?.description,
+              identity.backgroundDetail && `経歴の詳細：${identity.backgroundDetail}`,
+            ].filter(Boolean).join('\n') || undefined}
           />
           <IdentityRow label="外見" value={identity.look} showEmpty />
           <IdentityRow

@@ -93,9 +93,11 @@ export const ACTION_GROUPS: {
   },
 ]
 export const ACTIONS = ACTION_GROUPS.flatMap((group) => group.items)
-export interface HeritageOption extends NamedItem {
-  summary: string
+export interface DescribedItem extends NamedItem {
   description: string
+}
+export interface HeritageOption extends DescribedItem {
+  summary: string
 }
 // 公式 Player's Kit v8.2、PDF 25ページ「The Shattered Isles」の参考訳・要約。
 export const HERITAGES: HeritageOption[] = [
@@ -130,14 +132,15 @@ export const HERITAGES: HeritageOption[] = [
     description: '帝国から隔絶した遠い土地です。その人々の家系には悪魔の血が流れていると噂されています。',
   },
 ]
-export const BACKGROUNDS: NamedItem[] = [
-  { id: 'academic', name: '学者' },
-  { id: 'labor', name: '労働者' },
-  { id: 'law', name: '法律関係者' },
-  { id: 'trade', name: '商人' },
-  { id: 'military', name: '軍人' },
-  { id: 'noble', name: '貴族' },
-  { id: 'underworld', name: '裏社会' },
+// 経歴はクルーに入る前の活動。具体例はアプリ独自の入力補助。
+export const BACKGROUNDS: DescribedItem[] = [
+  { id: 'academic', name: '学者', description: '学問や研究に携わっていた経歴です。例：大学の学生、研究者、教師。専門分野や、学びの場を離れた事情を詳細に記入できます。' },
+  { id: 'labor', name: '労働者', description: '肉体労働で生計を立てていた経歴です。例：鉱夫、港の荷運び、船員。働いていた場所や、そこでの暮らしを詳細に記入できます。' },
+  { id: 'law', name: '法律関係者', description: '法律や治安に関わる仕事をしていた経歴です。例：衛兵、捜査官、法律家。所属や、扱っていた事件を詳細に記入できます。' },
+  { id: 'trade', name: '商人', description: '商売や取引に携わっていた経歴です。例：店主、行商人、仲買人。扱っていた品や、取引相手を詳細に記入できます。' },
+  { id: 'military', name: '軍人', description: '軍務に就いていた経歴です。例：兵士、将校、軍医。所属部隊や、従軍した経験を詳細に記入できます。' },
+  { id: 'noble', name: '貴族', description: '貴族の家や上流社会で暮らしていた経歴です。例：名家の後継者、没落した一族の一員。家柄や、現在の立場を詳細に記入できます。' },
+  { id: 'underworld', name: '裏社会', description: '犯罪や非合法の仕事に関わっていた経歴です。例：盗賊、密輸業者、賭場の用心棒。以前の仲間や、関わった仕事を詳細に記入できます。' },
 ]
 export const VICES: NamedItem[] = [
   { id: 'faith', name: '信仰' },

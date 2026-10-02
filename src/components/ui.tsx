@@ -35,13 +35,15 @@ export function SelectInput({
   options,
   emptyLabel = '選択してください',
   hint,
+  description,
 }: {
   label: string
   value: string
   onChange: (value: string) => void
-  options: readonly { id: string; name: string }[]
+  options: readonly { id: string; name: string; description?: string }[]
   emptyLabel?: string | null
   hint?: string
+  description?: string
 }) {
   const id = useId()
   return (
@@ -53,6 +55,7 @@ export function SelectInput({
         id={id}
         className="field__input"
         value={value}
+        title={description}
         aria-describedby={hint ? `${id}-hint` : undefined}
         onChange={(event) => onChange(event.target.value)}
       >
@@ -61,7 +64,7 @@ export function SelectInput({
           <option value={value}>{value}（取り込み値）</option>
         )}
         {options.map((option) => (
-          <option key={option.id} value={option.id}>
+          <option key={option.id} value={option.id} title={option.description}>
             {option.name}
           </option>
         ))}

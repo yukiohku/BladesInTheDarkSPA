@@ -60,7 +60,7 @@ describe('プレイブック未選択のシート', () => {
     const view = renderApp()
     expect(screen.getByRole('button', { name: 'シート' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByRole('img', { name: 'Blades in the Dark' })).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'PLAYBOOK' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'WHO ARE YOU?' })).toBeTruthy()
     expect(screen.getByText(PLAYBOOK_LABELS.sheetHint)).toBeTruthy()
     expect(screen.queryByRole('heading', { name: 'CUTTER' })).toBeNull()
     expect(screen.getByRole('table', { name: '傷の記録' })).toBeTruthy()

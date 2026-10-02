@@ -23,7 +23,7 @@ export const SETUP_LABELS = {
 }
 export const PLAYBOOK_LABELS = {
   unselected: '未選択',
-  sheetTitle: 'PLAYBOOK',
+  sheetTitle: 'WHO ARE YOU?',
   sheetHint: 'プレイブック未選択。「編集」→「初期設定」で選びます。',
   selectFirst: '「初期設定」でプレイブックを選んでください。',
   friends: '知人',

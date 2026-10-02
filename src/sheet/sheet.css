@@ -1265,6 +1265,9 @@ button.os-rating__dot {
 .os .os-rating__name {
   font-size: 0.95rem;
 }
+.os-rating__name[title] {
+  cursor: help;
+}
 .os-experience {
   margin-top: 0.65rem;
 }

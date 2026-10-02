@@ -25,6 +25,7 @@ import { SelectInput, Stepper, TextArea } from './ui'
 import type { EquipmentOption } from '../constants/playbooks'
 import type { SheetState } from '../types/character'
 import { initialAllocationMax } from '../lib/actionAllocation'
+import { actionDescriptionText } from '../constants/actionDescriptions'
 export function RatingsPanel({ sheet = false, initialDraft, onInitialChange }: {
   sheet?: boolean
   initialDraft?: SheetState['ratings']
@@ -60,6 +61,7 @@ export function RatingsPanel({ sheet = false, initialDraft, onInitialChange }: {
               key={item.id}
               name={item.ja}
               en={item.name}
+              description={sheet ? actionDescriptionText(item.id) : undefined}
               value={ratings[item.id]}
               fixedValue={sheet ? 0 : (book?.initialRatings[item.id] ?? 0)}
               initialValue={allocating || sheet ? 0 : character.initialActionRatings?.[item.id]}

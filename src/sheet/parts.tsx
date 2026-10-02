@@ -106,6 +106,7 @@ export function RatingDots({
   growth = false,
   editableMax = max,
   onChange,
+  description,
 }: {
   name: string
   en?: string
@@ -116,6 +117,7 @@ export function RatingDots({
   growth?: boolean
   editableMax?: number
   onChange?: (value: number) => void
+  description?: string
 }) {
   return (
     <div className="os-rating">
@@ -162,7 +164,7 @@ export function RatingDots({
           ),
         )}
       </span>
-      <span className="os-rating__name">
+      <span className="os-rating__name" title={description}>
         <Bilingual name={en ?? name} ja={en ? name : undefined} />
       </span>
     </div>

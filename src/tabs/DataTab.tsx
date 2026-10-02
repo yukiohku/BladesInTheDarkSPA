@@ -1,11 +1,9 @@
 import { useRef, useState } from 'react'
-import { MESSAGE, PLAYBOOK_LABELS } from '../constants/labels'
+import { MESSAGE } from '../constants/labels'
 import { parseCharacterFile, serializeCharacter, suggestedFileName } from '../lib/serialize'
 import { hasBackup, loadBackup, saveBackup } from '../lib/storage'
 import { useCharacter } from '../state/characterContext'
-import { Section, SelectInput } from '../components/ui'
-import { isPlaybookId, PLAYBOOK_LIST } from '../constants/playbooks'
-import type { PlaybookId } from '../types/character'
+import { Section } from '../components/ui'
 
 function formatTimestamp(iso: string): string {
   const date = new Date(iso)
@@ -19,7 +17,6 @@ export function DataTab() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [preview, setPreview] = useState(false)
-  const [newPlaybook, setNewPlaybook] = useState<PlaybookId | null>(null)
 
   const json = serializeCharacter(character)
   const canRestore = hasBackup()
@@ -108,7 +105,7 @@ export function DataTab() {
       setError('バックアップを保存できなかったため、新規作成を中止しました。')
       return
     }
-    if (!dispatch({ type: 'reset', playbookId: newPlaybook })) {
+    if (!dispatch({ type: 'reset', playbookId: null })) {
       setError('元の保存データを保護できなかったため、新規作成を中止しました。')
       return
     }
@@ -173,16 +170,6 @@ export function DataTab() {
         <p className="field__hint">
           データはブラウザの中だけに保存されます。別の端末へ移すときは、エクスポートを利用してください。
         </p>
-        <SelectInput
-          label="新しいキャラクターのプレイブック"
-          value={newPlaybook ?? ''}
-          emptyLabel={PLAYBOOK_LABELS.unselected}
-          options={PLAYBOOK_LIST.map((book) => ({ id: book.id, name: book.title }))}
-          onChange={(value) => {
-            if (value === '') setNewPlaybook(null)
-            else if (isPlaybookId(value)) setNewPlaybook(value)
-          }}
-        />
         <button type="button" className="button button--danger" onClick={reset}>
           新しいキャラクターを作成
         </button>

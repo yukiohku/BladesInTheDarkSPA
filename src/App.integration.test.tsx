@@ -575,7 +575,6 @@ describe('基本7種の操作', () => {
     await tab(user, '初期設定')
     await user.type(screen.getByLabelText('名前'), '戻す人物')
     await tab(user, 'データ')
-    await user.selectOptions(screen.getByLabelText('新しいキャラクターのプレイブック'), 'hound')
     await user.click(screen.getByRole('button', { name: '新しいキャラクターを作成' }))
     await user.click(screen.getByRole('button', { name: '取り込み前のシートに戻す' }))
     await tab(user, '初期設定')

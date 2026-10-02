@@ -136,7 +136,7 @@ describe('プレイブック未選択のシート', () => {
     expect((screen.getByRole('textbox', { name: '信念・動機・自由メモ' }) as HTMLTextAreaElement).value).toBe('相談中の設定')
   })
 
-  it('新規作成の初期選択は未選択で、既存人物のバックアップも復元できる', async () => {
+  it('新規作成はプレイブックを選ばず未選択に戻し、既存人物のバックアップも復元できる', async () => {
     const user = userEvent.setup()
     const character = createDefaultCharacter('hound')
     character.identity.name = '保存済みの狩人'
@@ -146,8 +146,14 @@ describe('プレイブック未選択のシート', () => {
     expect(screen.getByRole('heading', { name: 'HOUND' })).toBeTruthy()
     await user.click(screen.getByRole('button', { name: '編集' }))
     await user.click(screen.getByRole('button', { name: 'データ' }))
-    expect((screen.getByRole('combobox', { name: '新しいキャラクターのプレイブック' }) as HTMLSelectElement).value).toBe('')
+    expect(screen.queryByRole('combobox', { name: '新しいキャラクターのプレイブック' })).toBeNull()
     await user.click(screen.getByRole('button', { name: '新しいキャラクターを作成' }))
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    expect(readStoredCharacter().character).toMatchObject({
+      playbookId: null, identity: { name: '' }, initialActionRatings: null,
+      abilities: [], friends: [], legacy: [],
+    })
+    expect(Object.values(readStoredCharacter().character?.ratings ?? {})).toEqual(ACTIONS.map(() => 0))
     await user.click(screen.getByRole('button', { name: 'シート' }))
     expect(screen.getByText(PLAYBOOK_LABELS.sheetHint)).toBeTruthy()
     await user.click(screen.getByRole('button', { name: '編集' }))

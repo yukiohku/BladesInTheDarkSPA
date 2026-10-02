@@ -2,13 +2,12 @@ import type {
   AcquiredAbility,
   ActionId,
   Character,
-  Clock,
   CustomItem,
   Friend,
   PlaybookId,
   SheetState,
 } from '../types/character'
-import type { ResourceAdjustment, ResourceKey } from '../types/resources'
+import type { ResourceKey } from '../types/resources'
 import { createDefaultCharacter, defaultSheet } from '../constants/defaults'
 import {
   equipmentFor,
@@ -19,7 +18,6 @@ import {
   TRAUMA_MAX,
 } from '../constants/playbooks'
 import {
-  adjustResource,
   clamp,
   hasSpecialArmor,
   healingMinimum,
@@ -37,7 +35,6 @@ export type Action =
   | { type: 'rating'; id: ActionId; value: number }
   | { type: 'ratings.confirmInitial'; ratings: SheetState['ratings'] }
   | { type: 'resource'; resource: ResourceKey; value: number }
-  | { type: 'resource.adjust'; adjustment: ResourceAdjustment }
   | { type: 'ability.add'; definitionId: string }
   | { type: 'ability.custom' }
   | { type: 'ability.patch'; id: string; patch: Partial<AcquiredAbility> }
@@ -53,7 +50,6 @@ export type Action =
   | { type: 'score.patch'; patch: Partial<SheetState['score']> }
   | { type: 'score.start' }
   | { type: 'specialArmor.reset' }
-  | { type: 'gather'; key: string; value: string }
   | {
       type: 'harm'
       field: 'level1' | 'level2' | 'level3' | 'fatal'
@@ -64,9 +60,6 @@ export type Action =
   | { type: 'armor'; kind: 'armor' | 'heavy' | 'special' }
   | { type: 'trauma'; name: string }
   | { type: 'carriedCoin'; value: number }
-  | { type: 'clock.add' }
-  | { type: 'clock.patch'; id: string; patch: Partial<Clock> }
-  | { type: 'clock.remove'; id: string }
   | { type: 'crew.name'; name: string }
 
 function patchList<T extends { id: string }>(items: T[], id: string, patch: Partial<T>): T[] {
@@ -155,10 +148,6 @@ export function characterReducer(character: Character, action: Action): Characte
     case 'resource': {
       const next = withResource(character, action.resource, action.value)
       return touch(next)
-    }
-    case 'resource.adjust': {
-      const next = adjustResource(character, action.adjustment)
-      return next === character ? character : touch(next)
     }
     case 'ability.add': {
       if (character.playbookId === null) return character
@@ -317,11 +306,6 @@ export function characterReducer(character: Character, action: Action): Characte
       })
     case 'specialArmor.reset':
       return touch({ ...character, armorUses: { ...character.armorUses, special: false } })
-    case 'gather':
-      return touch({
-        ...character,
-        gatherNotes: { ...character.gatherNotes, [action.key]: action.value },
-      })
     case 'harm': {
       const harm = { ...character.harm }
       if (action.field === 'level1' || action.field === 'level2') {
@@ -359,27 +343,6 @@ export function characterReducer(character: Character, action: Action): Characte
     }
     case 'carriedCoin':
       return touch({ ...character, carriedCoin: clamp(action.value, 0, character.coin) })
-    case 'clock.add':
-      return touch({
-        ...character,
-        clocks: [...character.clocks, { id: createId('clock'), name: '', filled: 0, total: 4 }],
-      })
-    case 'clock.patch': {
-      const item = character.clocks.find((clock) => clock.id === action.id)
-      if (!item) return character
-      const total = clamp(action.patch.total ?? item.total, 1, 24)
-      const patch = {
-        ...action.patch,
-        total,
-        filled: clamp(action.patch.filled ?? item.filled, 0, total),
-      }
-      return touch({ ...character, clocks: patchList(character.clocks, item.id, patch) })
-    }
-    case 'clock.remove':
-      return touch({
-        ...character,
-        clocks: character.clocks.filter((item) => item.id !== action.id),
-      })
     case 'crew.name':
       return touch({ ...character, crew: { ...character.crew, name: action.name } })
   }

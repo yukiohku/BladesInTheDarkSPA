@@ -8,6 +8,10 @@ import { attributeRating, loadLimits, stressMax, usedLoad } from '../lib/rules'
 import { initialAllocationCount, totalActionGrowth } from '../lib/actionAllocation'
 const run = (actions: Action[], base = createDefaultCharacter()) =>
   actions.reduce(characterReducer, base)
+const withGatherNote = (character: Character, value: string): Character => ({
+  ...character,
+  gatherNotes: { ...character.gatherNotes, 'cutter:0': value },
+})
 describe('基本7種の定義と新規作成', () => {
   it('未選択では固有データや固定点を持たず、配分と能力取得を開始しない', () => {
     const blank = createDefaultCharacter(null)
@@ -84,7 +88,7 @@ describe('characterReducer', () => {
   it('選択済みから未選択へ戻すと固有データを保管し、共通値と能力補正を処理する', () => {
     const allocated = run([{ type: 'rating', id: 'hunt', value: 2 }, { type: 'rating', id: 'study', value: 2 }])
     const confirmed = characterReducer(allocated, { type: 'ratings.confirmInitial', ratings: allocated.ratings })
-    const original = run([
+    const original = withGatherNote(run([
       { type: 'identity', patch: { name: '残す名前' } },
       { type: 'note', value: '残すメモ' },
       { type: 'resource', resource: 'playbook', value: 3 },
@@ -96,8 +100,7 @@ describe('characterReducer', () => {
       { type: 'equipment', id: 'cutter:hand-weapon', quantity: 1 },
       { type: 'armor', kind: 'armor' },
       { type: 'armor', kind: 'special' },
-      { type: 'gather', key: 'cutter:0', value: '保管するメモ' },
-    ], confirmed)
+    ], confirmed), '保管するメモ')
     const next = characterReducer(original, { type: 'playbook.change', playbookId: null, resetRatings: false })
     expect(next.playbookId).toBeNull()
     expect(Object.values(next.ratings)).toEqual(Array(12).fill(0))
@@ -185,14 +188,13 @@ describe('characterReducer', () => {
     expect(next.ratings.hunt).toBe(expected)
   })
   it('共通値を保ち、固有データと取得済み能力を置換・保管する', () => {
-    const original = run([
+    const original = withGatherNote(run([
       { type: 'identity', patch: { name: 'テスト' } },
       { type: 'ability.add', definitionId: 'cutter:mule' },
       { type: 'resource', resource: 'stress', value: 6 },
       { type: 'equipment', id: 'cutter:hand-weapon', quantity: 1 },
       { type: 'equipment', id: 'blade', quantity: 1 },
-      { type: 'gather', key: 'cutter:0', value: '旧メモ' },
-    ])
+    ]), '旧メモ')
     const next = characterReducer(original, {
       type: 'playbook.change',
       playbookId: 'hound',

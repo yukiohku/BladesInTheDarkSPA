@@ -10,7 +10,7 @@ import {
   STASH_MAX,
   STRESS_BOXES,
 } from '../constants/playbooks'
-import type { ResourceAdjustment, ResourceKey } from '../types/resources'
+import type { ResourceKey } from '../types/resources'
 export function clamp(value: number, min: number, max: number) {
   return Number.isFinite(value) ? Math.round(Math.min(Math.max(value, min), max)) : min
 }
@@ -67,14 +67,4 @@ export function withResource(sheet: Character, key: ResourceKey, value: number):
     return { ...sheet, coin: next, carriedCoin: Math.min(sheet.carriedCoin, next) }
   if (key === 'stress' || key === 'stash') return { ...sheet, [key]: next }
   return { ...sheet, xp: { ...sheet.xp, [key]: next } }
-}
-export function adjustResource(character: Character, adjustment: ResourceAdjustment): Character {
-  if (!Number.isFinite(adjustment.amount) || adjustment.amount < 1) return character
-  const before = resourceValue(character, adjustment.resource)
-  const next = withResource(
-    character,
-    adjustment.resource,
-    before + (adjustment.operation === 'increase' ? 1 : -1) * Math.floor(adjustment.amount),
-  )
-  return resourceValue(next, adjustment.resource) === before ? character : next
 }

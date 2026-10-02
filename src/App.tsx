@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useCharacter } from './state/characterContext'
 import { OfficialSheetView } from './sheet/OfficialSheetView'
+import { VIEW_MODES } from './constants/labels'
+import { RulesSummaryView } from './summary/RulesSummaryView'
 import { AbilitiesTab } from './tabs/AbilitiesTab'
 import { DataTab } from './tabs/DataTab'
 import { SetupTab } from './tabs/SetupTab'
@@ -15,22 +17,22 @@ const TABS = [
 ] as const
 export default function App() {
   const { storageError } = useCharacter()
-  const [mode, setMode] = useState<'sheet' | 'edit'>('sheet')
+  const [mode, setMode] = useState<(typeof VIEW_MODES)[number]['id']>('sheet')
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('setup')
   const Panel = (TABS.find((candidate) => candidate.id === tab) ?? TABS[0]).Component
   return (
-    <div className={`app${mode === 'sheet' ? ' app--sheet' : ''}`}>
+    <div className={`app${mode === 'sheet' ? ' app--sheet' : mode === 'summary' ? ' app--summary' : ''}`}>
       <header className="topbar">
         <div className="modes" role="group" aria-label="表示モード">
-          {(['sheet', 'edit'] as const).map((value) => (
+          {VIEW_MODES.map(({ id, label }) => (
             <button
-              key={value}
+              key={id}
               type="button"
-              className={`mode${mode === value ? ' mode--on' : ''}`}
-              aria-pressed={mode === value}
-              onClick={() => setMode(value)}
+              className={`mode${mode === id ? ' mode--on' : ''}`}
+              aria-pressed={mode === id}
+              onClick={() => setMode(id)}
             >
-              {value === 'sheet' ? 'シート' : '編集'}
+              {label}
             </button>
           ))}
         </div>
@@ -47,6 +49,10 @@ export default function App() {
           aria-label="プレイシート（横スクロールできます）"
         >
           <OfficialSheetView />
+        </main>
+      ) : mode === 'summary' ? (
+        <main className="main main--summary" aria-label="ルールサマリー">
+          <RulesSummaryView />
         </main>
       ) : (
         <>

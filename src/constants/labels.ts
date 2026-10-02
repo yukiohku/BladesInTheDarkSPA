@@ -1,4 +1,10 @@
 import type { ResourceKey } from '../types/resources'
+export const VIEW_MODES = [
+  { id: 'sheet', label: 'シート' },
+  { id: 'edit', label: '編集' },
+  { id: 'summary', label: 'サマリー' },
+] as const
+
 export const RESOURCE_LABELS: Record<ResourceKey, string> = {
   stress: 'ストレス',
   coin: 'コイン',

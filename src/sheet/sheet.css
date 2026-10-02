@@ -3,7 +3,8 @@
  * 表・罫線・見出しの強弱で情報をまとめ、シート領域内でスクロールする。
  */
 
-.os {
+.os,
+.rules-summary {
   /* 16px = ブラウザ推奨の本文サイズ、12px = これより小さくしない下限 */
   --os-fs-base: 1rem;
   --os-fs-min: 0.75rem;
@@ -13,7 +14,10 @@
   --os-band: #c9c6c0;
   --os-fill: #8f8b85;
   --os-on: #1b1917;
+  --os-paper: #f4f2ee;
+}
 
+.os {
   display: grid;
   /* minmax(0, …) にしないと列が contents の min-content まで広がって紙面からはみ出す。
      右列は「ラベル + マス」やリボンが並ぶのでCHANT kadar広く取る。 */
@@ -29,7 +33,7 @@
   font-size: var(--os-fs-base);
   line-height: 1.4;
   color: var(--os-ink);
-  background: #f4f2ee;
+  background: var(--os-paper);
   border: 1px solid var(--os-line);
   border-radius: 4px;
   overflow-x: auto;

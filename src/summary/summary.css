@@ -1,0 +1,367 @@
+.app--summary {
+  max-width: 80rem;
+  padding-top: 0.5rem;
+}
+
+/* シートと同じ紙色・インク・罫線を使う。色の定義は sheet.css で共有する。 */
+.rules-summary {
+  color-scheme: light;
+  color: var(--os-ink);
+  background: var(--os-paper);
+  border: 1px solid var(--os-line);
+  border-radius: 4px;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.rules-summary p {
+  margin: 0 0 0.4rem;
+}
+
+.rules-summary h1,
+.rules-summary h2,
+.rules-summary h3 {
+  line-height: 1.4;
+}
+
+.rules-summary h1 {
+  font-size: 1.15rem;
+  margin: 0.2rem 0 0;
+}
+
+.rules-summary h3 {
+  font-size: 0.875rem;
+  margin: 0 0 0.3rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--os-band);
+}
+
+.rules-summary__intro {
+  margin-bottom: 0.75rem;
+}
+
+.rules-summary__banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 2px solid var(--os-on);
+}
+
+.rules-summary__logo {
+  width: 14rem;
+  max-width: 100%;
+  height: auto;
+}
+
+.rules-summary__banner > div {
+  text-align: right;
+}
+
+.rules-summary .rules-summary__eyebrow {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 3vw, 2.75rem);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  margin: 0;
+  color: var(--os-on);
+}
+
+.rules-summary__exception,
+.rules-summary__description {
+  color: var(--os-dim);
+  font-size: 0.8125rem;
+}
+
+.rules-summary__layout {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.rules-summary__contents {
+  position: sticky;
+  top: 0.5rem;
+  padding-right: 0.5rem;
+  border-right: 1px solid var(--os-line);
+}
+
+.rules-summary__contents h2 {
+  margin: 0 0 0.25rem;
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  background: var(--os-on);
+  color: var(--os-paper);
+  padding: 0.2rem 0.4rem;
+}
+
+.rules-summary__contents ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.rules-summary__contents button {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.4rem 0.25rem;
+  font: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-align: left;
+  color: var(--os-ink);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--os-band);
+  cursor: pointer;
+}
+
+.rules-summary__contents button span {
+  flex: 0 0 1.1rem;
+  color: var(--os-dim);
+  font-family: var(--font-en);
+}
+
+.rules-summary__contents button:hover {
+  background: var(--os-band);
+}
+
+.rules-summary__chapters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 0.75rem;
+  align-items: start;
+}
+
+.rules-summary__chapter {
+  min-width: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--os-line);
+}
+
+.rules-summary__chapter:first-child,
+.rules-summary__attribution {
+  grid-column: 1 / -1;
+}
+
+.rules-summary__chapter-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.2rem 0.4rem;
+  background: var(--os-on);
+  color: var(--os-paper);
+}
+
+.rules-summary__chapter-heading span {
+  font-family: var(--font-en);
+  color: var(--os-band);
+}
+
+.rules-summary__chapter-heading h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.rules-summary__description {
+  padding: 0.3rem 0;
+}
+
+.rules-summary__body {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.rules-summary__body ol {
+  padding-left: 1.35rem;
+  margin: 0;
+}
+
+.rules-summary__body li + li {
+  margin-top: 0.2rem;
+}
+
+.rules-summary__table {
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+  font-size: 0.8125rem;
+}
+
+.rules-summary__table caption {
+  text-align: left;
+  font-weight: 700;
+  padding: 0 0 0.3rem;
+  font-size: 0.875rem;
+}
+
+.rules-summary__table th,
+.rules-summary__table td {
+  padding: 0.3rem 0.4rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--os-band);
+}
+
+.rules-summary__table thead th {
+  background: var(--os-band);
+  color: var(--os-ink);
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+
+.rules-summary__table th:first-child {
+  width: 26%;
+}
+
+.rules-summary__table tbody th {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.rules-summary__tables {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.6rem;
+  align-items: start;
+}
+
+.rules-summary__tables .rules-summary__table th:first-child {
+  width: 30%;
+}
+
+.rules-summary__note {
+  background: rgba(0, 0, 0, 0.035);
+  border-left: 2px solid var(--os-line);
+  padding: 0.4rem 0.5rem;
+}
+
+.rules-summary__note p {
+  margin: 0;
+}
+
+.rules-summary__details {
+  border-top: 1px solid var(--os-band);
+  border-bottom: 1px solid var(--os-band);
+  padding: 0.4rem 0;
+}
+
+.rules-summary__details summary {
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 1.5rem;
+}
+
+.rules-summary__details[open] summary {
+  margin-bottom: 0.4rem;
+}
+
+.rules-summary__sources {
+  font-size: 0.75rem;
+  margin-top: 0.65rem;
+  color: var(--os-dim);
+}
+
+.rules-summary__sources ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.6rem;
+  list-style: none;
+  padding: 0;
+  margin: 0.15rem 0 0;
+}
+
+.rules-summary a {
+  color: var(--os-ink);
+  text-underline-offset: 0.2em;
+}
+
+.rules-summary__top {
+  border: 0;
+  background: transparent;
+  color: var(--os-dim);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+  min-height: 2.75rem;
+  padding: 0.4rem 0;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.rules-summary__attribution {
+  color: var(--os-dim);
+  font-size: 0.75rem;
+}
+
+.rules-summary__attribution h2 {
+  font-size: 0.875rem;
+  margin: 0 0 0.4rem;
+}
+
+.rules-summary :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.rules-summary h1,
+.rules-summary__chapter-heading h2 {
+  scroll-margin-top: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .rules-summary__layout {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .rules-summary__contents {
+    position: static;
+    padding: 0;
+    border-right: 0;
+  }
+
+  .rules-summary__contents ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.75rem;
+  }
+}
+
+@media (max-width: 800px) {
+  .rules-summary__chapters,
+  .rules-summary__tables {
+    grid-template-columns: 1fr;
+  }
+
+  .rules-summary__tables .rules-summary__table th:first-child {
+    width: 26%;
+  }
+}
+
+@media (max-width: 480px) {
+  .rules-summary {
+    padding: 0.5rem;
+  }
+
+  .rules-summary__logo {
+    width: 10rem;
+  }
+
+  .rules-summary__banner > div {
+    text-align: left;
+  }
+
+  .rules-summary__table th:first-child,
+  .rules-summary__tables .rules-summary__table th:first-child {
+    width: 30%;
+  }
+}

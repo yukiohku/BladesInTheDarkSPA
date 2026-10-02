@@ -13,8 +13,6 @@ export const MESSAGE = {
   exportOk: 'JSONを書き出しました。',
   copied: 'コピーしました。',
   copyFailed: 'コピーできませんでした。JSONをダウンロードしてください。',
-  noBackup: 'バックアップを読み込めませんでした。',
-  restored: '取り込み前のシートに戻しました。',
   importOk: 'JSONを読み込みました。',
   resetConfirm:
     '新しいキャラクターを作成します。現在のシートはバックアップに保存します。よろしいですか？',

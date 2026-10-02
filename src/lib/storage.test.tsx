@@ -8,7 +8,6 @@ import { useCharacter } from '../state/characterContext'
 import { createDefaultCharacter } from '../constants/defaults'
 import {
   BACKUP_KEY,
-  loadBackup,
   OLD_STORAGE_KEY,
   readStoredCharacter,
   saveBackup,
@@ -16,6 +15,7 @@ import {
   STORAGE_KEY,
   UNREADABLE_BACKUP_KEY,
 } from './storage'
+import { parseCharacterFile } from './serialize'
 beforeEach(() => window.localStorage.clear())
 afterEach(() => {
   cleanup()
@@ -132,11 +132,13 @@ describe('ブラウザ保存', () => {
     await new Promise((resolve) => setTimeout(resolve, 350))
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe('{broken')
   })
-  it('取り込み前バックアップを復元できる', () => {
+  it('バックアップに元のキャラクターを読み込めるJSONとして保存する', () => {
     const original = createDefaultCharacter('whisper')
     expect(saveBackup(original)).toBe(true)
     expect(window.localStorage.getItem(BACKUP_KEY)).toBeTruthy()
-    expect(loadBackup()).toEqual(original)
+    expect(parseCharacterFile(window.localStorage.getItem(BACKUP_KEY) ?? '')).toEqual({
+      ok: true, character: original,
+    })
   })
   it('保存が拒否されたら失敗を返す', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {

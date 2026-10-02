@@ -1,13 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { act, cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { CharacterProvider } from './state/CharacterProvider'
 import { ACTIONS, PLAYBOOK_LIST } from './constants/playbooks'
 import { createDefaultCharacter } from './constants/defaults'
 import { PLAYBOOK_LABELS } from './constants/labels'
-import { readStoredCharacter, STORAGE_KEY } from './lib/storage'
-import { serializeCharacter } from './lib/serialize'
+import { BACKUP_KEY, readStoredCharacter, STORAGE_KEY } from './lib/storage'
+import { parseCharacterFile, serializeCharacter } from './lib/serialize'
 
 function renderApp() {
   return render(<CharacterProvider><App /></CharacterProvider>)
@@ -136,7 +136,7 @@ describe('プレイブック未選択のシート', () => {
     expect((screen.getByRole('textbox', { name: '信念・動機・自由メモ' }) as HTMLTextAreaElement).value).toBe('相談中の設定')
   })
 
-  it('新規作成はプレイブックを選ばず未選択に戻し、既存人物のバックアップも復元できる', async () => {
+  it('新規作成はプレイブックを選ばず未選択に戻し、既存人物をバックアップに保管する', async () => {
     const user = userEvent.setup()
     const character = createDefaultCharacter('hound')
     character.identity.name = '保存済みの狩人'
@@ -148,6 +148,10 @@ describe('プレイブック未選択のシート', () => {
     await user.click(screen.getByRole('button', { name: 'データ' }))
     expect(screen.queryByRole('combobox', { name: '新しいキャラクターのプレイブック' })).toBeNull()
     await user.click(screen.getByRole('button', { name: '新しいキャラクターを作成' }))
+    expect(parseCharacterFile(window.localStorage.getItem(BACKUP_KEY) ?? '')).toEqual({
+      ok: true, character,
+    })
+    expect(screen.queryByRole('button', { name: '取り込み前のシートに戻す' })).toBeNull()
     act(() => window.dispatchEvent(new Event('pagehide')))
     expect(readStoredCharacter().character).toMatchObject({
       playbookId: null, identity: { name: '' }, initialActionRatings: null,
@@ -156,11 +160,5 @@ describe('プレイブック未選択のシート', () => {
     expect(Object.values(readStoredCharacter().character?.ratings ?? {})).toEqual(ACTIONS.map(() => 0))
     await user.click(screen.getByRole('button', { name: 'シート' }))
     expect(screen.getByText(PLAYBOOK_LABELS.sheetHint)).toBeTruthy()
-    await user.click(screen.getByRole('button', { name: '編集' }))
-    await user.click(screen.getByRole('button', { name: 'データ' }))
-    await user.click(screen.getByRole('button', { name: '取り込み前のシートに戻す' }))
-    await user.click(screen.getByRole('button', { name: 'シート' }))
-    expect(screen.getByText('保存済みの狩人')).toBeTruthy()
-    expect(within(screen.getByRole('main')).getByRole('heading', { name: 'HOUND' })).toBeTruthy()
   })
 })

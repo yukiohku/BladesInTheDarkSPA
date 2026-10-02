@@ -5,7 +5,8 @@ import App from './App'
 import { CharacterProvider } from './state/CharacterProvider'
 import { createDefaultCharacter } from './constants/defaults'
 import { ACTIONS, HERITAGES, PLAYBOOK_LIST } from './constants/playbooks'
-import { readStoredCharacter, STORAGE_KEY } from './lib/storage'
+import { BACKUP_KEY, readStoredCharacter, STORAGE_KEY } from './lib/storage'
+import { parseCharacterFile, serializeCharacter } from './lib/serialize'
 import { characterReducer } from './state/characterReducer'
 function renderApp() {
   return render(
@@ -575,16 +576,28 @@ describe('基本7種の操作', () => {
     await tab(user, '初期設定')
     expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('維持する人物')
   })
-  it('新規作成前のバックアップから戻せる', async () => {
+  it('バックアップがあっても復元ボタンを表示せず、JSONの取り込みと元データの保管を行う', async () => {
     const user = userEvent.setup()
+    const previousBackup = createDefaultCharacter('whisper')
+    window.localStorage.setItem(BACKUP_KEY, serializeCharacter(previousBackup))
     renderApp()
     await tab(user, '初期設定')
-    await user.type(screen.getByLabelText('名前'), '戻す人物')
+    await user.type(screen.getByLabelText('名前'), '取り込み前の人物')
     await tab(user, 'データ')
-    await user.click(screen.getByRole('button', { name: '新しいキャラクターを作成' }))
-    await user.click(screen.getByRole('button', { name: '取り込み前のシートに戻す' }))
+    expect(screen.queryByRole('button', { name: '取り込み前のシートに戻す' })).toBeNull()
+    const imported = createDefaultCharacter('hound')
+    imported.identity.name = '取り込んだ人物'
+    const json = serializeCharacter(imported)
+    const file = new File([json], 'hound.json', { type: 'application/json' })
+    Object.defineProperty(file, 'text', { value: async () => json })
+    await user.upload(screen.getByLabelText('キャラクターJSONファイル'), file)
+    expect(screen.getByRole('status').textContent).toContain('JSONを読み込みました。')
+    expect(screen.queryByRole('button', { name: '取り込み前のシートに戻す' })).toBeNull()
+    expect(parseCharacterFile(window.localStorage.getItem(BACKUP_KEY) ?? '')).toMatchObject({
+      ok: true, character: { playbookId: 'cutter', identity: { name: '取り込み前の人物' } },
+    })
     await tab(user, '初期設定')
-    expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('戻す人物')
-    expect((screen.getByLabelText('プレイブック') as HTMLSelectElement).value).toBe('cutter')
+    expect((screen.getByLabelText('名前') as HTMLInputElement).value).toBe('取り込んだ人物')
+    expect((screen.getByLabelText('プレイブック') as HTMLSelectElement).value).toBe('hound')
   })
 })

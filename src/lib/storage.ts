@@ -57,20 +57,3 @@ export function saveBackup(character: Character) {
     return false
   }
 }
-export function loadBackup(): Character | null {
-  try {
-    const raw = window.localStorage.getItem(BACKUP_KEY)
-    if (!raw) return null
-    const result = parseCharacterFile(raw)
-    return result.ok ? result.character : null
-  } catch {
-    return null
-  }
-}
-export function hasBackup() {
-  try {
-    return window.localStorage.getItem(BACKUP_KEY) !== null
-  } catch {
-    return false
-  }
-}

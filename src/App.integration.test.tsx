@@ -166,7 +166,7 @@ describe('基本7種の操作', () => {
     expect(saved?.initialActionRatings?.hunt).toBe(1)
     expect(saved?.ratings.hunt).toBe(3)
   }, 15000)
-  it('専用タブを外し、クルー名と質問例を残して以前の詳細を保存する', async () => {
+  it('専用タブと質問例を表示せず、クルー名の更新後も以前の詳細を保存する', async () => {
     const user = userEvent.setup()
     const character = createDefaultCharacter('cutter')
     character.crew.name = '旧クルー'
@@ -186,9 +186,8 @@ describe('基本7種の操作', () => {
     await user.type(crewName, '新クルー')
     await user.click(screen.getByRole('button', { name: 'シート' }))
     expect(screen.getByText('新クルー')).toBeTruthy()
-    const questions = screen.getByText('情報収集の質問例')
-    await user.click(questions)
-    for (const question of PLAYBOOK_LIST[0].gatherInfo) expect(screen.getByText(question)).toBeTruthy()
+    expect(screen.queryByText('情報収集の質問例')).toBeNull()
+    for (const question of PLAYBOOK_LIST[0].gatherInfo) expect(screen.queryByText(question)).toBeNull()
     act(() => window.dispatchEvent(new Event('pagehide')))
     const saved = readStoredCharacter().character
     expect(saved?.crew).toEqual({ ...character.crew, name: '新クルー' })

@@ -55,7 +55,6 @@ export const PLAYBOOK_LABELS = {
   itemsHint: 'プレイブックを選ぶと固有装備が表示されます。',
   abilitiesHint: 'プレイブックを選ぶと特殊能力を取得できます。',
   allocationHint: 'プレイブックを選ぶと固定点が入り、追加4点を配分できます。',
-  gatherHint: 'プレイブックを選ぶと質問例が表示されます。',
 }
 export const EQUIPMENT_LABELS = {
   loadExceeded: '選択した上限を超えています。卓の裁定を確認してください。',

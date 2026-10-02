@@ -135,16 +135,6 @@ export function OfficialSheetView() {
             onChange={(value) => dispatch({ type: 'note', value })}
           />
         </section>
-        <details className="os-gather">
-          <summary>情報収集の質問例</summary>
-          {book ? (
-            <ul>
-              {book.gatherInfo.map((question) => <li key={question}>{question}</li>)}
-            </ul>
-          ) : (
-            <p>{PLAYBOOK_LABELS.gatherHint}</p>
-          )}
-        </details>
       </div>
       <div className="os__col os__col--center">
         <section className="os-panel os-panel--ability">

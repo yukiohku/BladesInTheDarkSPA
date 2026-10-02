@@ -1323,17 +1323,3 @@ button.os-rating__dot {
 .app:not(.app--sheet) .os-healing {
   --os-on: var(--accent);
 }
-
-.os-gather {
-  margin-top: 0.6rem;
-  font-size: 0.75rem;
-  line-height: 1.6;
-}
-.os-gather summary {
-  cursor: pointer;
-  font-weight: 700;
-}
-.os-gather ul {
-  margin: 0.4rem 0;
-  padding-left: 1.25rem;
-}

@@ -36,6 +36,8 @@ export interface Playbook {
   source: string
 }
 export const RATING_MAX = 4
+export const INITIAL_RATING_MAX = 2
+export const INITIAL_ALLOCATION_POINTS = 4
 export const COIN_MAX = 4
 export const STASH_MAX = 40
 export const PLAYBOOK_XP_MAX = 8

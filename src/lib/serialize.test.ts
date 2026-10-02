@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { createDefaultCharacter } from '../constants/defaults'
-import { PLAYBOOK_LIST } from '../constants/playbooks'
+import { ACTIONS, PLAYBOOK_LIST } from '../constants/playbooks'
 import { characterReducer } from '../state/characterReducer'
 import { normalizeCharacter, parseCharacterFile, serializeCharacter } from './serialize'
 import { resourceValue, usedLoad } from './rules'
+import { initialAllocationCount, totalActionGrowth } from './actionAllocation'
 const oldSheet = {
   schemaVersion: 1,
   id: 'old',
@@ -35,6 +36,34 @@ const oldSheet = {
   log: [{ id: 'log', resource: 'edges', before: 0, after: 4 }],
 }
 describe('保存と移行', () => {
+  it('未確定の初期配分を再読込して、配分途中から再開できる', () => {
+    const original = characterReducer(createDefaultCharacter(), { type: 'rating', id: 'hunt', value: 1 })
+    const result = parseCharacterFile(serializeCharacter(original))
+    if (!result.ok) throw new Error(result.error)
+    expect(result.character).toEqual(original)
+    expect(result.character.initialActionRatings).toBeNull()
+    expect(initialAllocationCount(result.character)).toBe(1)
+  })
+  it('初期配分の記録がないJSONは値を維持し、初期点を推測して割り振らない', () => {
+    const next = normalizeCharacter({ schemaVersion: 2, playbookId: 'cutter', identity: {}, ratings: { hunt: 4, study: 2 } })
+    expect(next.ratings.hunt).toBe(4)
+    expect(next.ratings.study).toBe(2)
+    expect(next.initialActionRatings).toEqual(createDefaultCharacter().ratings)
+    expect(initialAllocationCount(next)).toBe(0)
+    expect(totalActionGrowth(next)).toBe(6)
+  })
+  it('未確定の外部入力は固定点・追加4点・各上限2の範囲に正規化する', () => {
+    const next = normalizeCharacter({
+      ...createDefaultCharacter(),
+      ratings: { hunt: 99, study: 2, survey: 2, tinker: 2, skirmish: -1 },
+    })
+    expect(next.initialActionRatings).toBeNull()
+    expect(next.ratings.skirmish).toBe(2)
+    expect(next.ratings.hunt).toBe(2)
+    expect(next.ratings.study).toBe(2)
+    expect(next.ratings.survey).toBe(0)
+    expect(initialAllocationCount(next)).toBe(4)
+  })
   it.each(PLAYBOOK_LIST)('$titleの書き出しを再読込して全状態を保持する', (book) => {
     let original = createDefaultCharacter(book.id)
     original = characterReducer(original, {
@@ -42,13 +71,14 @@ describe('保存と移行', () => {
       definitionId: book.abilities[0].id,
     })
     original = characterReducer(original, { type: 'resource', resource: 'stress', value: 3 })
-    original = characterReducer(original, { type: 'rating', id: 'tinker', value: 0 })
+    for (const action of ACTIONS) original = characterReducer(original, { type: 'rating', id: action.id, value: 2 })
+    original = characterReducer(original, { type: 'ratings.confirmInitial', ratings: original.ratings })
     original = characterReducer(original, { type: 'rating', id: 'hunt', value: 4 })
     const result = parseCharacterFile(serializeCharacter(original))
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.character).toEqual(original)
-    expect(result.character.ratings.tinker).toBe(book.initialRatings.tinker ?? 0)
+    expect(result.character.initialActionRatings).toEqual(original.initialActionRatings)
     expect(result.character.ratings.hunt).toBe(4)
     expect(result.character).not.toHaveProperty('creationComplete')
   })

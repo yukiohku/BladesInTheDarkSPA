@@ -17,6 +17,8 @@ import {
   equipmentFor,
   findAbility,
   HEALING_CLOCK_SEGMENTS,
+  INITIAL_ALLOCATION_POINTS,
+  INITIAL_RATING_MAX,
   isPlaybookId,
   PLAYBOOK_XP_MAX,
   RATING_MAX,
@@ -137,6 +139,7 @@ export function normalizeSheet(value: unknown): SheetState {
   const base = defaultSheet(playbookId)
   const identity = record(source.identity)
   const ratingSource = record(source.ratings)
+  const initialSource = record(source.initialActionRatings)
   const xpSource = record(source.xp)
   const harm = record(source.harm)
   const armor = record(source.armorUses)
@@ -226,6 +229,28 @@ export function normalizeSheet(value: unknown): SheetState {
       base.ratings[item.id],
       RATING_MAX,
     )
+  if (source.initialActionRatings === null) {
+    const initial = { ...base.ratings }
+    let remaining = INITIAL_ALLOCATION_POINTS
+    for (const item of ACTIONS) {
+      const value = num(ratingSource[item.id], base.ratings[item.id], base.ratings[item.id], INITIAL_RATING_MAX)
+      const added = Math.min(remaining, value - base.ratings[item.id])
+      initial[item.id] += added
+      remaining -= added
+    }
+    next.ratings = initial
+    next.initialActionRatings = null
+  } else {
+    const initial = { ...base.ratings }
+    let remaining = INITIAL_ALLOCATION_POINTS
+    for (const item of ACTIONS) {
+      const value = num(initialSource[item.id], base.ratings[item.id], base.ratings[item.id], Math.min(INITIAL_RATING_MAX, next.ratings[item.id]))
+      const added = Math.min(remaining, value - base.ratings[item.id])
+      initial[item.id] += added
+      remaining -= added
+    }
+    next.initialActionRatings = initial
+  }
   next.stress = Math.min(next.stress, stressMax(next))
   next.healing = Math.max(next.healing, healingMinimum(next))
   for (const item of equipmentFor(playbookId))
@@ -285,6 +310,7 @@ function migratedSheet(source: Record<string, unknown>): SheetState {
       : '')
   const next = normalizeSheet({
     ...base,
+    initialActionRatings: base.ratings,
     ratings,
     abilities: acquired,
     identity: {

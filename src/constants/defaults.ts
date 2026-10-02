@@ -54,6 +54,7 @@ export function defaultSheet(playbookId: PlaybookId = 'cutter'): SheetState {
       purveyor: '',
     },
     ratings,
+    initialActionRatings: null,
     xp: { playbook: 0, insight: 0, prowess: 0, resolve: 0 },
     abilities: [],
     friends: book.friends.map((friend) => ({ ...friend, relation: 'neutral' })),

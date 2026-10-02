@@ -87,6 +87,7 @@ export interface SheetState {
     purveyor: string
   }
   ratings: Record<ActionId, number>
+  initialActionRatings: Record<ActionId, number> | null
   xp: Record<'playbook' | RatingGroup, number>
   abilities: AcquiredAbility[]
   friends: Friend[]

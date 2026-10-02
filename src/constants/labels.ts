@@ -23,6 +23,24 @@ export const MESSAGE = {
 export const SETUP_LABELS = {
   heritageDetailPlaceholder: '例：港で荷運びをする一家。祖父母が移住し、自分はドスコヴォルで育った。',
 }
+export const ACTION_ALLOCATION_LABELS = {
+  region: 'アクションの配分',
+  initial: '初期配分',
+  growth: '成長分',
+  confirm: '初期配分を確定',
+  revise: '初期配分を修正',
+  cancel: '訂正をやめる',
+  allocating: '追加4点を配分します。各アクションは最大2。',
+  growthHint: '確定した初期点を保ち、各アクションを4まで記録できます。',
+  revisionHint: '初期配分だけを訂正します。確定時に反映し、成長分は保持します。',
+  capacityHint: '成長分を含めて4を超える点は追加できません。',
+  manualHint: '能力や卓の裁定による追加点も、確定後に成長分へ記録できます。',
+  fixedLegend: '固定点',
+  initialLegend: '初期配分',
+  growthLegend: '成長分',
+  initialLocked: '初期配分・修正で変更',
+  unavailable: '初期配分は追加4点・各最大2。成長分を含めた上限は4です。',
+}
 export const ABILITY_LABELS = {
   remove: '取得を取り消す',
   confirmRemoval: '取り消しを確定',

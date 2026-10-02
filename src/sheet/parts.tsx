@@ -1,5 +1,5 @@
 import { HEALING_CLOCK_SEGMENTS, RATING_MAX } from '../constants/playbooks'
-import { MESSAGE } from '../constants/labels'
+import { ACTION_ALLOCATION_LABELS, MESSAGE } from '../constants/labels'
 export function Box({
   checked,
   onChange,
@@ -102,6 +102,9 @@ export function RatingDots({
   value,
   max = RATING_MAX,
   fixedValue = 0,
+  initialValue = 0,
+  growth = false,
+  editableMax = max,
   onChange,
 }: {
   name: string
@@ -109,6 +112,9 @@ export function RatingDots({
   value: number
   max?: number
   fixedValue?: number
+  initialValue?: number
+  growth?: boolean
+  editableMax?: number
   onChange?: (value: number) => void
 }) {
   return (
@@ -128,14 +134,23 @@ export function RatingDots({
               aria-label={`${en ?? name} ${index + 1}（プレイブック固定・変更不可）`}
               title="プレイブック固定・変更不可"
             />
+          ) : onChange && index < initialValue ? (
+            <span
+              key={index}
+              className="os-rating__dot os-rating__dot--selected"
+              role="img"
+              aria-label={`${en ?? name} ${index + 1}（${ACTION_ALLOCATION_LABELS.initialLocked}）`}
+              title={ACTION_ALLOCATION_LABELS.initialLocked}
+            />
           ) : onChange ? (
             <button
               key={index}
               type="button"
-              className={`os-rating__dot os-rating__dot--editable${index < value ? ' os-rating__dot--selected' : ''}`}
+              className={`os-rating__dot os-rating__dot--editable${index < value ? ` os-rating__dot--selected${growth ? ' os-rating__dot--growth' : ''}` : ''}`}
+              disabled={index >= editableMax}
               aria-pressed={index < value}
               aria-label={`${en ?? name} ${index + 1}`}
-              title={index < value ? 'クリックで減らす' : 'クリックで増やす'}
+              title={index >= editableMax ? ACTION_ALLOCATION_LABELS.unavailable : index < value ? 'クリックで減らす' : 'クリックで増やす'}
               onClick={() => onChange(index === value - 1 ? index : index + 1)}
             />
           ) : (

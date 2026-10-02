@@ -5,6 +5,7 @@ import { characterReducer } from './characterReducer'
 import type { Action } from './characterReducer'
 import type { Character } from '../types/character'
 import { attributeRating, loadLimits, stressMax, usedLoad } from '../lib/rules'
+import { initialAllocationCount, totalActionGrowth } from '../lib/actionAllocation'
 const run = (actions: Action[], base = createDefaultCharacter()) =>
   actions.reduce(characterReducer, base)
 describe('基本7種の定義と新規作成', () => {
@@ -42,7 +43,7 @@ describe('基本7種の定義と新規作成', () => {
   })
 })
 describe('characterReducer', () => {
-  it('初期点を固定し、合計点数や能力取得に関係なく各アクションを4まで入力できる', () => {
+  it('初期配分は固定点を維持し、追加4点と各上限2を守る', () => {
     const character = run([
       { type: 'rating', id: 'skirmish', value: 0 },
       { type: 'rating', id: 'command', value: -1 },
@@ -52,11 +53,40 @@ describe('characterReducer', () => {
     ])
     expect(character.ratings.skirmish).toBe(2)
     expect(character.ratings.command).toBe(1)
-    expect(character.ratings.hunt).toBe(4)
+    expect(character.ratings.hunt).toBe(2)
     expect(character.ratings.study).toBe(2)
-    expect(character.ratings.tinker).toBe(2)
+    expect(character.ratings.tinker).toBe(0)
     expect(character.abilities).toHaveLength(0)
-    expect(attributeRating(character, 'insight')).toBe(3)
+    expect(initialAllocationCount(character)).toBe(4)
+    expect(character.initialActionRatings).toBeNull()
+    expect(totalActionGrowth(character)).toBe(0)
+  })
+  it('初期配分だけを確定し、能力未取得でも成長分を追加できる', () => {
+    const original = createDefaultCharacter()
+    expect(characterReducer(original, { type: 'ratings.confirmInitial', ratings: original.ratings })).toBe(original)
+    const allocated = run([{ type: 'rating', id: 'hunt', value: 2 }, { type: 'rating', id: 'study', value: 2 }])
+    const confirmed = characterReducer(allocated, { type: 'ratings.confirmInitial', ratings: allocated.ratings })
+    const next = run([{ type: 'rating', id: 'hunt', value: 4 }, { type: 'rating', id: 'skirmish', value: 4 }], confirmed)
+    expect(next.abilities).toHaveLength(0)
+    expect(next.initialActionRatings).toEqual(allocated.ratings)
+    expect(initialAllocationCount(next)).toBe(4)
+    expect(totalActionGrowth(next)).toBe(4)
+    expect(attributeRating(next, 'insight')).toBe(2)
+    expect(characterReducer(next, { type: 'rating', id: 'hunt', value: 0 }).ratings.hunt).toBe(2)
+  })
+  it('初期配分の訂正は技能ごとの成長分を維持し、上限超過や不完全な配分を拒否する', () => {
+    const allocated = run([{ type: 'rating', id: 'hunt', value: 2 }, { type: 'rating', id: 'study', value: 2 }])
+    const confirmed = characterReducer(allocated, { type: 'ratings.confirmInitial', ratings: allocated.ratings })
+    const grown = run([{ type: 'rating', id: 'hunt', value: 4 }, { type: 'rating', id: 'tinker', value: 4 }], confirmed)
+    const revised = { ...allocated.ratings, hunt: 1, survey: 1 }
+    const next = characterReducer(grown, { type: 'ratings.confirmInitial', ratings: revised })
+    expect(next.ratings.hunt).toBe(3)
+    expect(next.ratings.survey).toBe(1)
+    expect(next.ratings.tinker).toBe(4)
+    expect(totalActionGrowth(next)).toBe(6)
+    expect(next.initialActionRatings).toEqual(revised)
+    expect(characterReducer(grown, { type: 'ratings.confirmInitial', ratings: { ...allocated.ratings, hunt: 1 } })).toBe(grown)
+    expect(characterReducer(grown, { type: 'ratings.confirmInitial', ratings: { ...allocated.ratings, hunt: 1, tinker: 1 } })).toBe(grown)
   })
   it.each([
     [-1, 0],
@@ -68,7 +98,9 @@ describe('characterReducer', () => {
     [99, 4],
     [Number.NaN, 0],
   ])('アクション入力 %s を0〜4の範囲で %s として記録する', (value, expected) => {
-    const next = run([{ type: 'rating', id: 'hunt', value }])
+    const allocated = run([{ type: 'rating', id: 'study', value: 2 }, { type: 'rating', id: 'tinker', value: 2 }])
+    const confirmed = characterReducer(allocated, { type: 'ratings.confirmInitial', ratings: allocated.ratings })
+    const next = run([{ type: 'rating', id: 'hunt', value }], confirmed)
     expect(next.ratings.hunt).toBe(expected)
   })
   it('共通値を保ち、固有データと取得済み能力を置換・保管する', () => {
@@ -117,10 +149,17 @@ describe('characterReducer', () => {
     expect(next.stress).toBe(9)
     expect(next.armorUses.special).toBe(false)
   })
-  it('明示した初期値の再設定だけがレートを置き換える', () => {
-    const next = run([{ type: 'playbook.change', playbookId: 'whisper', resetRatings: true }])
+  it('プレイブック変更では成長後の値と確定済み初期配分を保管し、新しい配分を開始する', () => {
+    const allocated = run([{ type: 'rating', id: 'hunt', value: 2 }, { type: 'rating', id: 'study', value: 2 }])
+    const confirmed = characterReducer(allocated, { type: 'ratings.confirmInitial', ratings: allocated.ratings })
+    const grown = characterReducer(confirmed, { type: 'rating', id: 'hunt', value: 4 })
+    const next = run([{ type: 'playbook.change', playbookId: 'whisper', resetRatings: true }], grown)
     expect(next.ratings.attune).toBe(2)
     expect(next.ratings.skirmish).toBe(0)
+    expect(next.initialActionRatings).toBeNull()
+    expect(initialAllocationCount(next)).toBe(0)
+    expect(totalActionGrowth(next)).toBe(0)
+    expect(next.legacy[0].data).toMatchObject({ ratings: grown.ratings, initialActionRatings: grown.initialActionRatings })
   })
   it('能力は複数取得でき、通常能力の二重取得を防ぐ', () => {
     const next = run([

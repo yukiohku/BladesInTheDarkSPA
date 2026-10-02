@@ -12,6 +12,7 @@ import type { ResourceAdjustment, ResourceKey } from '../types/resources'
 import { createDefaultCharacter, defaultSheet } from '../constants/defaults'
 import {
   equipmentFor,
+  ACTIONS,
   findAbility,
   PLAYBOOKS,
   RATING_MAX,
@@ -26,6 +27,7 @@ import {
   withResource,
 } from '../lib/rules'
 import { createId, nowIso } from '../lib/id'
+import { actionGrowth, canConfirmInitialAllocation, initialAllocationMax } from '../lib/actionAllocation'
 export type Action =
   | { type: 'replace'; character: Character }
   | { type: 'reset'; playbookId?: PlaybookId }
@@ -33,6 +35,7 @@ export type Action =
   | { type: 'note'; value: string }
   | { type: 'playbook.change'; playbookId: PlaybookId; resetRatings: boolean }
   | { type: 'rating'; id: ActionId; value: number }
+  | { type: 'ratings.confirmInitial'; ratings: SheetState['ratings'] }
   | { type: 'resource'; resource: ResourceKey; value: number }
   | { type: 'resource.adjust'; adjustment: ResourceAdjustment }
   | { type: 'ability.add'; definitionId: string }
@@ -101,6 +104,7 @@ export function characterReducer(character: Character, action: Action): Characte
         gatherNotes: {},
         abilities: [],
         ratings: action.resetRatings ? base.ratings : character.ratings,
+        initialActionRatings: action.resetRatings ? null : character.initialActionRatings,
       }
       const next = {
         ...cleared,
@@ -120,6 +124,7 @@ export function characterReducer(character: Character, action: Action): Characte
               itemUses: character.itemUses,
               gatherNotes: character.gatherNotes,
               ratings: character.ratings,
+              initialActionRatings: character.initialActionRatings,
               abilities: character.abilities,
             },
           },
@@ -134,11 +139,17 @@ export function characterReducer(character: Character, action: Action): Characte
           ...character.ratings,
           [action.id]: clamp(
             action.value,
-            PLAYBOOKS[character.playbookId].initialRatings[action.id] ?? 0,
-            RATING_MAX,
+            character.initialActionRatings?.[action.id] ?? (PLAYBOOKS[character.playbookId].initialRatings[action.id] ?? 0),
+            character.initialActionRatings ? RATING_MAX : initialAllocationMax(character, character.ratings, action.id),
           ),
         },
       })
+    case 'ratings.confirmInitial': {
+      if (!canConfirmInitialAllocation(character, action.ratings)) return character
+      const ratings = { ...action.ratings }
+      for (const item of ACTIONS) ratings[item.id] += actionGrowth(character, item.id)
+      return touch({ ...character, ratings, initialActionRatings: { ...action.ratings } })
+    }
     case 'resource': {
       const next = withResource(character, action.resource, action.value)
       return touch(next)

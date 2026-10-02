@@ -5,6 +5,7 @@ import {
   findAbility,
   GENERAL_ITEMS,
   PLAYBOOKS,
+  RATING_MAX,
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
 import { ABILITY_LABELS } from '../constants/labels'
@@ -12,6 +13,7 @@ import { abilityRemovalConfirmation } from '../lib/abilityRemoval'
 import { AbilityRemovalDialog } from './AbilityRemovalDialog'
 import {
   attributeRating,
+  clamp,
   hasSpecialArmor,
   healingMinimum,
   loadLimits,
@@ -21,8 +23,15 @@ import { Box, Bilingual, RatingDots, HealingClock } from '../sheet/parts'
 import { SelectInput, Stepper, TextArea } from './ui'
 import type { EquipmentOption } from '../constants/playbooks'
 import type { SheetState } from '../types/character'
-export function RatingsPanel({ sheet = false }: { sheet?: boolean }) {
+import { initialAllocationMax } from '../lib/actionAllocation'
+export function RatingsPanel({ sheet = false, initialDraft, onInitialChange }: {
+  sheet?: boolean
+  initialDraft?: SheetState['ratings']
+  onInitialChange?: (ratings: SheetState['ratings']) => void
+}) {
   const { character, dispatch } = useCharacter()
+  const allocating = !sheet && (character.initialActionRatings === null || initialDraft !== undefined)
+  const ratings = initialDraft ?? character.ratings
   return (
     <div
       className={`ratings-panel${sheet ? '' : ' ratings-panel--editing'}`}
@@ -49,10 +58,20 @@ export function RatingsPanel({ sheet = false }: { sheet?: boolean }) {
               key={item.id}
               name={item.ja}
               en={item.name}
-              value={character.ratings[item.id]}
+              value={ratings[item.id]}
               fixedValue={sheet ? 0 : (PLAYBOOKS[character.playbookId].initialRatings[item.id] ?? 0)}
+              initialValue={allocating || sheet ? 0 : character.initialActionRatings?.[item.id]}
+              growth={!sheet && !allocating}
+              editableMax={allocating ? initialAllocationMax(character, ratings, item.id) : RATING_MAX}
               onChange={
-                sheet ? undefined : (value) => dispatch({ type: 'rating', id: item.id, value })
+                sheet ? undefined : (value) => {
+                  if (initialDraft && onInitialChange) {
+                    onInitialChange({
+                      ...initialDraft,
+                      [item.id]: clamp(value, PLAYBOOKS[character.playbookId].initialRatings[item.id] ?? 0, initialAllocationMax(character, initialDraft, item.id)),
+                    })
+                  } else dispatch({ type: 'rating', id: item.id, value })
+                }
               }
             />
           ))}

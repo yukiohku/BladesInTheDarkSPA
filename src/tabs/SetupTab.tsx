@@ -8,7 +8,7 @@ import {
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
 import { Grid, Section, SelectInput, TextArea, TextInput } from '../components/ui'
-import { RatingsPanel } from '../components/SheetPanels'
+import { ActionAllocationPanel } from '../components/ActionAllocationPanel'
 import { SETUP_LABELS } from '../constants/labels'
 export function SetupTab() {
   const { character, dispatch } = useCharacter()
@@ -100,7 +100,7 @@ export function SetupTab() {
         />
       </Section>
       <Section title="アクション">
-        <RatingsPanel />
+        <ActionAllocationPanel key={character.playbookId} />
       </Section>
       <Section
         title={PLAYBOOKS[character.playbookId].friendsTitle}

@@ -53,6 +53,7 @@
 | `src/styles/app.css` | アプリ全体と編集画面のスタイル |
 | `.github/workflows/deploy.yml` | 品質チェック、ビルド、GitHub Pages 公開 |
 | `docs/research/` | 公式資料の出典、プレイブックとSRDの要約、現行実装との比較。`originals/` の取得原本はローカル調査用でGit管理から除外 |
+| `docs/plans/` | 未実装機能の計画、範囲、実装手順、受け入れ条件。現行仕様とは区別する |
 
 ## 実装上の方針
 

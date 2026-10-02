@@ -31,7 +31,7 @@ export type Action =
   | { type: 'reset'; playbookId?: PlaybookId | null }
   | { type: 'identity'; patch: Partial<SheetState['identity']> }
   | { type: 'note'; value: string }
-  | { type: 'playbook.change'; playbookId: PlaybookId | null; resetRatings: boolean }
+  | { type: 'playbook.change'; playbookId: PlaybookId | null }
   | { type: 'rating'; id: ActionId; value: number }
   | { type: 'ratings.confirmInitial'; ratings: SheetState['ratings'] }
   | { type: 'resource'; resource: ResourceKey; value: number }
@@ -81,7 +81,6 @@ export function characterReducer(character: Character, action: Action): Characte
     case 'playbook.change': {
       if (action.playbookId === character.playbookId) return character
       const base = defaultSheet(action.playbookId)
-      const resetRatings = action.resetRatings || action.playbookId === null || character.playbookId === null
       const cleared: Character = {
         ...character,
         playbookId: action.playbookId,
@@ -97,8 +96,8 @@ export function characterReducer(character: Character, action: Action): Characte
         itemUses: base.itemUses,
         gatherNotes: {},
         abilities: [],
-        ratings: resetRatings ? base.ratings : character.ratings,
-        initialActionRatings: resetRatings ? null : character.initialActionRatings,
+        ratings: base.ratings,
+        initialActionRatings: null,
       }
       const next = {
         ...cleared,

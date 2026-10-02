@@ -23,7 +23,7 @@ export function defaultCrew(): Crew {
     notes: '',
   }
 }
-export function defaultSheet(playbookId: PlaybookId | null = 'cutter'): SheetState {
+export function defaultSheet(playbookId: PlaybookId | null): SheetState {
   const book = playbookId ? PLAYBOOKS[playbookId] : null
   const ratings: SheetState['ratings'] = {
     hunt: 0,
@@ -80,7 +80,7 @@ export function defaultSheet(playbookId: PlaybookId | null = 'cutter'): SheetSta
     crew: defaultCrew(),
   }
 }
-export function createDefaultCharacter(playbookId: PlaybookId | null = 'cutter'): Character {
+export function createDefaultCharacter(playbookId: PlaybookId | null): Character {
   const at = nowIso()
   return {
     ...defaultSheet(playbookId),

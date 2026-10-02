@@ -61,7 +61,7 @@ describe('保存と移行', () => {
     expect(parseCharacterFile(JSON.stringify({ schemaVersion: 2, identity: {}, playbookId })).ok).toBe(false)
   })
   it('未確定の初期配分を再読込して、配分途中から再開できる', () => {
-    const original = characterReducer(createDefaultCharacter(), { type: 'rating', id: 'hunt', value: 1 })
+    const original = characterReducer(createDefaultCharacter('cutter'), { type: 'rating', id: 'hunt', value: 1 })
     const result = parseCharacterFile(serializeCharacter(original))
     if (!result.ok) throw new Error(result.error)
     expect(result.character).toEqual(original)
@@ -72,13 +72,13 @@ describe('保存と移行', () => {
     const next = normalizeCharacter({ schemaVersion: 2, playbookId: 'cutter', identity: {}, ratings: { hunt: 4, study: 2 } })
     expect(next.ratings.hunt).toBe(4)
     expect(next.ratings.study).toBe(2)
-    expect(next.initialActionRatings).toEqual(createDefaultCharacter().ratings)
+    expect(next.initialActionRatings).toEqual(createDefaultCharacter('cutter').ratings)
     expect(initialAllocationCount(next)).toBe(0)
     expect(totalActionGrowth(next)).toBe(6)
   })
   it('未確定の外部入力は固定点・追加4点・各上限2の範囲に正規化する', () => {
     const next = normalizeCharacter({
-      ...createDefaultCharacter(),
+      ...createDefaultCharacter('cutter'),
       ratings: { hunt: 99, study: 2, survey: 2, tinker: 2, skirmish: -1 },
     })
     expect(next.initialActionRatings).toBeNull()
@@ -168,7 +168,8 @@ describe('保存と移行', () => {
   it('officialがない旧データでも名前と原データを保管する', () => {
     const next = normalizeCharacter({ basics: { name: '人物' } })
     expect(next.identity.name).toBe('人物')
-    expect(next.ratings).toEqual(createDefaultCharacter().ratings)
+    expect(next.playbookId).toBeNull()
+    expect(next.ratings).toEqual(createDefaultCharacter(null).ratings)
     expect(next.legacy).toHaveLength(1)
   })
   it('旧データに傷の段階だけあっても移行後に表示を失わない', () => {

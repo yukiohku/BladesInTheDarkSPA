@@ -168,7 +168,7 @@ describe('基本7種の操作', () => {
   }, 15000)
   it('専用タブを外し、クルー名と質問例を残して以前の詳細を保存する', async () => {
     const user = userEvent.setup()
-    const character = createDefaultCharacter()
+    const character = createDefaultCharacter('cutter')
     character.crew.name = '旧クルー'
     character.crew.notes = '以前のクルーメモ'
     character.crew.roster = [{ id: 'member', name: '仲間', role: '協力者', note: '旧記録', player: true }]
@@ -224,7 +224,7 @@ describe('基本7種の操作', () => {
     'シートのアクションは表示のみで、編集の変更とXP操作を反映する',
     async () => {
       const user = userEvent.setup()
-      const character = createDefaultCharacter()
+      const character = createDefaultCharacter('cutter')
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
       renderApp()
 
@@ -390,7 +390,7 @@ describe('基本7種の操作', () => {
   })
   it('Veteranの取り消しでストレスを補正し、他の能力とXPを保持する', async () => {
     const user = userEvent.setup()
-    let character = characterReducer(createDefaultCharacter(), { type: 'ability.add', definitionId: 'cutter:mule' })
+    let character = characterReducer(createDefaultCharacter('cutter'), { type: 'ability.add', definitionId: 'cutter:mule' })
     character = characterReducer(character, { type: 'ability.add', definitionId: 'hound:survivor' })
     character = characterReducer(character, { type: 'resource', resource: 'stress', value: 10 })
     character = characterReducer(character, { type: 'resource', resource: 'playbook', value: 4 })

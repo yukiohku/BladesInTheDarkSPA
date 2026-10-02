@@ -6,7 +6,7 @@ import type { Action } from './characterReducer'
 import type { Character } from '../types/character'
 import { attributeRating, loadLimits, stressMax, usedLoad } from '../lib/rules'
 import { initialAllocationCount, totalActionGrowth } from '../lib/actionAllocation'
-const run = (actions: Action[], base = createDefaultCharacter()) =>
+const run = (actions: Action[], base = createDefaultCharacter('cutter')) =>
   actions.reduce(characterReducer, base)
 const withGatherNote = (character: Character, value: string): Character => ({
   ...character,
@@ -37,7 +37,7 @@ describe('基本7種の定義と新規作成', () => {
       { type: 'equipment', id: 'armor', quantity: 1 },
       { type: 'armor', kind: 'armor' },
     ], createDefaultCharacter(null))
-    const selected = characterReducer(blank, { type: 'playbook.change', playbookId: book.id, resetRatings: false })
+    const selected = characterReducer(blank, { type: 'playbook.change', playbookId: book.id })
     expect(selected.ratings).toEqual(createDefaultCharacter(book.id).ratings)
     expect(selected.initialActionRatings).toBeNull()
     expect(selected.friends).toEqual(createDefaultCharacter(book.id).friends)
@@ -49,7 +49,7 @@ describe('基本7種の定義と新規作成', () => {
     expect(selected.equipment.armor).toBe(1)
     expect(selected.armorUses.armor).toBe(true)
     expect(selected.legacy).toHaveLength(0)
-    expect(characterReducer(selected, { type: 'playbook.change', playbookId: book.id, resetRatings: true })).toBe(selected)
+    expect(characterReducer(selected, { type: 'playbook.change', playbookId: book.id })).toBe(selected)
   })
   it.each([
     ['cutter', 'skirmish', 'command'],
@@ -101,7 +101,7 @@ describe('characterReducer', () => {
       { type: 'armor', kind: 'armor' },
       { type: 'armor', kind: 'special' },
     ], confirmed), '保管するメモ')
-    const next = characterReducer(original, { type: 'playbook.change', playbookId: null, resetRatings: false })
+    const next = characterReducer(original, { type: 'playbook.change', playbookId: null })
     expect(next.playbookId).toBeNull()
     expect(Object.values(next.ratings)).toEqual(Array(12).fill(0))
     expect(next.initialActionRatings).toBeNull()
@@ -121,11 +121,11 @@ describe('characterReducer', () => {
         friends: original.friends, abilities: original.abilities, equipment: original.equipment,
         gatherNotes: original.gatherNotes },
     })
-    const selected = characterReducer(next, { type: 'playbook.change', playbookId: 'cutter', resetRatings: false })
+    const selected = characterReducer(next, { type: 'playbook.change', playbookId: 'cutter' })
     expect(selected.ratings).toEqual(createDefaultCharacter('cutter').ratings)
     expect(selected.abilities).toEqual([])
     expect(selected.legacy).toEqual(next.legacy)
-    expect(characterReducer(next, { type: 'playbook.change', playbookId: null, resetRatings: true })).toBe(next)
+    expect(characterReducer(next, { type: 'playbook.change', playbookId: null })).toBe(next)
   })
   it('初期配分は固定点を維持し、追加4点と各上限2を守る', () => {
     const character = run([
@@ -146,7 +146,7 @@ describe('characterReducer', () => {
     expect(totalActionGrowth(character)).toBe(0)
   })
   it('初期配分だけを確定し、能力未取得でも成長分を追加できる', () => {
-    const original = createDefaultCharacter()
+    const original = createDefaultCharacter('cutter')
     expect(characterReducer(original, { type: 'ratings.confirmInitial', ratings: original.ratings })).toBe(original)
     const allocated = run([{ type: 'rating', id: 'hunt', value: 2 }, { type: 'rating', id: 'study', value: 2 }])
     const confirmed = characterReducer(allocated, { type: 'ratings.confirmInitial', ratings: allocated.ratings })
@@ -198,11 +198,11 @@ describe('characterReducer', () => {
     const next = characterReducer(original, {
       type: 'playbook.change',
       playbookId: 'hound',
-      resetRatings: false,
     })
     expect(next.identity.name).toBe('テスト')
     expect(next.stress).toBe(6)
-    expect(next.ratings).toEqual(original.ratings)
+    expect(next.ratings).toEqual(createDefaultCharacter('hound').ratings)
+    expect(next.initialActionRatings).toBeNull()
     expect(next.abilities).toEqual([])
     expect(next.equipment.blade).toBe(1)
     expect(next.equipment['cutter:hand-weapon']).toBeUndefined()
@@ -225,7 +225,6 @@ describe('characterReducer', () => {
     const next = characterReducer(original, {
       type: 'playbook.change',
       playbookId: 'hound',
-      resetRatings: true,
     })
     expect(next.abilities).toEqual([])
     expect(stressMax(next)).toBe(9)
@@ -236,7 +235,7 @@ describe('characterReducer', () => {
     const allocated = run([{ type: 'rating', id: 'hunt', value: 2 }, { type: 'rating', id: 'study', value: 2 }])
     const confirmed = characterReducer(allocated, { type: 'ratings.confirmInitial', ratings: allocated.ratings })
     const grown = characterReducer(confirmed, { type: 'rating', id: 'hunt', value: 4 })
-    const next = run([{ type: 'playbook.change', playbookId: 'whisper', resetRatings: true }], grown)
+    const next = run([{ type: 'playbook.change', playbookId: 'whisper' }], grown)
     expect(next.ratings.attune).toBe(2)
     expect(next.ratings.skirmish).toBe(0)
     expect(next.initialActionRatings).toBeNull()
@@ -373,7 +372,7 @@ describe('characterReducer', () => {
     expect(corrected.traumas).toEqual(['haunted', 'obsessed', 'soft'])
   })
   it('繰り返し操作しても履歴を蓄積しない', () => {
-    const base = createDefaultCharacter()
+    const base = createDefaultCharacter('cutter')
     let next = base
     for (let index = 0; index < 1000; index++) {
       next = characterReducer(next, { type: 'resource', resource: 'stress', value: index % 2 })
@@ -383,7 +382,7 @@ describe('characterReducer', () => {
     expect(JSON.stringify(next).length).toBe(JSON.stringify(base).length)
   })
   it('親しい人物・ライバルをそれぞれ1人にする', () => {
-    const base = createDefaultCharacter()
+    const base = createDefaultCharacter('cutter')
     const next = run(
       [
         { type: 'friend.patch', id: base.friends[0].id, patch: { relation: 'friend' } },
@@ -394,7 +393,7 @@ describe('characterReducer', () => {
     expect(next.friends.filter((friend) => friend.relation === 'friend')).toHaveLength(1)
   })
   it('元の状態を直接変更しない', () => {
-    const base: Character = createDefaultCharacter()
+    const base: Character = createDefaultCharacter('cutter')
     const original = JSON.stringify(base)
     characterReducer(base, { type: 'equipment', id: 'blade', quantity: 1 })
     expect(JSON.stringify(base)).toBe(original)

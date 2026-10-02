@@ -35,7 +35,7 @@ export function SetupTab() {
             if (value === '' || isPlaybookId(value)) {
               const playbookId = value === '' ? null : value
               if (playbookId !== character.playbookId)
-                dispatch({ type: 'playbook.change', playbookId, resetRatings: true })
+                dispatch({ type: 'playbook.change', playbookId })
             }
           }}
         />

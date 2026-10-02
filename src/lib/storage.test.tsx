@@ -144,7 +144,7 @@ describe('ブラウザ保存', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
       throw new Error('quota')
     })
-    expect(saveCharacter(createDefaultCharacter())).toBe(false)
-    expect(saveBackup(createDefaultCharacter())).toBe(false)
+    expect(saveCharacter(createDefaultCharacter('cutter'))).toBe(false)
+    expect(saveBackup(createDefaultCharacter('cutter'))).toBe(false)
   })
 })

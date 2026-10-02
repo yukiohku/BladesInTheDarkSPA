@@ -135,7 +135,7 @@ function abilities(value: unknown): AcquiredAbility[] {
 }
 export function normalizeSheet(value: unknown): SheetState {
   const source = record(value)
-  const playbookId = source.playbookId === null ? null : isPlaybookId(source.playbookId) ? source.playbookId : 'cutter'
+  const playbookId = source.playbookId === null ? null : isPlaybookId(source.playbookId) ? source.playbookId : null
   const base = defaultSheet(playbookId)
   const identity = record(source.identity)
   const ratingSource = record(source.ratings)
@@ -263,7 +263,7 @@ export function normalizeSheet(value: unknown): SheetState {
 function migratedSheet(source: Record<string, unknown>): SheetState {
   const official = record(source.official)
   const basics = record(source.basics)
-  const playbookId: PlaybookId = isPlaybookId(official.playbookId) ? official.playbookId : 'cutter'
+  const playbookId: PlaybookId | null = isPlaybookId(official.playbookId) ? official.playbookId : null
   const base = defaultSheet(playbookId)
   const oldRatings = record(official.ratings)
   const oldHarm = record(official.harmNotes)
@@ -360,16 +360,16 @@ function migratedSheet(source: Record<string, unknown>): SheetState {
     notes: [str(basics.summary), str(source.notes)].filter(Boolean).join('\n\n'),
     clocks: source.harmClocks,
     crew: { ...record(source.crew), name: str(official.crewName) || str(record(source.crew).name) },
-    gatherNotes: Object.fromEntries(
-      strings(official.gatherInfo).map((text, index) => [`${playbookId}:${index}`, text]),
-    ),
+    gatherNotes: playbookId
+      ? Object.fromEntries(strings(official.gatherInfo).map((text, index) => [`${playbookId}:${index}`, text]))
+      : {},
   })
   return next
 }
 export function normalizeCharacter(value: unknown): Character {
-  if (!isRecord(value)) return createDefaultCharacter()
+  if (!isRecord(value)) return createDefaultCharacter(null)
   const old = value.schemaVersion === undefined || value.schemaVersion === 1
-  const base = createDefaultCharacter()
+  const base = createDefaultCharacter(null)
   const legacy = array(value.legacy)
     .filter(isRecord)
     .map((item) => ({

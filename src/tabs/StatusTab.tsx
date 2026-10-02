@@ -1,22 +1,18 @@
 import { useState } from 'react'
 import { TRAUMAS } from '../constants/playbooks'
+import { STATUS_LABELS } from '../constants/labels'
 import { useCharacter } from '../state/characterContext'
-import { ClockEditor, Section, TextInput } from '../components/ui'
+import { Section, TextInput } from '../components/ui'
 import { HarmPanel } from '../components/SheetPanels'
-import { ResourceAdjustmentForm } from '../components/ResourceAdjustmentForm'
+import { ResourceControls } from '../components/ResourceControls'
 export function TraumaPanel({ compact = false }: { compact?: boolean }) {
   const { character, dispatch } = useCharacter()
   const [custom, setCustom] = useState('')
   return (
-    <>
-      {!compact && (
-        <p className="field__hint">
-          トラウマは永続的です。チェック解除は入力訂正です。4つ目で通常の悪党としての活動を終えます。
-        </p>
-      )}
+    <div className={compact ? undefined : 'trauma-panel'}>
       <div className="trauma-options">
         {TRAUMAS.map((option) => (
-          <label key={option.id}>
+          <label key={option.id} className={character.traumas.includes(option.id) ? 'trauma-option--on' : undefined}>
             <input
               type="checkbox"
               checked={character.traumas.includes(option.id)}
@@ -35,13 +31,10 @@ export function TraumaPanel({ compact = false }: { compact?: boolean }) {
             {name}（取り込み・自由記入）
           </label>
         ))}
-      <details className="trauma-extra" open={compact ? undefined : true}>
-        {compact && <summary>自由記入・説明</summary>}
-        {compact && (
-          <p className="field__hint">
-            トラウマは永続的です。解除は入力訂正。4つ目で通常の悪党としての活動を終えます。
-          </p>
-        )}
+      {!compact && <p className="field__hint">{STATUS_LABELS.traumaHint}</p>}
+      <details className="trauma-extra">
+        <summary>{compact ? '自由記入・説明' : STATUS_LABELS.traumaExtra}</summary>
+        {compact && <p className="field__hint">{STATUS_LABELS.traumaHint}</p>}
         <form
           onSubmit={(event) => {
             event.preventDefault()
@@ -65,48 +58,32 @@ export function TraumaPanel({ compact = false }: { compact?: boolean }) {
           </button>
         </form>
       </details>
-    </>
+    </div>
   )
 }
 export function StatusTab() {
-  const { character, dispatch } = useCharacter()
+  const { character } = useCharacter()
   return (
-    <>
-      <Section title="数値の増減">
-        <ResourceAdjustmentForm />
-      </Section>
-      <Section title="傷・治療・鎧">
-        <HarmPanel />
-      </Section>
-      <Section title="トラウマ">
+    <div className="status-layout">
+      <div className="status-resources">
+        <Section title={STATUS_LABELS.assets}>
+          <ResourceControls resources={['coin', 'stash']} />
+        </Section>
+        <Section title={STATUS_LABELS.experience}>
+          <ResourceControls resources={['playbook', 'insight', 'prowess', 'resolve']} />
+        </Section>
+      </div>
+      <Section title={STATUS_LABELS.condition}>
+        <ResourceControls resources={['stress']} />
+        <div className="status-subheading">
+          <h3>トラウマ</h3>
+          <span>{character.traumas.length} / 4</span>
+        </div>
         <TraumaPanel />
       </Section>
-      <Section
-        title="ダウンタイムの開始"
-        hint="能力の説明に従って特殊鎧を回復させます。ストレス・傷・能力の効果は手動で処理します。"
-      >
-        <button
-          type="button"
-          className="button"
-          onClick={() => dispatch({ type: 'specialArmor.reset' })}
-        >
-          特殊鎧の使用をリセット
-        </button>
+      <Section title={STATUS_LABELS.harm}>
+        <HarmPanel />
       </Section>
-      <Section title="長期プロジェクト・クロック">
-        {character.clocks.map((clock) => (
-          <ClockEditor
-            key={clock.id}
-            label={clock.name || 'クロック'}
-            clock={clock}
-            onPatch={(patch) => dispatch({ type: 'clock.patch', id: clock.id, patch })}
-            onRemove={() => dispatch({ type: 'clock.remove', id: clock.id })}
-          />
-        ))}
-        <button type="button" className="button" onClick={() => dispatch({ type: 'clock.add' })}>
-          クロックを追加
-        </button>
-      </Section>
-    </>
+    </div>
   )
 }

@@ -35,9 +35,53 @@
 | Prowess | Finesse、Prowl、Skirmish、Wreck | 身体的負担や負傷 |
 | Resolve | Attune、Command、Consort、Sway | 精神的負担や意志 |
 
-属性のまとまりは [Actions & Attributes](https://bladesinthedark.com/actions-attributes)、抵抗の分類は [Resistance & Armor](https://bladesinthedark.com/resistance-armor) に基づきます。プレイヤーが行動内容からアクションを選び、状況への適合は危険度や効果に影響します。
+属性のまとまりは [Actions & Attributes](https://bladesinthedark.com/actions-attributes)、抵抗の分類は [Resistance & Armor](https://bladesinthedark.com/resistance-armor) に基づきます。プレイヤーが行動内容からアクションを選び、状況への適合は判定状況や効果に影響します。
 
 アプリのシートの属性見出しでは、Insightに「洞察」、Prowessに「身体」、Resolveに「意志」を併記します。これらは本アプリの参考訳です。
+
+## 判定の状況と効果の対訳
+
+判定周りでは以下の参考訳を使います。日本語版の公式訳として扱いません。確認日：2026年10月2日。技能名は〈破壊〉などの〈〉、状況や効果の段階名は［優位］［限定的］などの［］で示します。「な」を含め、文章に自然に組み込める形を `src/constants/labels.ts` の `POSITION_LABELS` / `EFFECT_LABELS` に定義します。
+
+**判定状況（Position）** は、行動に伴う危険と、不利益が生じたときの厳しさを表します。GMが設定し、通常は［リスキー］な状況です。［優位］な状況でも危険がなくなるわけではありません。[Action Roll](https://bladesinthedark.com/action-roll)
+
+| 原語 | 本文での表記 | 意味 |
+| --- | --- | --- |
+| Controlled | ［優位］な状況 | 主導権や明確な有利さを活かして行動する |
+| Risky | ［リスキー］な状況 | 相手との対抗や危険を伴う、通常の判定状況 |
+| Desperate | ［絶望的］な状況 | 自分の能力を超える挑戦や重大な危険に直面する |
+
+**効果（Effect）** は、成功した行動でどれだけ達成できるかを表します。判定状況とは別に設定します。[Effect](https://bladesinthedark.com/effect)
+
+| 原語 | 本文での表記 | 意味 |
+| --- | --- | --- |
+| Limited | ［限定的］な効果 | 部分的な成果を得る |
+| Standard | ［標準的］な効果 | その行動で通常期待される成果を得る |
+| Great | ［大きな］効果 | 通常より大きな成果を得る |
+
+本文では「［リスキー］な状況で〈破壊〉を判定する」「成功すると［標準的］な効果を得る」のように書きます。能力説明の「＋1効果」は、GMが設定した効果を1段階上げる意味です。たとえば［限定的］な効果から［標準的］な効果へ上がります。通常の3段階の外に、効果なし（Zero）と極大効果（Extreme）もあります。[Effect](https://bladesinthedark.com/effect)
+
+### その他の判定用語と使い分け
+
+以下も本アプリの参考訳として揃えます。既存の「自分を追い込む」「抵抗判定」「ダウンタイム」「フラッシュバック」は維持します。追加した対訳は、既存の説明文を修正するときの基準です。
+
+| 原語と出典 | 本文での表記 | 意味・使い分け |
+| --- | --- | --- |
+| [Result / Outcome](https://bladesinthedark.com/action-roll) | 判定結果 | 判定に関して、出目や行動の成否を示す。一般的な出来事の結果は文脈に合わせて訳す |
+| [Consequence](https://bladesinthedark.com/consequences-harm) | 悪影響 | キャラクターが受ける不利益。成功しても受けることがあり、傷・厄介事・効果の低下などを含む |
+| [Complication](https://bladesinthedark.com/consequences-harm) | 厄介事 | 増援や火災、新しい脅威などが生じる種類の悪影響 |
+| [Harm](https://bladesinthedark.com/consequences-harm) | 傷 | 持続的な障害。身体的な負傷だけでなく精神面の傷も含む |
+| [Fortune Roll](https://bladesinthedark.com/fortune-roll) | 運勢判定 | 不確定な成り行きや成果の程度を決める判定 |
+| [Engagement Roll](https://bladesinthedark.com/planning-engagement) | 初動判定 | 仕事開始時、最初の障害に直面する判定状況を決める。行動順を決める判定ではない |
+| [Potency](https://bladesinthedark.com/effect) | 有効性 | 弱点や特殊な力などによる効きやすさ。戦闘以外にも使う効果の評価要素 |
+| [Scale](https://bladesinthedark.com/effect) | 規模 | 人数・大きさ・影響範囲など、効果の評価要素 |
+| [Quality](https://bladesinthedark.com/effect) | 品質 | 道具・武器・資源の質。階級を基準に評価することが多い |
+| [Push Yourself](https://bladesinthedark.com/action-roll) | 自分を追い込む | ストレスを受けて追加の利益を得る操作。特殊能力の発動条件にもなる |
+| [Resistance Roll](https://bladesinthedark.com/resistance-armor) | 抵抗判定 | 悪影響に抵抗するときに受けるストレスを決める。抵抗による軽減・回避は成立し、その範囲はGMが決める |
+| [Downtime](https://bladesinthedark.com/downtime) | ダウンタイム | 仕事の合間に回復・長期プロジェクトなどを行う期間 |
+| [Flashback](https://bladesinthedark.com/planning-engagement) | フラッシュバック | 現在に影響する過去の行動や準備を描く。すでに起きた出来事を取り消すものではない |
+
+たとえば「薬品の結果に抵抗する」は、原文が薬品による Consequence を指すなら「薬品による悪影響に抵抗する」と書きます。「結果」「威力」は通常の意味でも使うため、原文の用語と文脈を確認して訳し分けます。
 
 ## ストレスとトラウマ
 
@@ -72,7 +116,7 @@
 
 ## XPと成長
 
-Desperateのアクション判定では、該当属性にXP1を記録します。セッション終了時は、固有のXP条件、信念・動機・出自・経歴の表現、悪癖・トラウマに起因する問題を振り返り、各条件につきXP1、何度も起きたならXP2です。成功だけを条件にしません。[Advancement](https://bladesinthedark.com/advancement)
+［絶望的］な状況でのアクション判定では、該当属性にXP1を記録します。セッション終了時は、固有のXP条件、信念・動機・出自・経歴の表現、悪癖・トラウマに起因する問題を振り返り、各条件につきXP1、何度も起きたならXP2です。成功だけを条件にしません。[Advancement](https://bladesinthedark.com/advancement)
 
 終了時のXPはプレイブックまたはいずれかの属性へ入れられます。トラックが満たされると成長し、プレイブックでは能力追加、属性では所属アクションに1点追加します。訓練は同じトラックにつき1ダウンタイムに1回です。[出典](https://bladesinthedark.com/advancement)
 

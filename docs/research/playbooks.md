@@ -32,7 +32,7 @@
 
 能力の説明本文は日本語で書き、アクション名（技能名）を参照するときは〈破壊〉のように〈〉で括ります。普通の動詞や属性名にはこの括弧を付けません。能力名やシート見出しの英日併記、判定のダイス数を表す「＋1d」「−1d」は維持します。
 
-アクションと属性の訳は `src/constants/playbooks.ts` の `ACTIONS` / `ACTION_GROUPS`、貯蓄は `src/constants/labels.ts` の既存ラベルに合わせています。荷重・階級・注目度・窮地・古参は、英語のまま残っていた用語に今回定めた参考訳です。いずれもこのアプリの用語であり、日本語版の公式訳として扱いません。確認日：2026年10月2日。
+アクションと属性の訳は `src/constants/playbooks.ts` の `ACTIONS` / `ACTION_GROUPS`、貯蓄は `src/constants/labels.ts` の既存ラベルに合わせています。荷重・階級・注目度・判定状況・効果の段階・古参は、英語のまま残っていた用語に今回定めた参考訳です。いずれもこのアプリの用語であり、日本語版の公式訳として扱いません。確認日：2026年10月2日。
 
 | 原語 | 本文での表記 |
 | --- | --- |
@@ -55,9 +55,31 @@
 | Stash | 貯蓄 |
 | Tier | 階級 |
 | Heat | 注目度 |
-| Desperate | 窮地 |
+| Position | 判定状況 |
+| Controlled | ［優位］な状況 |
+| Risky | ［リスキー］な状況 |
+| Desperate | ［絶望的］な状況 |
+| Effect | 効果 |
+| Limited | ［限定的］な効果 |
+| Standard | ［標準的］な効果 |
+| Great | ［大きな］効果 |
+| Result / Outcome（判定について） | 判定結果 |
+| Consequence | 悪影響 |
+| Complication | 厄介事 |
+| Harm | 傷 |
+| Fortune Roll | 運勢判定 |
+| Engagement Roll | 初動判定 |
+| Potency | 有効性 |
+| Scale | 規模 |
+| Quality | 品質 |
+| Push Yourself | 自分を追い込む |
+| Resistance Roll | 抵抗判定 |
+| Downtime | ダウンタイム |
+| Flashback | フラッシュバック |
 | XP | 経験値 |
 | Veteran | 古参 |
+
+判定状況と効果の意味・文章中の表記、判定結果・悪影響・有効性などの使い分けは [判定の対訳](srd-characters.md#判定の状況と効果の対訳) を参照します。追加した用語には既存の説明文への反映がまだ必要なものもあるため、修正時に原文の文脈を確認します。
 
 効果の条件と数値は上記の基本プレイブックPDFを参照します。共通の意味は [SRDの能力例](https://bladesinthedark.com/character-playbook)、[クルーと階級](https://bladesinthedark.com/crew)、[注目度](https://bladesinthedark.com/heat)、[判定の状況](https://bladesinthedark.com/action-roll) でも確認できます。たとえば「霊の結界」は、秘術的な物質と方法で場所を〈破壊〉し、霊を遠ざけるか引き寄せるかを選ぶ能力です。
 

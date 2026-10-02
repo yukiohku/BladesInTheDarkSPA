@@ -515,19 +515,94 @@ describe('基本7種の操作', () => {
     expect((screen.getByRole('textbox', { name: 'レベル3の傷（手助け・自分を追い込む）' }) as HTMLTextAreaElement).value).toBe('骨折')
     expect((screen.getByRole('textbox', { name: '致命的な傷・結果' }) as HTMLTextAreaElement).value).toBe('重篤')
   })
-  it('数値の増減を適用し、履歴や理由入力は表示しない', async () => {
+  it('各数値を直接増減・入力でき、上下限とシートへの反映・保存を保つ', async () => {
     const user = userEvent.setup()
     renderApp()
     await tab(user, '状態')
     expect(screen.queryByRole('button', { name: '履歴' })).toBeNull()
     expect(screen.queryByLabelText('理由')).toBeNull()
-    await user.click(screen.getByRole('button', { name: '数量を1増やす' }))
-    await user.click(screen.getByRole('button', { name: '増減を適用' }))
+    expect(screen.queryByRole('combobox', { name: '変更する対象' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '増減を適用' })).toBeNull()
+    for (const [label, max] of [
+      ['ストレス', 9], ['コイン', 4], ['貯蓄', 40], ['プレイブックXP', 8],
+      ['Insight XP', 6], ['Prowess XP', 6], ['Resolve XP', 6],
+    ] as const) {
+      const input = screen.getByRole('spinbutton', { name: label })
+      const decrease = screen.getByRole('button', { name: `${label}を1減らす` })
+      const increase = screen.getByRole('button', { name: `${label}を1増やす` })
+      expect(decrease.hasAttribute('disabled')).toBe(true)
+      increase.focus()
+      await user.keyboard('{Enter}')
+      expect((input as HTMLInputElement).value).toBe('1')
+      await user.clear(input)
+      await user.type(input, String(max + 1))
+      expect((input as HTMLInputElement).value).toBe(String(max))
+      expect(increase.hasAttribute('disabled')).toBe(true)
+      await user.click(decrease)
+      expect((input as HTMLInputElement).value).toBe(String(max - 1))
+    }
+    const stress = screen.getByRole('spinbutton', { name: 'ストレス' })
+    await user.clear(stress)
+    await user.type(stress, '2')
     await user.click(screen.getByRole('button', { name: 'シート' }))
     expect(screen.getByRole('button', { name: 'ストレス 2' }).getAttribute('aria-pressed')).toBe('true')
     expect(screen.getByRole('button', { name: 'ストレス 3' }).getAttribute('aria-pressed')).toBe('false')
+    expect(screen.getByRole('button', { name: 'COIN 3' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.getByRole('button', { name: 'PLAYBOOK 7' }).getAttribute('aria-pressed')).toBe('true')
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    const saved = readStoredCharacter().character
+    expect(saved).toMatchObject({ stress: 2, coin: 3, stash: 39,
+      xp: { playbook: 7, insight: 5, prowess: 5, resolve: 5 } })
     await tab(user, 'データ')
     expect(screen.queryByText('記録件数')).toBeNull()
+  })
+  it('傷の表・トラウマ・治療・鎧を編集し、能力補正と以前のクロックを保持する', async () => {
+    const user = userEvent.setup()
+    let character = createDefaultCharacter('cutter')
+    for (const definitionId of ['cutter:vigorous', 'hound:survivor', 'cutter:battleborn']) {
+      character = characterReducer(character, { type: 'ability.add', definitionId })
+    }
+    character.clocks = [{ id: 'old-clock', name: '以前の計画', total: 6, filled: 3 }]
+    character.equipment.armor = 1
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(character))
+    const view = renderApp()
+    await tab(user, '状態')
+    const harm = screen.getByRole('table', { name: '傷の記録' })
+    expect(within(harm).getAllByRole('textbox')).toHaveLength(5)
+    expect(within(harm).getAllByRole('rowheader').map((cell) => cell.textContent)).toEqual(['3', '2', '1'])
+    expect(screen.queryByRole('heading', { name: '長期プロジェクト・クロック' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'クロックを追加' })).toBeNull()
+    expect(screen.getByText('自由記入のトラウマ', { selector: 'summary' }).closest('details')?.open).toBe(false)
+    for (const name of ['冷酷', '過去の恐怖', '執着', '猜疑']) {
+      await user.click(screen.getByRole('checkbox', { name }))
+    }
+    expect(screen.getByRole('checkbox', { name: '無謀' }).hasAttribute('disabled')).toBe(true)
+    await user.click(screen.getByRole('checkbox', { name: '猜疑' }))
+    await user.click(screen.getByText('自由記入のトラウマ', { selector: 'summary' }))
+    await user.type(screen.getByRole('textbox', { name: '自由記入のトラウマ' }), '孤立')
+    await user.click(screen.getByRole('button', { name: 'トラウマを追加' }))
+    const healing = screen.getByRole('spinbutton', { name: '治療' })
+    expect((healing as HTMLInputElement).value).toBe('1')
+    expect(screen.getByRole('button', { name: '治療を1減らす' }).hasAttribute('disabled')).toBe(true)
+    await user.clear(healing)
+    await user.type(healing, '9')
+    expect((healing as HTMLInputElement).value).toBe('4')
+    expect(screen.getByRole('spinbutton', { name: 'ストレス' }).getAttribute('max')).toBe('10')
+    await user.click(screen.getByRole('checkbox', { name: '通常鎧' }))
+    await user.click(screen.getByRole('checkbox', { name: '特殊鎧' }))
+    await user.click(screen.getByRole('button', { name: '特殊鎧の使用をリセット' }))
+    expect((screen.getByRole('checkbox', { name: '通常鎧' }) as HTMLInputElement).checked).toBe(true)
+    expect((screen.getByRole('checkbox', { name: '特殊鎧' }) as HTMLInputElement).checked).toBe(false)
+    act(() => window.dispatchEvent(new Event('pagehide')))
+    const saved = readStoredCharacter().character
+    expect(saved?.clocks).toEqual(character.clocks)
+    expect(saved?.traumas).toEqual(['cold', 'haunted', 'obsessed', '孤立'])
+    const roundTrip = parseCharacterFile(serializeCharacter(saved ?? character))
+    expect(roundTrip.ok && roundTrip.character.clocks).toEqual(character.clocks)
+    view.unmount()
+    renderApp()
+    expect(screen.getByRole('button', { name: '治療クロック 4' }).getAttribute('aria-pressed')).toBe('true')
+    expect((screen.getByRole('checkbox', { name: '孤立（取り込み・自由記入）' }) as HTMLInputElement).checked).toBe(true)
   })
   it('LurkのExpertiseの対象とWhisperの儀式メモを入力する', async () => {
     const user = userEvent.setup()

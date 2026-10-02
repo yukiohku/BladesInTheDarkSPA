@@ -1,4 +1,5 @@
 import type { ActionId, PlaybookId, RatingGroup } from '../types/character'
+import { POSITION_LABELS } from './labels'
 export interface NamedItem {
   id: string
   name: string
@@ -529,7 +530,7 @@ export const PLAYBOOKS: Record<PlaybookId, Playbook> = {
         'daredevil',
         'Daredevil',
         '命知らず',
-        '窮地でのアクション判定に＋1dを得る代わりに、その行動の結果への抵抗判定は−1dになる。',
+        `${POSITION_LABELS.desperate}でのアクション判定に＋1dを得る代わりに、その行動の結果への抵抗判定は−1dになる。`,
       ),
       ability(
         'lurk',

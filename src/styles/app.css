@@ -856,6 +856,262 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.4rem;
 }
+
+/* 状態の編集：資産と経験値をそれぞれの列で操作する */
+.status-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 1rem;
+}
+.status-resources {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  min-width: 0;
+  gap: 1rem;
+}
+.status-layout .section {
+  min-width: 0;
+}
+.status-layout .section__title {
+  margin-bottom: 0.35rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line-strong);
+}
+.resource-controls {
+  display: grid;
+  gap: 0;
+}
+.resource-controls > .field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+.resource-controls > .field + .field {
+  border-top: 1px solid var(--line);
+}
+.resource-controls .field__label {
+  color: var(--text);
+}
+.status-layout .stepper {
+  flex-shrink: 0;
+}
+.status-layout .stepper__button,
+.status-layout .stepper__value {
+  height: 2rem;
+  padding: 0.15rem;
+}
+.status-layout .stepper__button {
+  width: 2rem;
+}
+.status-layout .stepper__value {
+  width: 2.75rem;
+}
+.status-layout .stepper__suffix {
+  min-width: 2rem;
+}
+.status-resources .section__body {
+  gap: 0.2rem;
+}
+.status-subheading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--line);
+  padding-top: 0.75rem;
+}
+.status-subheading h3 {
+  margin: 0;
+  font-size: 0.875rem;
+}
+.status-subheading > span {
+  color: var(--text-dim);
+  font-size: 0.8125rem;
+}
+.trauma-panel {
+  display: grid;
+  gap: 0.6rem;
+}
+.trauma-panel .trauma-options {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.25rem;
+}
+.trauma-panel .trauma-options label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+  padding: 0.25rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.trauma-panel .trauma-options input {
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--accent);
+}
+.trauma-panel .trauma-option--on {
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.trauma-panel .field__hint {
+  margin: 0;
+  color: var(--text-dim);
+}
+.trauma-panel summary {
+  color: var(--text-dim);
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+.trauma-panel form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.trauma-panel form > .field {
+  flex: 1 1 12rem;
+}
+.status-layout .os-harm {
+  border: 1px solid var(--line-strong);
+}
+.status-layout .os-harm__col-level {
+  width: 2rem;
+}
+.status-layout .os-harm__col-effect {
+  width: 5.5rem;
+}
+.status-layout .os-harm th,
+.status-layout .os-harm td {
+  border-color: var(--line-strong);
+}
+.status-layout .os-harm thead th {
+  padding: 0.25rem;
+  color: var(--text-dim);
+  background: var(--bg-raised);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+.status-layout .os-harm__levelcell,
+.status-layout .os-harm__effect {
+  color: var(--text-dim);
+  background: var(--bg-raised);
+}
+.status-layout .os-harm td.os-harm__effect {
+  padding: 0.35rem;
+  font-size: 0.75rem;
+}
+.status-layout .os-harm td:has(.harm-input) {
+  padding: 0.35rem;
+}
+.status-layout .harm-input--compact {
+  display: block;
+  margin: 0;
+}
+.status-layout .os-harm__input {
+  min-height: 3.5rem;
+  padding: 0.5rem;
+  color: var(--text);
+  background: var(--bg-raised);
+  border: 1px solid var(--text-faint);
+  border-radius: 4px;
+  font-size: 0.9375rem;
+}
+.status-layout .os-harm__input:hover {
+  border-color: var(--text-dim);
+}
+.status-layout .os-harm__input:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.status-layout .harm-input:not(.harm-input--compact) {
+  margin: 0;
+}
+.status-layout .harm-input input {
+  margin-top: 0.25rem;
+  padding: 0.45rem 0.55rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-input);
+  border-color: var(--line-strong);
+  border-radius: var(--radius);
+}
+.status-layout .field__hint {
+  color: var(--text-dim);
+}
+.status-recovery {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--line-strong);
+}
+.status-recovery > div + div {
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--line-strong);
+}
+.status-recovery h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  color: var(--text-dim);
+}
+.status-recovery .armor-control {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  margin: 0;
+  font-size: 0.8125rem;
+}
+.status-recovery .armor-control input {
+  margin: 0;
+  accent-color: var(--accent);
+}
+.status-recovery .armor-control small {
+  color: var(--text-dim);
+}
+.status-armor-reset {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.status-armor-reset .button {
+  min-height: 2.5rem;
+}
+@media (max-width: 720px) {
+  .status-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .status-resources {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 420px) {
+  .trauma-panel .trauma-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .status-recovery {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+  .status-recovery > div + div {
+    padding-top: 0.75rem;
+    padding-left: 0;
+    border-top: 1px solid var(--line-strong);
+    border-left: 0;
+  }
+}
 .friend-editor {
   display: flex;
   flex-wrap: wrap;

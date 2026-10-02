@@ -8,6 +8,29 @@ export const RESOURCE_LABELS: Record<ResourceKey, string> = {
   prowess: 'Prowess XP',
   resolve: 'Resolve XP',
 }
+export const STATUS_LABELS = {
+  condition: 'ストレス・トラウマ',
+  harm: '傷・治療・鎧',
+  assets: '資産',
+  experience: '経験値',
+  traumaExtra: '自由記入のトラウマ',
+  traumaHint: 'トラウマは永続的です。解除は入力訂正。4つ目で通常の悪党としての活動を終えます。',
+  healing: '治療',
+  armor: '鎧の使用',
+  armorReset: '特殊鎧の使用をリセット',
+  armorResetHint: 'ダウンタイム開始時に、能力の説明に従ってリセットします。',
+  manualHint: '傷の繰り上げ・回復は手動で記録します。',
+}
+export const POSITION_LABELS = {
+  controlled: '［優位］な状況',
+  risky: '［リスキー］な状況',
+  desperate: '［絶望的］な状況',
+}
+export const EFFECT_LABELS = {
+  limited: '［限定的］な効果',
+  standard: '［標準的］な効果',
+  great: '［大きな］効果',
+}
 export const MESSAGE = {
   ratingEditHint: 'アクション値の変更は「編集」→「初期設定」で行います。',
   exportOk: 'JSONを書き出しました。',

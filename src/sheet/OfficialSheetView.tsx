@@ -22,7 +22,7 @@ import { TraumaPanel } from '../tabs/StatusTab'
 import { BookmarkTrack, CoinTrack, StressBoxes } from './parts'
 import { abilityDefinitions, loadLimits, stressMax } from '../lib/rules'
 import { characterStatus } from '../lib/status'
-import { PLAYBOOK_LABELS } from '../constants/labels'
+import { PLAYBOOK_LABELS, POSITION_LABELS } from '../constants/labels'
 import logoUrl from '../assets/blades-logo.png'
 
 function IdentityRow({
@@ -252,7 +252,7 @@ export function OfficialSheetView() {
         </section>
         <section className="os-xp-rules">
           <h3 className="os-minititle">XP条件</h3>
-          <p>窮地でのアクション判定ごとに対応属性へ経験値1。</p>
+          <p>{POSITION_LABELS.desperate}でのアクション判定ごとに対応属性へ経験値1。</p>
           <ul>
             {[
               ...(book ? [book.xpTrigger] : []),

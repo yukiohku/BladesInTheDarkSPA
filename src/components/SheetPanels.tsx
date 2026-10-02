@@ -4,11 +4,12 @@ import {
   ALCHEMICALS,
   findAbility,
   GENERAL_ITEMS,
+  HEALING_CLOCK_SEGMENTS,
   PLAYBOOKS,
   RATING_MAX,
 } from '../constants/playbooks'
 import { useCharacter } from '../state/characterContext'
-import { ABILITY_LABELS, EQUIPMENT_LABELS, PLAYBOOK_LABELS } from '../constants/labels'
+import { ABILITY_LABELS, EQUIPMENT_LABELS, PLAYBOOK_LABELS, STATUS_LABELS } from '../constants/labels'
 import { abilityRemovalConfirmation } from '../lib/abilityRemoval'
 import { AbilityRemovalDialog } from './AbilityRemovalDialog'
 import {
@@ -354,71 +355,54 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
   const minimum = healingMinimum(character)
   return (
     <>
-      {!compact && (
-        <p className="field__hint">
-          傷に該当する行動にペナルティを適用します。欄が埋まっている場合の繰り上げ・回復は手動で記録します。
-        </p>
-      )}
-      {compact ? (
-        <table className="os-harm" aria-label="傷の記録">
-          <colgroup>
-            <col className="os-harm__col-level" />
-            <col />
-            <col />
-            <col className="os-harm__col-effect" />
-          </colgroup>
-          <tbody>
-            {(['level3', 'level2', 'level1'] as const).map((field) => {
-              const level = field === 'level3' ? 3 : field === 'level2' ? 2 : 1
-              const values = field === 'level3' ? [character.harm.level3] : character.harm[field]
-              const effect = level === 3 ? '手助け・追い込み' : level === 2 ? '−1d' : '効果低下'
-              return (
-                <tr key={field}>
-                  <th scope="row" className="os-harm__levelcell">
-                    {level}
-                  </th>
-                  {values.map((value, index) => (
-                    <td key={index} colSpan={level === 3 ? 2 : undefined}>
-                      <HarmInput
-                        compact
-                        key={`${field}:${index}`}
-                        label={
-                          level === 3
-                            ? 'レベル3の傷（手助け・自分を追い込む）'
-                            : `レベル${level}の傷 ${index + 1}（${effect}）`
-                        }
-                        field={field}
-                        index={level === 3 ? undefined : index}
-                        value={value}
-                      />
-                    </td>
-                  ))}
-                  <td className="os-harm__effect">{effect}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      ) : (
-        <>
-          <HarmInput
-            label="レベル3の傷（手助け・自分を追い込む）"
-            field="level3"
-            value={character.harm.level3}
-          />
-          {(['level2', 'level1'] as const).map((field) =>
-            character.harm[field].map((value, index) => (
-              <HarmInput
-                key={`${field}:${index}`}
-                label={`レベル${field === 'level2' ? 2 : 1}の傷 ${index + 1}（${field === 'level2' ? '−1d' : '効果低下'}）`}
-                field={field}
-                index={index}
-                value={value}
-              />
-            )),
-          )}
-        </>
-      )}
+      <table className="os-harm" aria-label="傷の記録">
+        <colgroup>
+          <col className="os-harm__col-level" />
+          <col />
+          <col />
+          <col className="os-harm__col-effect" />
+        </colgroup>
+        {!compact && (
+          <thead>
+            <tr>
+              <th scope="col">Lv</th>
+              <th scope="col" colSpan={2}>傷</th>
+              <th scope="col">影響</th>
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {(['level3', 'level2', 'level1'] as const).map((field) => {
+            const level = field === 'level3' ? 3 : field === 'level2' ? 2 : 1
+            const values = field === 'level3' ? [character.harm.level3] : character.harm[field]
+            const effect = level === 3 ? '手助け・追い込み' : level === 2 ? '−1d' : '効果低下'
+            return (
+              <tr key={field}>
+                <th scope="row" className="os-harm__levelcell">
+                  {level}
+                </th>
+                {values.map((value, index) => (
+                  <td key={index} colSpan={level === 3 ? 2 : undefined}>
+                    <HarmInput
+                      compact
+                      key={`${field}:${index}`}
+                      label={
+                        level === 3
+                          ? 'レベル3の傷（手助け・自分を追い込む）'
+                          : `レベル${level}の傷 ${index + 1}（${effect}）`
+                      }
+                      field={field}
+                      index={level === 3 ? undefined : index}
+                      value={value}
+                    />
+                  </td>
+                ))}
+                <td className="os-harm__effect">{effect}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
       <div className={compact ? 'os-fatal' : undefined}>
         <HarmInput
           label="致命的な傷・結果"
@@ -428,21 +412,35 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
         />
         {compact && <span className="os-fatal__label">致命的な傷・結果</span>}
       </div>
+      {!compact && <p className="field__hint">{STATUS_LABELS.manualHint}</p>}
       {character.abilities.some((item) => item.definitionId === 'hound:tough-as-nails') && (
         <p>Tough as Nails：ペナルティは1段階軽くなります。致命傷は対象外です。</p>
       )}
-      <div className={compact ? 'os-duo' : undefined}>
+      <div className={compact ? 'os-duo' : 'status-recovery'}>
         <div>
-          <h4 className={compact ? 'os-minititle' : undefined}>HEALING / 治療</h4>
-          <HealingClock
-            filled={character.healing}
-            minimum={minimum}
-            onChange={(value) => dispatch({ type: 'healing', value })}
-          />
+          {compact ? (
+            <>
+              <h4 className="os-minititle">HEALING / 治療</h4>
+              <HealingClock
+                filled={character.healing}
+                minimum={minimum}
+                onChange={(value) => dispatch({ type: 'healing', value })}
+              />
+            </>
+          ) : (
+            <Stepper
+              label={STATUS_LABELS.healing}
+              value={character.healing}
+              min={minimum}
+              max={HEALING_CLOCK_SEGMENTS}
+              suffix={`/ ${HEALING_CLOCK_SEGMENTS}`}
+              onChange={(value) => dispatch({ type: 'healing', value })}
+            />
+          )}
           {minimum > 0 && <p>Vigorous：1区画は恒久的に埋まっています。</p>}
         </div>
         <div>
-          <h4 className={compact ? 'os-minititle' : undefined}>ARMOR USES / 鎧</h4>
+          <h4 className={compact ? 'os-minititle' : undefined}>{compact ? 'ARMOR USES / 鎧' : STATUS_LABELS.armor}</h4>
           {(
             [
               { id: 'armor', name: '通常鎧', enabled: Boolean(character.equipment.armor) },
@@ -461,6 +459,19 @@ export function HarmPanel({ compact = false }: { compact?: boolean }) {
               {!item.enabled && <small>（装備・能力が必要）</small>}
             </label>
           ))}
+          {!compact && hasSpecialArmor(character) && (
+            <div className="status-armor-reset">
+              <button
+                type="button"
+                className="button button--small"
+                disabled={!character.armorUses.special}
+                onClick={() => dispatch({ type: 'specialArmor.reset' })}
+              >
+                {STATUS_LABELS.armorReset}
+              </button>
+              <p className="field__hint">{STATUS_LABELS.armorResetHint}</p>
+            </div>
+          )}
         </div>
       </div>
     </>

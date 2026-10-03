@@ -72,12 +72,6 @@
   color: var(--os-on);
 }
 
-.rules-summary__exception,
-.rules-summary__description {
-  color: var(--os-dim);
-  font-size: 0.8125rem;
-}
-
 .rules-summary__layout {
   display: grid;
   grid-template-columns: 10rem minmax(0, 1fr);
@@ -171,10 +165,6 @@
   font-size: 1rem;
 }
 
-.rules-summary__description {
-  padding: 0.3rem 0;
-}
-
 .rules-summary__body {
   display: grid;
   gap: 0.65rem;
@@ -264,36 +254,8 @@
   margin-bottom: 0.4rem;
 }
 
-.rules-summary__sources {
-  font-size: 0.75rem;
-  margin-top: 0.65rem;
-  color: var(--os-dim);
-}
-
-.rules-summary__sources ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.1rem 0.6rem;
-  list-style: none;
-  padding: 0;
-  margin: 0.15rem 0 0;
-}
-
 .rules-summary a {
   color: var(--os-ink);
-  text-underline-offset: 0.2em;
-}
-
-.rules-summary__top {
-  border: 0;
-  background: transparent;
-  color: var(--os-dim);
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-  min-height: 2.75rem;
-  padding: 0.4rem 0;
-  text-decoration: underline;
   text-underline-offset: 0.2em;
 }
 

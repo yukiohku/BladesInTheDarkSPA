@@ -8,7 +8,7 @@ type SummaryTable = {
   rows: readonly (readonly [string, string])[]
 }
 type SummaryBlock =
-  | { kind: 'text'; title: string; paragraphs: readonly string[] }
+  | { kind: 'text'; title?: string; paragraphs: readonly string[] }
   | { kind: 'steps'; title: string; items: readonly string[] }
   | { kind: 'table'; table: SummaryTable }
   | { kind: 'tables'; title: string; tables: readonly SummaryTable[] }
@@ -17,24 +17,17 @@ type SummaryBlock =
 export type SummaryChapter = {
   id: SummaryChapterId
   title: string
-  description: string
   blocks: readonly SummaryBlock[]
-  sources: readonly { title: string; url: string }[]
 }
 
 export const SUMMARY_LABELS = {
   title: 'ルールサマリー',
-  introduction: '判定の手順と、仕事中・ダウンタイムに使う共通ルールの早見表。公式SRDに基づく非公式の参考訳・要約です。',
   contents: 'サマリーの目次',
   contentsTitle: '目次',
-  sources: 'この章の原典',
-  top: 'サマリーの先頭へ',
   attributionTitle: '出典と参考訳について',
   attribution: 'John Harper / One Seven Design による Blades in the Dark のSRDを、日本語に要約・再構成しています。原著者による承認・監修を示すものではありません。',
-  exceptions: '特殊能力による例外は、それぞれの能力説明を確認してください。',
 }
 
-const source = (title: string, path: string) => ({ title, url: `https://bladesinthedark.com/${path}` })
 const PLAN_DETAILS: Record<string, string> = {
   assault: 'どこを攻撃するか。',
   occult: 'どのような秘術の手段を使うか。',
@@ -49,29 +42,18 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
   {
     id: 'roll',
     title: '判定',
-    description: '目的と行動を伝え、危険と達成できる量を確認してから振る。',
     blocks: [
       {
-        kind: 'steps', title: 'アクション判定の流れ',
-        items: [
-          'プレイヤーが、達成したい目的と具体的な行動を説明する。',
-          'その行動に合う技能をプレイヤーが選ぶ。',
-          'GMが判定状況（危険の程度）と効果（達成できる量）を設定する。',
-          '技能の値だけダイスを用意し、援助などの追加・傷などの減少を反映する。',
-          'ダイスを振り、結果と判定状況に応じてGMと何が起きたかを描く。',
-        ],
-      },
-      {
-        kind: 'note', title: '判定が必要なとき',
-        text: '危険や厄介な障害がある行動で判定します。当然できる行動は判定不要です。技能は値の高さだけで選ばず、実際にどう行動するかに合わせます。',
+        kind: 'text',
+        paragraphs: ['技能選択（PL）→ 状況・効果（GM）→ 技能値d6＋補正'],
       },
       {
         kind: 'table', table: {
           title: 'ダイスの読み方', headers: ['ダイス', '読み方'],
           rows: [
-            ['1個以上', '6面ダイスをまとめて振り、最も高い出目を採用する。'],
-            ['6が2個以上', 'クリティカル。同じ判定内の複数の6で成立する。'],
-            ['0個以下', '2個振って低い方を採用する。両方が6でもクリティカルにはならない。'],
+            ['1個以上', '最大の出目を採用。'],
+            ['6が2個以上', 'クリティカル。'],
+            ['0個以下', '2個振り、低い方を採用。クリティカルなし。'],
           ],
         },
       },
@@ -108,19 +90,12 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
         ],
       },
       {
-        kind: 'text', title: '判定状況と効果を分けて考える',
-        paragraphs: [
-          `判定状況は悪影響の厳しさ、効果は成功したときの達成量です。通常は${POSITION_LABELS.risky}。危険でも大きな成果が得られる行動や、安全でも成果が小さい行動があります。`,
-          '悪影響は状況に応じてGMが1つ以上決めます。1–3でも行動に効果があるかはGMが判断します。',
-        ],
-      },
-      {
         kind: 'table', table: {
           title: '効果とクロックの進行', headers: ['効果', '達成量'],
           rows: [
-            [EFFECT_LABELS.limited, '部分的な成果。クロックなら通常1区画。'],
-            [EFFECT_LABELS.standard, '通常期待される成果。クロックなら通常2区画。'],
-            [EFFECT_LABELS.great, '通常より大きな成果。クロックなら通常3区画。'],
+            [EFFECT_LABELS.limited, 'クロック1区画'],
+            [EFFECT_LABELS.standard, 'クロック2区画'],
+            [EFFECT_LABELS.great, 'クロック3区画'],
           ],
         },
       },
@@ -128,24 +103,22 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
         kind: 'details', title: '効果の評価と危険との交換',
         paragraphs: [
           'GMは有効性（弱点や特殊な力による効きやすさ）、規模（人数・大きさ・範囲）、品質（道具などの質）を必要に応じて考慮します。効果なしや極大効果になる場合もあります。',
-          '状況に合えば、判定状況を悪くして効果を高める、または効果を抑えて判定状況を改善する提案ができます。GMと具体的な行動を相談します。',
+          '判定状況を悪くして効果を高める、または効果を抑えて判定状況を改善する交換を提案できます。',
         ],
       },
     ],
-    sources: [source('Core System', 'core-system'), source('Action Roll', 'action-roll'), source('Effect', 'effect')],
   },
   {
     id: 'teamwork',
     title: '判定を有利にする方法と協力',
-    description: 'ダイスを増やす方法と、仲間と一緒に障害を越える方法。',
     blocks: [
       {
         kind: 'table', table: {
           title: '追加の利益と費用', headers: ['方法', '条件・費用・効果'],
           rows: [
             ['自分を追い込む', '利益1つにつき自分がストレス2。「＋1d」「効果を1段階上げる」「行動不能でも行動する」から選ぶ。各利益は同じ行動で1回ずつ。'],
-            ['悪魔の取引', 'GMや他のプレイヤーが提案する代償を受け入れて＋1d。代償は判定の成否に関係なく生じる。受け入れるかは自由。'],
-            ['援助', '仲間1人が助け方を説明し、ストレス1を受けて判定者に＋1d。援助する側にも悪影響が及ぶ場合がある。'],
+            ['悪魔の取引', 'GMや他のプレイヤーが提案する代償を受け入れて＋1d。代償は判定の成否に関係なく生じる。'],
+            ['援助', '仲間1人がストレス1を受けて判定者に＋1d。援助する側にも悪影響が及ぶ場合がある。'],
           ],
         },
       },
@@ -158,16 +131,15 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
           title: 'チームワーク', headers: ['方法', '手順と結果'],
           rows: [
             ['集団行動を率いる', '参加者全員が同じ技能でそれぞれ判定し、最も良い判定結果を全参加者に適用する。指揮役は結果が1–3だった参加者1人につきストレス1を受ける。振らなかった人には効果が及ばない。'],
-            ['かばう', '仲間が受けるはずの悪影響を、自分がどう引き受けるか説明する。引き受けた悪影響には通常どおり抵抗できる。'],
-            ['布石となる行動', '後続の仲間に有利な状況を作る行動を判定する。成功すれば、その布石を活かす判定の効果を1段階上げるか、判定状況を改善する。行動に合う利益を選ぶ。'],
+            ['かばう', '仲間への悪影響を引き受ける。引き受けた悪影響には通常どおり抵抗できる。'],
+            ['布石となる行動', '成功すると、その布石を活かす後続の判定の効果を1段階上げるか、判定状況を改善する。布石を活かせる複数の仲間や集団行動にも適用できる。'],
           ],
         },
       },
       {
         kind: 'text', title: '協力できる範囲',
         paragraphs: [
-          '連絡や連携ができる状況で使います。集団行動に直接参加していない人が援助するときは、参加者のうち誰の判定に＋1dを与えるかを決めます。',
-          '布石は、状況に合えば複数の仲間や集団行動にも活かせます。集団行動の指揮役は、その技能が最も得意な人である必要はありません。',
+          '集団行動の外から援助する場合は、参加者1人の判定に＋1d。指揮役の技能値が参加者の中で最も高い必要はありません。',
         ],
       },
       {
@@ -175,16 +147,14 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
         paragraphs: ['通常は参加者それぞれの判定結果を比べます。別々の判定に出た6を合算してクリティカルにはしません。それを許可するクルーの特殊能力などは、個別の例外です。'],
       },
     ],
-    sources: [source('Action Roll', 'action-roll'), source('Stress & Trauma', 'stress-trauma'), source('Teamwork', 'teamwork'), source('Crew Playbook（協力の例外）', 'crew-playbook')],
   },
   {
     id: 'consequences',
     title: '悪影響への対処',
-    description: '抵抗や鎧で被害を抑え、残った傷とストレスを記録する。',
     blocks: [
       {
         kind: 'text', title: '悪影響の種類',
-        paragraphs: ['効果の低下、厄介事、機会の喪失、判定状況の悪化、傷があります。成功しても悪影響を受ける場合があります。厄介事で、成功した目的そのものを取り消すことはしません。'],
+        paragraphs: ['効果の低下、厄介事、機会の喪失、判定状況の悪化、傷。厄介事で、成功した目的そのものを取り消すことはしません。'],
       },
       {
         kind: 'steps', title: '抵抗判定',
@@ -212,7 +182,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
       {
         kind: 'text', title: '鎧の使用',
         paragraphs: [
-          'その状況に適した鎧なら、抵抗判定の代わりに使用枠を埋めて悪影響を軽減・回避できます。重装なら追加の枠を使える場合があります。使用済みの枠は回復するまで再使用できません。',
+          '対応する悪影響には、抵抗判定の代わりに鎧の使用枠を埋めて軽減・回避できます。重装なら追加の枠を使える場合があります。',
           '通常鎧・重装は次の仕事のLoad選択時に回復します。特殊鎧は対応能力を持つ場合だけ使え、対象・効果・回復時期は能力の説明に従います。',
         ],
       },
@@ -238,17 +208,11 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
           `トラウマは永続的です。${TRAUMA_MAX}つ目を記録すると、通常の悪党としての活動を終えます。`,
         ],
       },
-      {
-        kind: 'details', title: 'シートへの記録',
-        paragraphs: ['抵抗の費用、鎧の使用、傷の繰り上げ、治療の進行、トラウマは、卓で確認してシートや「編集 → 状態」に手動で記録します。サマリーの閲覧による自動適用はありません。'],
-      },
     ],
-    sources: [source('Consequences & Harm', 'consequences-harm'), source('Resistance & Armor', 'resistance-armor'), source('Actions & Attributes', 'actions-attributes'), source('Stress & Trauma', 'stress-trauma'), source('Character Creation', 'character-creation'), source('Downtime Activities', 'downtime-activities')],
   },
   {
     id: 'score',
     title: '仕事の準備と進行',
-    description: '計画の要点を決めて仕事へ入り、必要な準備はフラッシュバックで描く。',
     blocks: [
       {
         kind: 'table', table: {
@@ -287,7 +251,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
       },
       {
         kind: 'text', title: '装備は必要になってから選べる',
-        paragraphs: ['仕事前には携行量を選び、個々の装備は使う場面で宣言できます。宣言した装備のLoad合計を選んだ範囲に収めます。Load 0の装備や上限を変える能力などの例外は、その定義を確認します。'],
+        paragraphs: ['仕事前には携行量を選び、個々の装備は使う場面で宣言できます。宣言した装備のLoad合計を選んだ範囲に収めます。Load 0の装備は携行量を消費しません。'],
       },
       {
         kind: 'table', table: {
@@ -302,7 +266,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
       {
         kind: 'text', title: 'フラッシュバックの扱い',
         paragraphs: [
-          '現在の状況に影響する過去の行動を描き、GMが費用を決めます。費用を払った後、必要ならアクション判定や運勢判定をします。判定不要の準備もあります。',
+          '過去の準備をその場で宣言し、GMが費用を決めます。ストレスの支払いとは別に、必要ならアクション判定や運勢判定を行います。',
           'ダウンタイム活動を描く場合は、ストレスの代わりにコイン1またはクルーの評判1を支払います。すでに現在に起きた出来事を取り消すことはできません。',
         ],
       },
@@ -310,27 +274,24 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
         kind: 'table', table: {
           title: '情報収集と判定の使い分け', headers: ['状況', '扱い'],
           rows: [
-            ['一般的な知識', 'GMがそのまま答える。'],
-            ['答えを得るのに障害がある', '具体的な調べ方を伝え、アクション判定をする。'],
+            ['答えを得るのに障害がある', 'アクション判定。'],
             ['障害はないが成果が不確か', '運勢判定で得られる情報の程度を決める。'],
-            ['一度では調べきれない', 'GMと長期プロジェクトなどを相談する。'],
+            ['一度では調べきれない', '長期プロジェクトを検討する。'],
           ],
         },
       },
       {
         kind: 'text', title: '運勢判定',
         paragraphs: [
-          '不確定な成り行きや成果の程度を決める判定です。関係する技能・品質・階級などを基準に、大きな有利・不利を加減します。適した値がないときは基本1d、またはGMが状況に応じたダイス数を決めます。',
+          '技能・品質・階級などをダイス数の基準に、有利・不利を加減します。適した値がないときは基本1d、またはGMがダイス数を決めます。',
           '1–3は乏しい成果、4–5は部分的な成果、6は十分な成果、クリティカルは特別に良い成果です。アクション判定の悪影響表をそのまま適用するものではありません。情報収集では、効果に応じてGMが正直に答えます。',
         ],
       },
     ],
-    sources: [source('Planning & Engagement', 'planning-engagement'), source('Character Creation', 'character-creation'), source('Gathering Information', 'gathering-information'), source('Fortune Roll', 'fortune-roll')],
   },
   {
     id: 'downtime',
     title: 'ダウンタイム',
-    description: '仕事の合間に、回復や悪癖、次の仕事に向けた活動を行う。',
     blocks: [
       {
         kind: 'text', title: '活動回数と追加の費用',
@@ -338,17 +299,17 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
       },
       {
         kind: 'note', title: 'ダウンタイム判定を改善する',
-        text: '知人や連絡先に助けてもらうと＋1d。判定後にコイン1につき結果を1段階上げられます（1–3 → 4–5 → 6 → クリティカル）。活動を追加する費用、ダイスを増やすこと、判定結果を上げることは別です。',
+        text: '知人や連絡先に助けてもらうと＋1d。判定後にコイン1につき結果を1段階上げられます（1–3 → 4–5 → 6 → クリティカル）。',
       },
       {
         kind: 'table', table: {
           title: '6種類の活動', headers: ['活動', '目的と手順'],
           rows: [
             ['資産調達', '道具・協力者・乗り物・サービスなどを一時的に得る。クルーの階級で判定し、品質は1–3／4–5／6／クリティカルで階級－1／同じ／＋1／＋2。必要な最低品質はGMが決める。'],
-            ['長期プロジェクト', '進め方を描写して技能で判定する。GMが決めたクロックを結果に応じて進める。'],
+            ['長期プロジェクト', '技能で判定し、プロジェクトのクロックを結果に応じて進める。'],
             ['回復', '治療を受け、治療者の判定で自分の治療クロックを進める。活動を消費するのは患者側。'],
-            ['注目度の低下', 'クルーへの注目を逸らす方法を描写して技能で判定し、結果に応じて注目度を減らす。'],
-            ['訓練', '選んだ分野を鍛える。経験値の記録と成長はシートの経験値欄を参照。'],
+            ['注目度の低下', '技能で判定し、結果に応じてクルーの注目度を減らす。'],
+            ['訓練', '経験値の記録と成長はシートの経験値欄を参照。'],
             ['悪癖を満たす', '提供者を訪れて悪癖に耽り、最も低い属性値でストレス解消を判定する。'],
           ],
         },
@@ -362,7 +323,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
       {
         kind: 'text', title: '回復と治療クロック',
         paragraphs: [
-          `基本は${HEALING_CLOCK_SEGMENTS}区画。満たしたらすべての傷を1段階下げ、クロックを空にして余った進行を繰り越します。レベル1の傷は消えます。新しい傷を受けると進行を消します。能力による治療の例外は説明を確認します。`,
+          `基本は${HEALING_CLOCK_SEGMENTS}区画。満たしたらすべての傷を1段階下げ、クロックを空にして余った進行を繰り越します。レベル1の傷は消えます。新しい傷を受けると進行を消します。`,
           '自分で治療するならストレス2。治療を受けずに耐えて回復を試すならストレス1を受けて0dで判定します。治療者がいない場合は資産調達で探せます。',
         ],
       },
@@ -371,21 +332,19 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
         paragraphs: [
           '最も低い属性値で振り、採用した出目だけストレスを取り除きます。0dなら2個振って低い方を採用します。現在のストレスより出目が大きければ過剰耽溺です。',
           '過剰耽溺では、追加の厄介事、クルーの注目度＋2、数週間姿を消す、提供者を失う、のいずれかを選びます。姿を消したPCは別のPCでプレイし、戻ると傷も回復しています。',
-          'ダウンタイムに悪癖を満たさなければ、トラウマの数だけストレスを受けます。トラウマ発生後の復帰で満たされた扱いになる場合などは、そのルールに従います。',
+          'ダウンタイムに悪癖を満たさなければ、トラウマの数だけストレスを受けます。トラウマ発生後の復帰時は満たされた扱いです。',
         ],
       },
       {
         kind: 'text', title: '個人のコインと貯蓄',
-        paragraphs: [`個人の手元のコインは${COIN_MAX}までで、超えた分は使うか貯蓄やクルーの保管へ回します。持ち歩くコインは1につきLoad 1。貯蓄は暮らしと引退後の生活を表し、現金に戻すときは貯蓄2につきコイン1です。`],
+        paragraphs: [`個人の手元のコインは${COIN_MAX}までで、超えた分は使うか貯蓄やクルーの保管へ回します。持ち歩くコインは1につきLoad 1。貯蓄を現金に戻すときは貯蓄2につきコイン1です。`],
       },
       {
         kind: 'details', title: '資産調達の補足',
         paragraphs: [
           '同じ資産を再調達すると＋1d。クリティカルより上の品質は、さらに階級1段階につきコイン2で上げられます。薬品・毒・爆弾・危険な小道具の調達ではクルーの注目度＋2。永続的な入手はクルーの強化や長期プロジェクトで相談します。',
-          'クルーの強化や特殊能力による追加活動などは、卓の記録と能力の説明を確認してください。',
         ],
       },
     ],
-    sources: [source('Downtime Activities', 'downtime-activities'), source('Vice', 'vice'), source('Coin & Stash', 'coin-stash')],
   },
 ]

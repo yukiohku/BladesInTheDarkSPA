@@ -36,7 +36,7 @@ function SummaryBlock({ block }: { block: SummaryChapter['blocks'][number] }) {
     case 'steps':
       return <div><h3>{block.title}</h3><ol>{block.items.map((item) => <li key={item}>{item}</li>)}</ol></div>
     case 'text':
-      return <div><h3>{block.title}</h3>{block.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
+      return <div>{block.title && <h3>{block.title}</h3>}{block.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}</div>
     case 'note':
       return <aside className="rules-summary__note"><h3>{block.title}</h3><p>{block.text}</p></aside>
     case 'details':
@@ -45,13 +45,11 @@ function SummaryBlock({ block }: { block: SummaryChapter['blocks'][number] }) {
 }
 
 export function RulesSummaryView() {
-  const titleRef = useRef<HTMLHeadingElement>(null)
   const chapterRefs = useRef<Partial<Record<SummaryChapterId, HTMLHeadingElement>>>({})
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [])
   const moveTo = (heading: HTMLHeadingElement | null | undefined) => {
     heading?.focus({ preventScroll: true })
-    if (heading === titleRef.current) window.scrollTo({ top: 0, behavior: 'instant' })
-    else heading?.scrollIntoView({ block: 'start' })
+    heading?.scrollIntoView({ block: 'start' })
   }
   return (
     <div className="rules-summary">
@@ -60,11 +58,9 @@ export function RulesSummaryView() {
           <img className="rules-summary__logo" src={logoUrl} alt="Blades in the Dark" />
           <div>
             <p className="rules-summary__eyebrow">RULES SUMMARY</p>
-            <h1 ref={titleRef} tabIndex={-1}>{LABELS.title}</h1>
+            <h1>{LABELS.title}</h1>
           </div>
         </div>
-        <p>{LABELS.introduction}</p>
-        <p className="rules-summary__exception">{LABELS.exceptions}</p>
       </header>
       <div className="rules-summary__layout">
         <nav className="rules-summary__contents" aria-label={LABELS.contents}>
@@ -89,15 +85,9 @@ export function RulesSummaryView() {
                   else delete chapterRefs.current[chapter.id]
                 }}>{chapter.title}</h2>
               </header>
-              <p className="rules-summary__description">{chapter.description}</p>
               <div className="rules-summary__body">
                 {chapter.blocks.map((block, blockIndex) => <SummaryBlock key={blockIndex} block={block} />)}
               </div>
-              <footer className="rules-summary__sources">
-                <span>{LABELS.sources}</span>
-                <ul>{chapter.sources.map((item) => <li key={item.url}><a href={item.url} target="_blank" rel="noreferrer">{item.title}</a></li>)}</ul>
-              </footer>
-              <button type="button" className="rules-summary__top" onClick={() => moveTo(titleRef.current)}>{LABELS.top}</button>
             </section>
           ))}
           <footer className="rules-summary__attribution">

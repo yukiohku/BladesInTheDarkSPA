@@ -2,7 +2,7 @@
 
 確認日：2026年10月3日。サマリー画面の5章を、公式英語SRDの該当節と照合した記録。日本語は本アプリの参考訳・要約であり、日本語版の公式訳ではない。
 
-画面本文は [rulesSummary.ts](../../src/constants/rulesSummary.ts)、画面は [RulesSummaryView.tsx](../../src/summary/RulesSummaryView.tsx) に置く。章ごとの出典リンクと著作者・ライセンスを画面にも表示する。今回の確認は公開ページの閲覧によるもので、原本ファイルの追加保存や既存の取得ハッシュの更新は行っていない。
+画面本文は [rulesSummary.ts](../../src/constants/rulesSummary.ts)、画面は [RulesSummaryView.tsx](../../src/summary/RulesSummaryView.tsx) に置く。原典リンクは下表に集約し、画面には末尾の著作者・ライセンスのみ表示する。各章末尾の出典一覧と先頭へ戻るボタンは掲載しない。今回の原典確認は公開ページの閲覧によるもので、原本ファイルの追加保存や既存の取得ハッシュの更新は行っていない。
 
 ## 掲載項目と確認した節
 
@@ -32,6 +32,10 @@
 | 個人資産 | [Coin & Stash](https://bladesinthedark.com/coin-stash) の Coin、Stash & Retirement、Removing coin from your stash | 手元4、携帯コインのLoad、暮らしと引退、貯蓄2から現金1。クルー保管の詳細表は扱わない |
 
 ## 参考訳と省略の扱い
+
+判定手順は見出しと番号付きリストを省き、「技能選択（PL）→ 状況・効果（GM）→ 技能値d6＋補正」の一文で表示する。PLはプレイヤー。ダイスの読み方と効果のクロック進行は表に集約し、「判定状況と効果」の説明段落は省く。
+
+読者はD&DなどのTRPGを長く遊んだプレイヤーを想定する。画面全体と各章の導入、目的・行動の説明を促す一般論、判定不要な行動や一般知識の説明、アプリへの手動記録案内を削除した。技能選択の担当、判定状況と効果、抵抗、Load、フラッシュバック、活動回数など、Blades in the Dark固有の手順・数値・条件は残す。能力説明を参照するだけの注意書きは省き、出典・著作者・ライセンスは末尾に維持する。この編集では新しいルールや自動処理を追加しない。
 
 判定状況・効果・悪影響などの用語は [srd-characters.md](srd-characters.md#判定の状況と効果の対訳) に合わせる。布石となる行動は Set up、悪魔の取引は Devil's Bargain の参考訳として使う。計画名は既存の [playbooks.ts](../../src/constants/playbooks.ts) の `PLANS` に合わせる。
 

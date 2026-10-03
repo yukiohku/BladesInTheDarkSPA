@@ -15,15 +15,24 @@ afterEach(() => {
 })
 
 describe('ルールサマリー', () => {
-  it('5章の早見表と出典を表示し、経験値の説明はシートに任せる', () => {
+  it('5章の早見表を表示し、章末の出典一覧や先頭へ戻るボタンを表示しない', () => {
     render(<RulesSummaryView />)
     expect(screen.getByRole('heading', { level: 1, name: 'ルールサマリー' })).toBeTruthy()
+    expect(screen.queryByText(/判定の手順と、仕事中/)).toBeNull()
+    expect(screen.queryByText(/目的と行動を伝え/)).toBeNull()
+    expect(screen.queryByRole('heading', { name: '判定が必要なとき' })).toBeNull()
+    expect(screen.queryByText('シートへの記録')).toBeNull()
+    expect(screen.getByText('技能選択（PL）→ 状況・効果（GM）→ 技能値d6＋補正')).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: 'アクション判定の流れ' })).toBeNull()
     const contents = screen.getByRole('navigation', { name: 'サマリーの目次' })
     expect(within(contents).getAllByRole('button')).toHaveLength(5)
     for (const name of ['判定', '判定を有利にする方法と協力', '悪影響への対処', '仕事の準備と進行', 'ダウンタイム']) {
       const chapter = screen.getByRole('region', { name })
-      expect(within(chapter).getAllByRole('link').length).toBeGreaterThan(0)
+      expect(within(chapter).getAllByRole('table').length).toBeGreaterThan(0)
+      expect(within(chapter).queryByRole('link')).toBeNull()
     }
+    expect(screen.queryByText('この章の原典')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'サマリーの先頭へ' })).toBeNull()
     const controlled = screen.getByRole('table', { name: POSITION_LABELS.controlled })
     expect(within(controlled).getByRole('row', { name: /^4–5/ }).textContent).toContain('撤退して別の方法')
     expect(within(controlled).getByRole('row', { name: /^1–3/ }).textContent).toContain(POSITION_LABELS.risky)
@@ -33,7 +42,7 @@ describe('ルールサマリー', () => {
     expect(screen.getByRole('link', { name: 'CC BY 3.0 Unported' }).getAttribute('href')).toBe('https://creativecommons.org/licenses/by/3.0/')
   })
 
-  it('目次をキーボードで選ぶと見出しに移動し、先頭へ戻れる', async () => {
+  it('目次をキーボードで選ぶと見出しに移動する', async () => {
     const user = userEvent.setup()
     render(<RulesSummaryView />)
     const contents = screen.getByRole('navigation', { name: 'サマリーの目次' })
@@ -42,8 +51,6 @@ describe('ルールサマリー', () => {
     const heading = screen.getByRole('heading', { level: 2, name: '悪影響への対処' })
     expect(document.activeElement).toBe(heading)
     expect(heading.scrollIntoView).toHaveBeenCalledWith({ block: 'start' })
-    await user.click(within(screen.getByRole('region', { name: '悪影響への対処' })).getByRole('button', { name: 'サマリーの先頭へ' }))
-    expect(document.activeElement).toBe(screen.getByRole('heading', { level: 1, name: 'ルールサマリー' }))
   })
 
   it('費用と併用条件は常時表示し、補足だけを開閉できる', async () => {

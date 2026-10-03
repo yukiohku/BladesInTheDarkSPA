@@ -234,6 +234,10 @@
   font-size: 0.875rem;
 }
 
+.rules-summary__table-topic > table {
+  margin-bottom: 0.4rem;
+}
+
 .rules-summary__table th,
 .rules-summary__table td {
   padding: 0.3rem 0.4rem;

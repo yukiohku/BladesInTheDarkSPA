@@ -33,6 +33,20 @@ describe('ルールサマリー', () => {
     }
     expect(screen.queryByText('この章の原典')).toBeNull()
     expect(screen.queryByRole('button', { name: 'サマリーの先頭へ' })).toBeNull()
+    const load = screen.getByRole('heading', { level: 3, name: 'Loadと装備の宣言' }).parentElement!
+    expect(within(load).getByRole('table', { name: 'Loadと装備の宣言' })).toBeTruthy()
+    expect(within(load).getByText('仕事前には携行量を選びます。')).toBeTruthy()
+    expect(within(load).getByText(/個々の装備は使う場面で宣言できます/)).toBeTruthy()
+    expect(screen.queryByRole('heading', { name: '装備は必要になってから選べる' })).toBeNull()
+    const flashback = screen.getByRole('heading', { level: 3, name: 'フラッシュバック' }).parentElement!
+    expect(within(flashback).getByRole('table', { name: 'フラッシュバック' })).toBeTruthy()
+    expect(within(flashback).getByText(/必要になった場面で「過去に準備していた」ことにできます/)).toBeTruthy()
+    expect(within(flashback).getByText(/ストレスの代わりにコイン1またはクルーの評判1/)).toBeTruthy()
+    expect(within(flashback).getByText(/起きた出来事を取り消すことはできません/)).toBeTruthy()
+    expect(screen.queryByText('フラッシュバックの費用')).toBeNull()
+    expect(screen.queryByText('フラッシュバックの扱い')).toBeNull()
+    expect(screen.queryByText(/情報収集/)).toBeNull()
+    expect(screen.getByRole('heading', { name: '運勢判定' })).toBeTruthy()
     const risky = screen.getByRole('table', { name: POSITION_LABELS.risky })
     expect(within(risky).getByRole('row', { name: /^4–5/ }).textContent).toContain('達成するが')
     expect(screen.queryByRole('table', { name: POSITION_LABELS.controlled })).toBeNull()

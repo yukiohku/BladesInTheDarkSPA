@@ -72,6 +72,16 @@ function SummaryTableTabs({ block }: { block: TabbedTables }) {
 function SummaryBlock({ block }: { block: SummaryChapter['blocks'][number] }) {
   switch (block.kind) {
     case 'table':
+      if (block.intro || block.paragraphs) {
+        return (
+          <div className="rules-summary__table-topic">
+            <h3>{block.table.title}</h3>
+            {block.intro && <p>{block.intro}</p>}
+            <SummaryTable table={block.table} hideCaption />
+            {block.paragraphs?.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          </div>
+        )
+      }
       return <SummaryTable table={block.table} />
     case 'tabs':
       return <SummaryTableTabs block={block} />

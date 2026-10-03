@@ -10,7 +10,7 @@ type SummaryTable = {
 type SummaryBlock =
   | { kind: 'text'; title?: string; paragraphs: readonly string[] }
   | { kind: 'steps'; title: string; items: readonly string[] }
-  | { kind: 'table'; table: SummaryTable }
+  | { kind: 'table'; table: SummaryTable; intro?: string; paragraphs?: readonly string[] }
   | { kind: 'tabs'; title: string; initialTab: string; tables: readonly (SummaryTable & { tabLabel: string })[] }
   | { kind: 'note'; title: string; text: string }
   | { kind: 'details'; title: string; paragraphs: readonly string[] }
@@ -233,6 +233,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
       },
       { kind: 'note', title: '初動判定が決める範囲', text: '最初の行動の判定状況を決めます。行動順や仕事全体の成否を決める判定ではありません。その後の状況は各行動に合わせて設定し直します。' },
       {
+        intro: '仕事前には携行量を選びます。',
         kind: 'table', table: {
           title: 'Loadと装備の宣言', headers: ['基本のLoad', '見た目と動き'],
           rows: [
@@ -242,43 +243,29 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
             ['過積載：7–9', '荷が多すぎ、ごくゆっくり動くことしかできない。'],
           ],
         },
+        paragraphs: ['個々の装備は使う場面で宣言できます。宣言した装備のLoad合計を選んだ範囲に収めます。Load 0の装備は携行量を消費しません。'],
       },
       {
-        kind: 'text', title: '装備は必要になってから選べる',
-        paragraphs: ['仕事前には携行量を選び、個々の装備は使う場面で宣言できます。宣言した装備のLoad合計を選んだ範囲に収めます。Load 0の装備は携行量を消費しません。'],
-      },
-      {
+        intro: 'ゲーム中、必要になった場面で「過去に準備していた」ことにできます。GMが内容に応じて、支払うストレスを決めます。',
         kind: 'table', table: {
-          title: 'フラッシュバックの費用', headers: ['ストレス', '過去の準備'],
+          title: 'フラッシュバック', headers: ['ストレス', '過去の準備'],
           rows: [
             ['0', '普通に機会のあった行動。'],
             ['1', '複雑な行動や、起こりにくい機会を使う準備。'],
             ['2以上', '特別な機会や偶然を必要とする手の込んだ準備。'],
           ],
         },
-      },
-      {
-        kind: 'text', title: 'フラッシュバックの扱い',
         paragraphs: [
-          '過去の準備をその場で宣言し、GMが費用を決めます。ストレスの支払いとは別に、必要ならアクション判定や運勢判定を行います。',
-          'ダウンタイム活動を描く場合は、ストレスの代わりにコイン1またはクルーの評判1を支払います。すでに現在に起きた出来事を取り消すことはできません。',
+          'ストレスの支払いとは別に、必要ならアクション判定や運勢判定を行います。',
+          'ダウンタイム活動を描く場合は、ストレスの代わりにコイン1またはクルーの評判1を支払います。',
+          'すでに現在に起きた出来事を取り消すことはできません。',
         ],
-      },
-      {
-        kind: 'table', table: {
-          title: '情報収集と判定の使い分け', headers: ['状況', '扱い'],
-          rows: [
-            ['答えを得るのに障害がある', 'アクション判定。'],
-            ['障害はないが成果が不確か', '運勢判定で得られる情報の程度を決める。'],
-            ['一度では調べきれない', '長期プロジェクトを検討する。'],
-          ],
-        },
       },
       {
         kind: 'text', title: '運勢判定',
         paragraphs: [
           '技能・品質・階級などをダイス数の基準に、有利・不利を加減します。適した値がないときは基本1d、またはGMがダイス数を決めます。',
-          '1–3は乏しい成果、4–5は部分的な成果、6は十分な成果、クリティカルは特別に良い成果です。アクション判定の悪影響表をそのまま適用するものではありません。情報収集では、効果に応じてGMが正直に答えます。',
+          '1–3は乏しい成果、4–5は部分的な成果、6は十分な成果、クリティカルは特別に良い成果です。アクション判定の悪影響表をそのまま適用するものではありません。',
         ],
       },
     ],
@@ -289,7 +276,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
     blocks: [
       {
         kind: 'text', title: '活動回数と追加の費用',
-        paragraphs: ['各PCは通常2回、戦争中は1回の活動ができます。追加1回につきコイン1またはクルーの評判1を支払います。同じ活動を複数回選べます。普通の会話や移動、情報収集などはこの活動回数で制限しません。'],
+        paragraphs: ['各PCは通常2回、戦争中は1回の活動ができます。追加1回につきコイン1またはクルーの評判1を支払います。同じ活動を複数回選べます。普通の会話や移動などはこの活動回数で制限しません。'],
       },
       {
         kind: 'note', title: 'ダウンタイム判定を改善する',

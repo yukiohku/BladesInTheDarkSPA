@@ -86,6 +86,26 @@ function SummaryBlock({ block }: { block: SummaryChapter['blocks'][number] }) {
   }
 }
 
+function SummaryChapterBody({ chapter }: { chapter: SummaryChapter }) {
+  const splitAt = chapter.id === 'teamwork' ? 2 : chapter.id === 'consequences' ? 4 : null
+  if (splitAt !== null) {
+    return (
+      <div className="rules-summary__body rules-summary__body--columns">
+        {[chapter.blocks.slice(0, splitAt), chapter.blocks.slice(splitAt)].map((blocks, columnIndex) => (
+          <div key={columnIndex} className="rules-summary__column">
+            {blocks.map((block, blockIndex) => <SummaryBlock key={blockIndex} block={block} />)}
+          </div>
+        ))}
+      </div>
+    )
+  }
+  return (
+    <div className={`rules-summary__body${chapter.id === 'roll' ? ' rules-summary__body--roll' : ''}`}>
+      {chapter.blocks.map((block, blockIndex) => <SummaryBlock key={blockIndex} block={block} />)}
+    </div>
+  )
+}
+
 export function RulesSummaryView() {
   const chapterRefs = useRef<Partial<Record<SummaryChapterId, HTMLHeadingElement>>>({})
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'instant' }) }, [])
@@ -119,7 +139,8 @@ export function RulesSummaryView() {
         </nav>
         <div className="rules-summary__chapters">
           {SUMMARY_CHAPTERS.map((chapter, index) => (
-            <section key={chapter.id} id={`summary-${chapter.id}`} aria-labelledby={`summary-${chapter.id}-title`} className="rules-summary__chapter">
+            <section key={chapter.id} id={`summary-${chapter.id}`} aria-labelledby={`summary-${chapter.id}-title`}
+              className={`rules-summary__chapter${['roll', 'teamwork', 'consequences'].includes(chapter.id) ? ' rules-summary__chapter--wide' : ''}`}>
               <header className="rules-summary__chapter-heading">
                 <span aria-hidden="true">0{index + 1}</span>
                 <h2 id={`summary-${chapter.id}-title`} tabIndex={-1} ref={(element) => {
@@ -127,9 +148,7 @@ export function RulesSummaryView() {
                   else delete chapterRefs.current[chapter.id]
                 }}>{chapter.title}</h2>
               </header>
-              <div className={`rules-summary__body${chapter.id === 'roll' ? ' rules-summary__body--roll' : ''}`}>
-                {chapter.blocks.map((block, blockIndex) => <SummaryBlock key={blockIndex} block={block} />)}
-              </div>
+              <SummaryChapterBody chapter={chapter} />
             </section>
           ))}
           <footer className="rules-summary__attribution">

@@ -10,11 +10,11 @@
 | --- | --- | --- |
 | ダイスの基本 | [Core System](https://bladesinthedark.com/core-system) の Rolling the Dice | 最大の出目、複数の6、0個以下のときの2個の低い方、0個でクリティカル不可 |
 | 判定の手順と結果 | [Action Roll](https://bladesinthedark.com/action-roll) の6手順と Action Roll | 技能の選択はプレイヤー、状況・効果の設定はGM。状況ごとの4–5と1–3を別々に要約 |
-| 効果 | [Effect](https://bladesinthedark.com/effect) の効果表、Assessing Factors、Trading Position for Effect | 3段階とクロックの1／2／3区画。有効性・規模・品質、効果なし・極大効果、判定状況と効果の交換 |
+| 効果 | [Effect](https://bladesinthedark.com/effect) の効果表、Assessing Factors、Trading Position for Effect | 3段階とクロックの1／2／3区画。効果を決める要素は相手の弱点・人数や大きさ・道具の質で説明し、危険を増やして効果を高める交換は具体例で示す。効果なし・極大効果と逆方向の交換は画面から省く |
 | 追い込みと追加ダイス | [Stress & Trauma](https://bladesinthedark.com/stress-trauma) の Pushing Yourself、[Action Roll](https://bladesinthedark.com/action-roll) の Add Bonus Dice | 利益ごとにストレス2、各利益1回。＋1dの追い込みと取引を併用しない。援助は別枠 |
 | 協力 | [Teamwork](https://bladesinthedark.com/teamwork) の Assist、Lead a group action、Protect、Set up | 援助1人・ストレス1。集団行動は同じ技能の最良の判定結果を使い、指揮役が1–3の参加者ごとにストレス1。かばう・布石の対象と効果 |
 | 集団行動の例外 | [Crew Playbook](https://bladesinthedark.com/crew-playbook) の Synchronized | 別々の判定の6を合算できる能力が明示される。通常の集団行動の規則とこの例外を区別 |
-| 悪影響と傷 | [Consequences & Harm](https://bladesinthedark.com/consequences-harm) の5種類と Harm | 成功を取り消す厄介事を与えない。傷のペナルティは行動に該当するとき。空きがない場合は上段へ、レベル3満杯時は破滅的な結果 |
+| 悪影響と傷 | [Consequences & Harm](https://bladesinthedark.com/consequences-harm) の冒頭と Harm | 悪影響は判定結果や敵の行動で生じる傷・問題として短く説明し、5分類と厄介事の裁定上の注意は省く。傷のペナルティは行動に該当するとき。空きがない場合は上段へ、レベル3満杯時は破滅的な結果 |
 | 抵抗と鎧 | [Resistance & Armor](https://bladesinthedark.com/resistance-armor) の Resistance Roll、Armor、Death | 抵抗は成立し、軽減・回避範囲はGM。費用は6－採用した出目、クリティカルでストレス1解消。同じ悪影響は1回、複数の悪影響には別々に抵抗可能 |
 | 属性値 | [Actions & Attributes](https://bladesinthedark.com/actions-attributes) の Attribute Ratings | 最初の点が埋まっている技能数を数え、技能値を合計しない。属性の日本語は既存シートに合わせる |
 | 特殊鎧 | [Character Creation](https://bladesinthedark.com/character-creation) の Special Armor | 対応能力を持つ場合のみ使用。回復時期はアプリの能力定義と原典の個別説明に従い、共通の鎧リセットと混同しない |
@@ -52,6 +52,8 @@
 集団行動のクリティカルは「参加者の誰かがクリティカルを出せば、その結果を全員に適用します。」の一文に絞る。Teamwork の最良の判定結果を採用する規則と、Crew Playbook の Synchronized を再照合した。別々の判定の6に関する具体例と、特殊能力による例外の一般的な注意書きは画面から省く。
 
 抵抗は悪影響を抑える処理として説明する。行動の失敗そのものを成功に置き換える説明はしない。一方、機会の喪失も悪影響なので、抵抗できないと一律に断定しない。
+
+「悪影響」の説明に、軽減・回避するために抵抗判定を行えることを加える。「抵抗判定」は番号付きの4手順を、振るダイスとストレスの計算の2段落にまとめる。「抵抗に失敗はない」という独立見出しは設けず、宣言した時点で抵抗に成功することを、ストレスを受ける説明につなげる。「成立」「費用」という抽象的な表現は避ける。GMが決める軽減・回避の範囲はダイスの説明に添える。同じ悪影響への回数制限、複数の悪影響に個別に抵抗できること、判定後に取りやめられない条件の注釈は画面から省く。属性値の数え方も、シートに抵抗値を表示しているため画面から省く。0個以下の扱いは「判定」章の「ダイスの読み方」に集約する。
 
 特殊能力・クルーの強化による例外を網羅しない。全能力・全装備の再掲載、報酬・厄介事・派閥の詳細表、キャラクター作成の詳細手順は対象外。経験値条件と成長は既存シートに集約し、訓練は活動名と参照案内に留める。
 

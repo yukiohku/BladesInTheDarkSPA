@@ -1,15 +1,16 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { SUMMARY_CHAPTERS, SUMMARY_LABELS as LABELS } from '../constants/rulesSummary'
 import type { SummaryChapter, SummaryChapterId } from '../constants/rulesSummary'
 import logoUrl from '../assets/blades-logo.png'
 import './summary.css'
 
 type TableData = Extract<SummaryChapter['blocks'][number], { kind: 'table' }>['table']
+type TabbedTables = Extract<SummaryChapter['blocks'][number], { kind: 'tabs' }>
 
-function SummaryTable({ table }: { table: TableData }) {
+function SummaryTable({ table, hideCaption = false }: { table: TableData; hideCaption?: boolean }) {
   return (
     <table className="rules-summary__table">
-      <caption>{table.title}</caption>
+      <caption className={hideCaption ? 'rules-summary__caption--hidden' : undefined}>{table.title}</caption>
       <thead><tr>{table.headers.map((header) => <th key={header} scope="col">{header}</th>)}</tr></thead>
       <tbody>
         {table.rows.map(([label, description]) => (
@@ -20,19 +21,60 @@ function SummaryTable({ table }: { table: TableData }) {
   )
 }
 
+function SummaryTableTabs({ block }: { block: TabbedTables }) {
+  const id = useId()
+  const [selected, setSelected] = useState(() => Math.max(0, block.tables.findIndex((table) => table.tabLabel === block.initialTab)))
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
+  return (
+    <div className="rules-summary__table-tabs">
+      <div className="rules-summary__tab-heading">
+        <h3>{block.title}</h3>
+        <div role="tablist" aria-label={block.title}>
+          {block.tables.map((table, index) => (
+            <button key={table.tabLabel} type="button" role="tab" id={`${id}-tab-${index}`}
+              aria-selected={index === selected} aria-controls={`${id}-panel-${index}`} tabIndex={index === selected ? 0 : -1}
+              ref={(element) => { tabRefs.current[index] = element }} onClick={() => setSelected(index)}
+              onKeyDown={(event) => {
+                let next: number
+                switch (event.key) {
+                  case 'ArrowRight':
+                    next = (index + 1) % block.tables.length
+                    break
+                  case 'ArrowLeft':
+                    next = (index + block.tables.length - 1) % block.tables.length
+                    break
+                  case 'Home':
+                    next = 0
+                    break
+                  case 'End':
+                    next = block.tables.length - 1
+                    break
+                  default:
+                    return
+                }
+                event.preventDefault()
+                setSelected(next)
+                tabRefs.current[next]?.focus()
+              }}>{table.tabLabel}</button>
+          ))}
+        </div>
+      </div>
+      {block.tables.map((table, index) => (
+        <div key={table.tabLabel} role="tabpanel" id={`${id}-panel-${index}`} aria-labelledby={`${id}-tab-${index}`}
+          hidden={index !== selected} tabIndex={0}>
+          <SummaryTable table={table} hideCaption />
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function SummaryBlock({ block }: { block: SummaryChapter['blocks'][number] }) {
   switch (block.kind) {
     case 'table':
       return <SummaryTable table={block.table} />
-    case 'tables':
-      return (
-        <div>
-          <h3>{block.title}</h3>
-          <div className="rules-summary__tables">
-            {block.tables.map((table) => <SummaryTable key={table.title} table={table} />)}
-          </div>
-        </div>
-      )
+    case 'tabs':
+      return <SummaryTableTabs block={block} />
     case 'steps':
       return <div><h3>{block.title}</h3><ol>{block.items.map((item) => <li key={item}>{item}</li>)}</ol></div>
     case 'text':
@@ -85,7 +127,7 @@ export function RulesSummaryView() {
                   else delete chapterRefs.current[chapter.id]
                 }}>{chapter.title}</h2>
               </header>
-              <div className="rules-summary__body">
+              <div className={`rules-summary__body${chapter.id === 'roll' ? ' rules-summary__body--roll' : ''}`}>
                 {chapter.blocks.map((block, blockIndex) => <SummaryBlock key={blockIndex} block={block} />)}
               </div>
             </section>

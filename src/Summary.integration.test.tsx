@@ -62,6 +62,8 @@ describe('サマリー画面との往復', () => {
     expect(parsed.character).toEqual(saved)
     const raw = window.localStorage.getItem(STORAGE_KEY)
     const writes = vi.spyOn(Storage.prototype, 'setItem')
+    await user.click(screen.getByRole('tab', { name: '優位' }))
+    await user.click(screen.getByRole('tab', { name: '絶望的' }))
     await user.click(within(screen.getByRole('navigation', { name: 'サマリーの目次' })).getByRole('button', { name: 'ダウンタイム' }))
     await user.click(screen.getByRole('button', { name: 'シート' }))
     expect(screen.getByRole('textbox', { name: 'レベル1の傷 1（効果低下）' })).toHaveProperty('value', '打撲')

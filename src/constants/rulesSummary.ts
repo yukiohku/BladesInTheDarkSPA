@@ -11,7 +11,7 @@ type SummaryBlock =
   | { kind: 'text'; title?: string; paragraphs: readonly string[] }
   | { kind: 'steps'; title: string; items: readonly string[] }
   | { kind: 'table'; table: SummaryTable }
-  | { kind: 'tables'; title: string; tables: readonly SummaryTable[] }
+  | { kind: 'tabs'; title: string; initialTab: string; tables: readonly (SummaryTable & { tabLabel: string })[] }
   | { kind: 'note'; title: string; text: string }
   | { kind: 'details'; title: string; paragraphs: readonly string[] }
 export type SummaryChapter = {
@@ -45,7 +45,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
     blocks: [
       {
         kind: 'text',
-        paragraphs: ['技能選択（PL）→ 状況・効果（GM）→ 技能値d6＋補正'],
+        paragraphs: ['プレイヤーが技能を選ぶ → GMが判定状況・効果を決める → 技能値に補正を加えた数のd6を振る'],
       },
       {
         kind: 'table', table: {
@@ -58,10 +58,10 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
         },
       },
       {
-        kind: 'tables', title: '判定状況別の結果',
+        kind: 'tabs', title: '判定状況別の結果', initialTab: 'リスキー',
         tables: [
           {
-            title: POSITION_LABELS.controlled, headers: ['出目', '結果'],
+            title: POSITION_LABELS.controlled, tabLabel: '優位', headers: ['出目', '結果'],
             rows: [
               ['クリティカル', '達成し、効果が上がる。'],
               ['6', '達成する。'],
@@ -70,7 +70,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
             ],
           },
           {
-            title: POSITION_LABELS.risky, headers: ['出目', '結果'],
+            title: POSITION_LABELS.risky, tabLabel: 'リスキー', headers: ['出目', '結果'],
             rows: [
               ['クリティカル', '達成し、効果が上がる。'],
               ['6', '達成する。'],
@@ -79,7 +79,7 @@ export const SUMMARY_CHAPTERS: readonly SummaryChapter[] = [
             ],
           },
           {
-            title: POSITION_LABELS.desperate, headers: ['出目', '結果'],
+            title: POSITION_LABELS.desperate, tabLabel: '絶望的', headers: ['出目', '結果'],
             rows: [
               ['クリティカル', '達成し、効果が上がる。'],
               ['6', '達成する。'],
